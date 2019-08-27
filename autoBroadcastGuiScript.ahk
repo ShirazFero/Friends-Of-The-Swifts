@@ -1,24 +1,10 @@
-﻿#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
+#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
 ; #Warn  ; Enable warnings to assist with detecting common errors.
 SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
 #Persistent
 #SingleInstance,Force
 SetTitleMatchMode, 2 ; match start of the title
-;----Start GUI----------------------------------------------------
-/*StartGui:
-Gui, 1:add,text,x15 y30, please enter interval time in format of HH:MM
-Gui, 1:add,Edit,vHrs x+10 w35 Limit2 number
-Gui, Add, UpDown, vMyUpDown1 Range0-23, 1
-Gui, 1:add,text,x+6 w10,:
-Gui, 1:add,Edit,vMins x+1 w35 Limit2 number
-Gui, Add, UpDown, vMyUpDown2 Range0-59 , 1
-Gui, 1:add,text,x15 y+10, please enter number of cameras
-Gui, Add, Edit ,vCams x+20  w50 Limit2 ReadOnly
-Gui, Add, UpDown, vMyUpDown3 Range1-6, 1
-Gui, 1:add,button,x95 y+30 w100 h30 gSubmitIt,SUBMIT
-GUI, 1:show,w350 h180 ,Starting Control panel 
-return
-*/
+
 ;----Init Vars----------------------------------------------------
 intMins:= 0
 intHrs:= 0
@@ -35,15 +21,6 @@ StartTime:=0
 StopTime:=0
 
 ;----GUI----------------------------------------------------------
-/*SubmitIt:
-Gui, 1:submit
-cam=: %Cams%
-intMins:= %Mins%
-intHrs:= %Hrs%
-MsgBox intHrs= %Hrs%  intMins= %Mins%
-interval=(intHrs*60) + intMins
-MsgBox interval:%interval 
-*/
 Gui, 1:destroy
 GUI, 2:Show,w500 h300 vG2, Broadcast Control panel 
 Gui, 2:font, cblack
@@ -72,7 +49,6 @@ return
 setInterval:
 interval:=setRInterval(interval)
 intervalTime:= toTimeObject(interval)
-;MsgBox % "Element number " . A_Index . " is " . intArray%A_Index%
 GuiControl,,IntervalText,Current Recording Interval is %Interval% Minutes
 return
 
@@ -108,13 +84,11 @@ if(broadcasting==1){
 }
 broadcasting=1
 StartTime:= A_Hour . A_Min
+SetTimer, checkTime, 500
 StopTime:=addInterval(StartTime,intervalTime)
-MsgBox StopTime:%StopTime%
-;StopTime := StartTime+interval
 MsgBox,in srtINTbrd ,start time: %StartTime% ,stop time: %StopTime% ,steaming:%steaming% , broadcasting:%broadcasting%
 GuiControl,,IntervalTime,Inetval start time: %StartTime% stop time: %StopTime%  
 GuiControl,,brdIntText, Interval Live Broadcast Is ON
-SetTimer, checkTime, 5000
 MsgBox,in srtINTbrd
 return
 
@@ -177,10 +151,15 @@ startBroadcasting(cam){
 	CoordMode, mouse ,screen
 	MouseMove , 287, 379																;create new live event
 	Sleep, 2000
-	click 
-	Sleep, 2000
-	if(cam==1)
+	click
+	Sleep, 4000
+	if(cam==1){
+		MouseMove 465, 201
+		sleep, 2000
+		click
 		goto, end
+		
+	}
 	click ,243, 199																	;go to ingestion settings
 	Sleep, 5000
 	click ,230, 199
@@ -340,17 +319,17 @@ toTimeObject(interval){
 helper method to generate a new stop time with regard to current start time and interval time
 */
 addInterval(StartTime,intervalTime){
-if(round(StartTime/100)>StartTime/100)	
+if(round(StartTime/100)>StartTime/100)	 ; get start Hrs
 	startHrs:=round( StartTime/100 )-1
 else
 	startHrs:=round( StartTime/100 )
-if(round( intervalTime/100 )>intervalTime/100 )
+if(round( intervalTime/100 )>intervalTime/100 ) ; get interval Hrs
 	intHrs:=round( intervalTime/100 )-1
 else
 	intHrs:=round( intervalTime/100 )
 startMins:= StartTime - (startHrs*100)
 intMins:=intervalTime - (intHrs*100)
-stopHrs:=Mod(startHrs+intHrs,24)
+stopHrs:=Mod(startHrs+intHrs,24)		
 stopMIns:=Mod(startMins+intMins,60)
 if(startMins+intMins>59)
 	stopHrs++
@@ -360,4 +339,4 @@ stoptime:=(stopHrs*100) + stopMIns
 }
 exitApp
 ^q::ExitApp
-^w::stopBroadcasting()
+^w::startBroadcasting(cam)
