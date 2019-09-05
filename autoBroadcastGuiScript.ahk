@@ -15,12 +15,15 @@ intbrdFlag=0									;interval brd flag
 StartTime:=0									;brd start time
 StopTime:=0										;brd stop time
 cam:=setCamNum()								;initiate camera number
+startlaterflag:=0								;start later flag
 while(cam==null)
 	cam:=setCamNum()
-interval:=setRInterval(interval)				;initiate interval size
-while(interval==null)
+setRInterval(interval)				;initiate interval size
+intervalTime:= toTimeObject(interval)	
+/*while(interval==null)
 	interval:=setRInterval(interval)
 intervalTime:= toTimeObject(interval)
+*/
 
 ;----GUI----------------------------------------------------------
 GUI, 2:Show,w500 h300 vG2, Broadcast Control panel 
@@ -29,14 +32,15 @@ Gui, 2:add, text, x130 y+1 s30 ,welcome to Broadcast control panel
 Gui, 2:font, cblack s8
 Gui, 2:add, button,x15 w100 h30 gaddCam, ADD CAMERA
 Gui, 2:add, button,x+2 w100 h30 gremCam, REMOVE CAMERA
-Gui, 2:add, button,x15 w200 h30 gsetInterval, CHANGE RECORDING INTERVAL
-Gui, 2:add, button,x15 w200 h30 gstartIntBrd, START INTERVAL BROADCASTING
+Gui, 2:add, button,x15 w200 h30 gsetInterval, CHANGE BROADCAST INTERVAL
+Gui, 2:add, button,x15 w200 h30 gstartIntBrd, START INTERVAL BROADCAST NOW
+Gui, 2:add, button,x15 w200 h30 gstartLater, START INTERVAL BROADCAST LATER
 Gui, 2:add, button,x15 w200 h30 gstopIntBrd, STOP INTERVAL BROADCASTING
 Gui, 2:add, button,x15 w200 h30 gstartBrd, START BROADCASTING
 Gui, 2:add, button,x15 w200 h30 gstopBrd, STOP BROADCASTING
 Gui, 2:font, cblack s10
 Gui, 2:add, text,s10 x+20 y35 vCamNum,Current Camera Num is: %cam%
-Gui, 2:add, text,  y+25 vIntervalText,Current Recording Interval is: %interval% minutes
+Gui, 2:add, text,  y+25 vIntervalText,Current Interval is: %interval% minutes
 Gui, 2:add, text,  y+25 vbrdIntText,Interval Broadcast Is OFF
 Gui, 2:add, text,  y+23 vIntervalTime,Inetval start and stop time is not defined
 Gui, 2:add, text,  y+22 vbrdText,Live Broadcast Is OFF
@@ -48,39 +52,30 @@ return
 ;----labels-------------------------------------------------------
 
 addCam:
-	cam:=AddCamNum(cam)															;set cam num
-	GuiControl,,CamNum,Current Camera Num is %cam% 								;print to gui
+	AddCamNum(cam)																;set cam num
+	GuiControl,,CamNum,Current Camera Num is: %cam%								;print to gui
 return
 
 setInterval:
-	interval:=setRInterval(interval)										  	;set interval num	in minutes			
+	setRInterval(interval)										  				;set interval num	in minutes			
+	if(interval==null){
+		GuiControl,2:,IntervalText,interval isn't set 							;print to gui
+		return
+	}
 	intervalTime:= toTimeObject(interval)								    	;convert intreval time to HH:MM format
 	if(broadcasting){
 		GuiControl,2:,IntervalText,Next Interval will be %Interval% Minutes 	;print to gui
 	return
 	}
-	GuiControl,2:,IntervalText,Current Recording Interval is %Interval% Minutes 	;print to gui
+	GuiControl,2:,IntervalText,Current Interval is %Interval% Minutes ;print to gui
 return
 
 remCam:
-	cam:=RemCam(cam)														  	;remove camera for next broadcast
-	GuiControl,,CamNum,Current Camera Num is %cam% 
-return
-
-startBrd:										
-	if(broadcasting==1){														;check if already broadcasting
-	 MsgBox, already Broadcasting
-	 return
-	}
-	broadcasting=1																;set flags
-	brdFlag=1
-	;startBroadcasting(cam)														;start brd
-	GuiControl,,brdText,Live Broadcast Is ON									;print to gui
-	SetTimer, brodtimer,1000													;start timer
+	RemCam(cam)														  	;remove camera for next broadcast
+	GuiControl,,CamNum,Current Camera Num is: %cam%	 
 return
 
 brodtimer:
-	;TrayTip BRDtimer,here every sec
 	if(intSecs==59){															;check seconds
 		intMins++
 		if(intMins<0)
@@ -98,13 +93,29 @@ brodtimer:
 		GuiControl,2:,brdTimer,Broadcast Timer %intMins%:%intSecs%
 return
 
+startBrd:										
+	if(broadcasting==1){														;check if already broadcasting
+	 MsgBox, already Broadcasting
+	 return
+	} 
+	if(intbrdFlag){
+	 MsgBox,inteval broadcasting is On end it before staring regular broadcast
+	 return
+	}
+	broadcasting=1																;set flags
+	brdFlag=1
+	;startBroadcasting(cam)														;start brd
+	GuiControl,,brdText,Live Broadcast Is ON									;print to gui
+	SetTimer, brodtimer,1000													;start timer
+return
+
 stopBrd:
 	if(broadcasting==0){														;check flags
 	 MsgBox,stream is not broadcasting
 	 return
 	}
 	if(intbrdFlag){
-	 MsgBox,inteval broadcasting is On
+	 MsgBox,regular broadcasting is On end it before staring inteval broadcast
 	 return
 	}
 	broadcasting=0																;set flags
@@ -115,20 +126,32 @@ stopBrd:
 	intMins:=0																	;reset time vars
 	intSecs:=0
 return
-
+startLater:
+	InputBox,StartTime,`t,Please enter requsted start time in HH:MM Format
+	if(!isTimeFormat(StartTime))
+		goto startLater
+	startlaterflag:=1
 startIntBrd:
+	if(interval==null){
+		goto setInterval
+	}
 	if(broadcasting==1){														;check flags
 	 MsgBox, already Broadcasting
 	 return
 	}
+	if(brdFlag){
+	 MsgBox,broadcasting is already On
+	 return
+	}
 	intbrdFlag:=1																;set flags
 	broadcasting=1
-	StartTime:= A_Hour . A_Min													;set start time
-	SetTimer, checkTime, 500													;start interval timer
+	if(!startlaterflag)
+		StartTime:= A_Hour . A_Min												;set start time
 	StopTime:=addInterval(StartTime,intervalTime)								;set stop time
+	SetTimer, checkTime, 500													;start interval timer
 	;MsgBox,in srtINTbrd ,start time: %StartTime% ,stop time: %StopTime% ,steaming:%steaming% , broadcasting:%broadcasting%
 	GuiControl,2:,IntervalTime,Inetval start time: %StartTime% stop time: %StopTime%  ;print to gui
-	GuiControl,2:,brdIntText, Interval Live Broadcast Is ON
+	GuiControl,2:,brdIntText, Interval Broadcast Is ON
 	;MsgBox,in srtINTbrd
 return
 
@@ -143,26 +166,29 @@ stopIntBrd:
 	}
 	broadcasting=0																;set flags
 	intbrdFlag:=0
+	startlaterflag:=0															
 	SetTimer , checkTime, OFF													;set iterval timer off
 	;MsgBox, timer off
-	stopBroadcasting()															;stop brd				
+	;stopBroadcasting()															;stop brd				
 	SetTimer, brodtimer,off														;set minute timer off	
 	intMins:=0																	;reset vars
 	intSecs:=0
-	GuiControl,2:,brdIntText,Interval Live Broadcast is OFF						;print to gui
+	GuiControl,2:,brdIntText,Interval Broadcast is OFF							;print to gui
 return 
 
 checkTime:
 	time := A_Hour . A_Min														;get current time
 	If (time = StartTime && !streaming) {										;check if its start time
 		streaming := 1															;set flag
+		TrayTip STREAMING, Starting the Stream Please Don't Touch Mouse or Keyboard Until The Signal
 		;startBroadcasting(cam)													;start the stream			
 		SetTimer, brodtimer,1000												;set minute counter
-		GuiControl,2:,brdIntText,Live Broadcast Is ON							;print to gui
-		TrayTip STREAMING, Starting the Stream
+		;GuiControl,2:,brdIntText,Live Broadcast Is ON							;print to gui
+		TrayTip STREAMING, finished Starting the Stream 
 	}
 	If (time = StopTime && streaming) {											;check if it's stop time
 		streaming := 0															;set flag
+		trayTip STREAMING, Stoping the stream Please Don't Touch Mouse or Keyboard Until The Signal
 		;stopBroadcasting() 					 									;stop the stream
 		SetTimer, brodtimer,off													;stop minute counter
 		intMins:=0																;reset vars
@@ -170,9 +196,12 @@ checkTime:
 		StartTime:=time															;set next interval start time
 		StopTime:=addInterval(StartTime,intervalTime)							;set next interval stop time
 		GuiControl,2:,IntervalTime,Inetval start time: %StartTime% stop time: %StopTime% 		;print to gui
-		TrayTip STREAMING, Stoping the stream start:%StartTime%  stop%StopTime% streaming:%streaming%
+		TrayTip STREAMING,finished Stoping the stream 
 	}
 return
+
+GuiClose:
+	exitApp
 ;----functions----------------------------------------------------
 /* 
 this method ends a live stream evnent and closes the proccess
@@ -285,29 +314,32 @@ startBroadcasting(cam){
 /*
 adds a camera to next broadcat
 */
-AddCamNum(cam){
+AddCamNum(byref cam){
 	if(cam<6 && cam>0){
 		MsgBox, camera will be added to next recording session 
-		return cam+1
+		cam++
+		return
 	}
 	else{
 		MsgBox,maximum camera limit reached
-		return cam
+		return 
 	}
 }
 /*
 sets interval time to next broadcat
 */
-setRInterval(interval){
+setRInterval(byref interval){
 	tmp:=0
-	InputBox, tmp,`t,please enter intrval time in minutes between 1 and 360
+	InputBox, tmp,`t,please enter intrval time in minutes between 5 and 360
 	if ErrorLevel{
-		MsgBox, request cancelled
-		return interval
+		MsgBox, interval hasn't been set
+		interval:=null
+		return 
 	}
-	if(tmp<=600 && tmp>=1){
+	if(tmp<=600 && tmp>=5){
 		MsgBox, interval was set to %tmp% minutes
-		return tmp
+		interval:=tmp
+		return 
 	}
 	else{
 		MsgBox, wrong input interval wasn't changed
@@ -318,7 +350,6 @@ setRInterval(interval){
 set initial camera number
 */
 setCamNum(){
-	tmp:=0
 	InputBox, tmp,`t,please enter number of cameras you would like to broadcast 1 and 6
 	if ErrorLevel{
 		MsgBox, request cancelled
@@ -335,14 +366,15 @@ setCamNum(){
 /*
 removes a camera to next broadcat
 */ 
-RemCam(cam){
+RemCam(byref cam){
 	if(cam>1){
 		MsgBox,camera will be removed from next recording session
-		return cam-1 
+		cam--
+		return  
 	}
 	else{
 		MsgBox,minimum camera limit reached
-		return cam
+		return 
 	}
 }
 
@@ -352,41 +384,37 @@ input :  time in minutes
 returns :time in HHMM format note HH could be 0
 */
 toTimeObject(interval){
-	hours:=interval/60			;get hour count
-	if(Round(hours)>hours)
-		hours:=Round(hours)-1   ;if rounded up decrease 1
-	else
-		hours:=Round(hours)
+	hours:=floor(interval/60)	;get hour count
 	minutes:=mod(interval,60)	;get minute count
-	tmp:= 100*hours
+	tmp:= 100*hours				;compute time to HH:MM format
 	tmp+=minutes
 	;MsgBox time object returned:%tmp%
-	return tmp
-		
+	return tmp					
 }
 /*
 helper method to generate a new stop time with regard to current start time and interval time
 */
 addInterval(StartTime,intervalTime){
-	if(round(StartTime/100)>StartTime/100)	 ; get start Hrs
-		startHrs:=round( StartTime/100 )-1
-	else
-		startHrs:=round( StartTime/100 )
-	if(round( intervalTime/100 )>intervalTime/100 ) ; get interval Hrs
-		intHrs:=round( intervalTime/100 )-1
-	else
-		intHrs:=round( intervalTime/100 )
-	startMins:= StartTime - (startHrs*100)
-	intMins:=intervalTime - (intHrs*100)
-	stopHrs:=Mod(startHrs+intHrs,24)		
-	stopMIns:=Mod(startMins+intMins,60)
-	if(startMins+intMins>59)
+	startHrs:=floor(StartTime/100)						;get start HH
+	intHrs:=floor(intervalTime/100)						;get interval HH
+	startMins:= StartTime - (startHrs*100)				;get start MM
+	intMins:=intervalTime - (intHrs*100)				;get interval MM
+	stopHrs:=Mod(startHrs+intHrs,24)					;calc stop HH
+	stopMIns:=Mod(startMins+intMins,60)					;calc stop MM
+	;MsgBox StartTime:%StartTime% intervalTime:%intervalTime% startHrs%startHrs% startMins:%startMins% intHrs%intHrs% intMins:%intMins% stopHrs:%stopHrs% stopMIns:%stopMIns%
+	if(startMins+intMins>59)							;add 1 HH if needed
 		stopHrs++
-	;MsgBox StartTime:%StartTime% intervalTime:%intervalTime% startHrs%startHrs% intHrs%intHrs% startMins:%startMins% intMins:%intMins% stopHrs:%stopHrs% stopMIns:%stopMIns%
-	stoptime:=(stopHrs*100) + stopMIns
-	 return stoptime
+	stoptime:=(stopHrs*100) + stopMIns					;set stop time to HH:MM
+	return stoptime
 }
-
+isTimeFormat(time){
+	hours:=floor(time/100)			;get hour count
+	minutes:=time - (hours*100)		;get minute count
+	;MsgBox hours:%hours%minutes:%minutes%
+	if(hours>24 || hours <0 || minutes>59 || minutes<0 )		;check if time is valid HH:MM format
+		return 0
+	return 1
+}
 exitApp
 ^q::ExitApp
 ^w::startBroadcasting(cam)
