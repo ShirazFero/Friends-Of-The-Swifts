@@ -1,4 +1,10 @@
-# This is my readme file 
+# Friends of Swifts 
 ------------------------
 
-## this is my branch ....
+this is an automated Gui script for live broadcasts
+
+### how to use
+...
+
+### writen by
+...
