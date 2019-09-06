@@ -18,13 +18,8 @@ cam:=setCamNum()								;initiate camera number
 startlaterflag:=0								;start later flag
 while(cam==null)
 	cam:=setCamNum()
-setRInterval(interval)				;initiate interval size
+setRInterval(interval)							;initiate interval size
 intervalTime:= toTimeObject(interval)	
-/*while(interval==null)
-	interval:=setRInterval(interval)
-intervalTime:= toTimeObject(interval)
-*/
-
 ;----GUI----------------------------------------------------------
 GUI, 2:Show,w500 h300 vG2, Broadcast Control panel 
 Gui, 2:font, cblack s12
@@ -50,7 +45,6 @@ Gui,2: +AllwaysOnTop
 
 return
 ;----labels-------------------------------------------------------
-
 addCam:
 	AddCamNum(cam)																;set cam num
 	GuiControl,,CamNum,Current Camera Num is: %cam%								;print to gui
@@ -67,11 +61,11 @@ setInterval:
 		GuiControl,2:,IntervalText,Next Interval will be %Interval% Minutes 	;print to gui
 	return
 	}
-	GuiControl,2:,IntervalText,Current Interval is %Interval% Minutes ;print to gui
+	GuiControl,2:,IntervalText,Current Interval is %Interval% Minutes 			;print to gui
 return
 
 remCam:
-	RemCam(cam)														  	;remove camera for next broadcast
+	RemCam(cam)														  			;remove camera for next broadcast
 	GuiControl,,CamNum,Current Camera Num is: %cam%	 
 return
 
@@ -104,7 +98,9 @@ startBrd:
 	}
 	broadcasting=1																;set flags
 	brdFlag=1
-	;startBroadcasting(cam)														;start brd
+	TrayTip STREAMING, Starting the Stream Please Don't Touch Mouse or Keyboard Until The Signal
+	startBroadcasting(cam)														;start brd
+	TrayTip STREAMING, finished Starting the Stream 
 	GuiControl,,brdText,Live Broadcast Is ON									;print to gui
 	SetTimer, brodtimer,1000													;start timer
 return
@@ -120,7 +116,7 @@ stopBrd:
 	}
 	broadcasting=0																;set flags
 	brdFlag=0
-	;stopBroadcasting()															;stop brd
+	stopBroadcasting()															;stop brd
 	GuiControl,2:,brdText,Live Broadcast Is OFF									;print to gui
 	SetTimer, brodtimer,off														;stop time
 	intMins:=0																	;reset time vars
@@ -149,10 +145,10 @@ startIntBrd:
 		StartTime:= A_Hour . A_Min												;set start time
 	StopTime:=addInterval(StartTime,intervalTime)								;set stop time
 	SetTimer, checkTime, 500													;start interval timer
-	;MsgBox,in srtINTbrd ,start time: %StartTime% ,stop time: %StopTime% ,steaming:%steaming% , broadcasting:%broadcasting%
+	;MsgBox,in srtINTbrd ,start time: %StartTime% ,stop time: %StopTime% ,steaming:%steaming% , broadcasting:%broadcasting% ;testing
 	GuiControl,2:,IntervalTime,Inetval start time: %StartTime% stop time: %StopTime%  ;print to gui
 	GuiControl,2:,brdIntText, Interval Broadcast Is ON
-	;MsgBox,in srtINTbrd
+	;MsgBox,in srtINTbrd														;testing
 return
 
 stopIntBrd:
@@ -168,8 +164,8 @@ stopIntBrd:
 	intbrdFlag:=0
 	startlaterflag:=0															
 	SetTimer , checkTime, OFF													;set iterval timer off
-	;MsgBox, timer off
-	;stopBroadcasting()															;stop brd				
+	;MsgBox, timer off															;testing
+	stopBroadcasting()															;stop brd				
 	SetTimer, brodtimer,off														;set minute timer off	
 	intMins:=0																	;reset vars
 	intSecs:=0
@@ -180,23 +176,18 @@ checkTime:
 	time := A_Hour . A_Min														;get current time
 	If (time = StartTime && !streaming) {										;check if its start time
 		streaming := 1															;set flag
-		TrayTip STREAMING, Starting the Stream Please Don't Touch Mouse or Keyboard Until The Signal
-		;startBroadcasting(cam)													;start the stream			
+		startBroadcasting(cam)													;start the stream			
 		SetTimer, brodtimer,1000												;set minute counter
-		;GuiControl,2:,brdIntText,Live Broadcast Is ON							;print to gui
-		TrayTip STREAMING, finished Starting the Stream 
 	}
 	If (time = StopTime && streaming) {											;check if it's stop time
 		streaming := 0															;set flag
-		trayTip STREAMING, Stoping the stream Please Don't Touch Mouse or Keyboard Until The Signal
-		;stopBroadcasting() 					 									;stop the stream
+		stopBroadcasting() 					 									;stop the stream
 		SetTimer, brodtimer,off													;stop minute counter
 		intMins:=0																;reset vars
 		intSecs:=0
 		StartTime:=time															;set next interval start time
 		StopTime:=addInterval(StartTime,intervalTime)							;set next interval stop time
-		GuiControl,2:,IntervalTime,Inetval start time: %StartTime% stop time: %StopTime% 		;print to gui
-		TrayTip STREAMING,finished Stoping the stream 
+		GuiControl,2:,IntervalTime,Inetval start time: %StartTime% stop time: %StopTime% 	;print to gui
 	}
 return
 
@@ -208,7 +199,9 @@ this method ends a live stream evnent and closes the proccess
 input:cams
 */
 stopBroadcasting(){
-	MouseMove, 277,369
+	TrayTip STREAMING, Stopping the Stream Please Don't Touch Mouse or Keyboard Until The Signal
+	CoordMode, mouse ,screen
+	MouseMove, 272, 371
 	sleep, 2000
 	click
 	MouseMove, 787, 194
@@ -218,23 +211,24 @@ stopBroadcasting(){
 	click
 	TrayTip,STREAMING, broadcasting has stopped
 	return
+	TrayTip STREAMING, finished Stopping the Stream 
 }
 /* 
 this method starts a live stream evnent and add cameras with regard to input
 input:cams
 */
 startBroadcasting(cam){
-	
+	TrayTip STREAMING, Starting the Stream Please Don't Touch Mouse or Keyboard Until The Signal
 	CoordMode, mouse ,screen
-	run https://www.youtube.com/my_live_events?o=U&ar=1566140058078						;goto live event link
+	run https://www.youtube.com/my_live_events											;goto live event link
 	Sleep, 2000
 	CoordMode, mouse ,screen
-	MouseMove , 287, 379																;create new live event
+	MouseMove , 287, 570																;create new live event
 	Sleep, 2000
 	click
 	Sleep, 4000
 	if(cam==1){
-		MouseMove 465, 201
+		MouseMove 465, 395
 		sleep, 2000
 		click
 		goto, end
@@ -309,6 +303,25 @@ startBroadcasting(cam){
 	click, 636, 200																	;goto live control room
 	sleep, 2000
 	click, 636, 200
+	sleep,2000
+	MouseMove 246, 372
+	Click
+	sleep,2000
+	MouseMove 789, 197
+	click
+	sleep,25000
+	MouseMove 208, 412
+	sleep,1000
+	click
+	sleep,2000
+	MouseMove 271, 371
+	sleep,1000
+	click
+	sleep,2000
+	MouseMove 783, 172
+	sleep,1000
+	click 
+	TrayTip STREAMING, finished Starting the Stream 
 }
 
 /*
@@ -416,5 +429,6 @@ isTimeFormat(time){
 	return 1
 }
 exitApp
-^q::ExitApp
+
+^q::exitApp
 ^w::startBroadcasting(cam)
