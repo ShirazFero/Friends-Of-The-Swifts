@@ -1,22 +1,22 @@
 # Friends of Swifts 
 ------------------------
 
-this is an automated Gui script for live broadcasts
+##this is an Live broadcast automation Script with Gui
 
-### Usage Instructions
-
+## Usage Instructions:
+----------------------
 ##Initializing:(do it once)
 ----------------------
 1.download and install AHK on your pc at https://www.autohotkey.com/ 
 
 2.download and install OBS studio on your pc at https://obsproject.com/download 
 
-3.add all camera rtmp streams to OBS and add a scene for each camera, watch video watch video __LINK__ 
+3.add all camera rtmp streams to OBS and add a scene for each camera, watch video at __LINK__ 
 
-4.make sure Live streaming on YouTube is enabled on your account if not please enable it at, watch video __LINK__ 
+4.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
 
-5.make sure to generate 1-6 reusable Streaming key depending on the amount of cameras needed for broadcast at, watch video __LINK__ 
-----------------------
+5.make sure to generate 1-6 reusable Streaming key depending on the amount of cameras needed for broadcast, watch video at __LINK__ 
+
 
 ##Before running script:(before starting broadcast)
 ----------------------
@@ -46,8 +46,7 @@ watch video showing how __LINK__
 
 watch video showing how __LINK__
 
------------------------
-### written by
+## written by
 -----------------------
 Evgeny Geyfman
 ...
