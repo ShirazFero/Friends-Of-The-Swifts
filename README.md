@@ -7,13 +7,13 @@ this is an automated Gui script for live broadcasts
 
 ##Initializing:(do it once)
 ----------------------
-1.make sure AHK is installed on your pc if not download and install at https://www.autohotkey.com/ \n
+1.make sure AHK is installed on your pc if not download and install at https://www.autohotkey.com/ 
 
-2.make sure OBS studio is installed on your pc if not download and install at https://obsproject.com/download \n
-3.add all camera rtmp streams to OBS and add a scene for each camera, watch video watch video __LINK_ \n
-4.make sure Live streaming on YouTube is enabaled on your account if not please enable it at, watch video __LINK__ \n
+2.make sure OBS studio is installed on your pc if not download and install at https://obsproject.com/download 
+3.add all camera rtmp streams to OBS and add a scene for each camera, watch video watch video __LINK_ 
+4.make sure Live streaming on YouTube is enabaled on your account if not please enable it at, watch video __LINK__ 
 
-5.make sure to generate 1-6 reuseable Streaming key depending on the amuont of cameras needed for broadcast at, watch video __LINK__ \n
+5.make sure to generate 1-6 reuseable Streaming key depending on the amuont of cameras needed for broadcast at, watch video __LINK__ 
 ----------------------
 
 ##Before running script:(before starting broadcast)
