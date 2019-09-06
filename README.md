@@ -5,16 +5,18 @@ this is an automated Gui script for live broadcasts
 
 ### how to use
 
-Initializing:(do it once)
+##Initializing:(do it once)
 ----------------------
 1.make sure AHK is installed on your pc if not download and install at https://www.autohotkey.com/ \n
+
 2.make sure OBS studio is installed on your pc if not download and install at https://obsproject.com/download \n
 3.add all camera rtmp streams to OBS and add a scene for each camera, watch video watch video __LINK_ \n
 4.make sure Live streaming on YouTube is enabaled on your account if not please enable it at, watch video __LINK__ \n
+
 5.make sure to generate 1-6 reuseable Streaming key depending on the amuont of cameras needed for broadcast at, watch video __LINK__ \n
 ----------------------
 
-Before running script:(before starting broadcast)
+##Before running script:(before starting broadcast)
 ----------------------
 1.open OBS studio with number of intanses depending on number of cameras needed for brodcast
 2.at every instance of OBS studio go to Settings->stream and at the stream key field enter one reuseble key that you generated
@@ -23,7 +25,7 @@ Before running script:(before starting broadcast)
 5.run the script
 watch video showing how __LINK__
 
-Using the script:
+##Using the script:
 ----------------------
 1.first enter the amount of cameras that are streaming (1-6, and can be changed later)
 2.then enter the interval length wanted for interval broadcasting in minutes (can be left vacant and can be set later)
