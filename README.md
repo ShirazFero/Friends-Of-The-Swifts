@@ -4,14 +4,14 @@
 this is an automated Gui script for live broadcasts
 
 ### how to use
-...
+
 Initializing:(do it once)
 ----------------------
-1.make sure AHK is installed on your pc if not download and install at https://www.autohotkey.com/
-2.make sure OBS studio is installed on your pc if not download and install at https://obsproject.com/download
-3.add all camera rtmp streams to OBS and add a scene for each camera, watch video watch video __LINK_
-4.make sure Live streaming on YouTube is enabaled on your account if not please enable it at, watch video __LINK__
-5.make sure to generate 1-6 reuseable Streaming key depending on the amuont of cameras needed for broadcast at, watch video __LINK__
+1.make sure AHK is installed on your pc if not download and install at https://www.autohotkey.com/ \n
+2.make sure OBS studio is installed on your pc if not download and install at https://obsproject.com/download \n
+3.add all camera rtmp streams to OBS and add a scene for each camera, watch video watch video __LINK_ \n
+4.make sure Live streaming on YouTube is enabaled on your account if not please enable it at, watch video __LINK__ \n
+5.make sure to generate 1-6 reuseable Streaming key depending on the amuont of cameras needed for broadcast at, watch video __LINK__ \n
 ----------------------
 
 Before running script:(before starting broadcast)
@@ -31,6 +31,7 @@ Using the script:
 4.you can choose between An interval broadcast (starts and ends automatecally) or can be done manually
 5.to exit app press ctrl+q
 watch video showing how __LINK__
-
+...
 ### writen by
-...Evgeny Geyfamn
+Evgeny Geyfamn
+...
