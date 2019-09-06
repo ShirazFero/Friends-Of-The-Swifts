@@ -15,7 +15,9 @@
 
 4.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
 
-5.make sure to generate 1-6 reusable Streaming key depending on the amount of cameras needed for broadcast, watch video at __LINK__ 
+5.create a new live event on YouTube and go to ingestion setting and add the amount of cameras needed, watch video at __LINK__ 
+
+6.make sure to generate 1-6 reusable Streaming key depending on the amount of cameras needed for broadcast, watch video at __LINK__ 
 
 
 ##Before running script:(before starting broadcast)

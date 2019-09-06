@@ -223,12 +223,12 @@ startBroadcasting(cam){
 	run https://www.youtube.com/my_live_events											;goto live event link
 	Sleep, 2000
 	CoordMode, mouse ,screen
-	MouseMove , 287, 379																;create new live event
+	MouseMove , 287, 570																;create new live event
 	Sleep, 2000
 	click
 	Sleep, 4000
 	if(cam==1){
-		MouseMove 465, 201
+		MouseMove 465, 395
 		sleep, 2000
 		click
 		goto, end
