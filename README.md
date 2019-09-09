@@ -1,8 +1,9 @@
 Friends of Swifts 
 ------------------------
 
-this is an Live broadcast automation Script with Gui
-Before Using please make sure you have installed your Ip cameras on your local network and you have their IP addresses
+This is an Live broadcast automation Script with Gui.
+Before Using please make sure you have installed your Ip cameras on your local network and you have their IP addresses,
+otherwise see instructions on installing your cameras on your local network here: __LINK__
 
 Usage Instructions:
 ----------------------
@@ -57,7 +58,7 @@ Using the script:
 
 watch video showing how __LINK__
 
-written by
+written by:Evgeny Geyfman
 -----------------------
-Evgeny Geyfman
------------------------
+
+
