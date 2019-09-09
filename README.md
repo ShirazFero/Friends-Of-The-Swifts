@@ -1,26 +1,35 @@
-# Friends of Swifts 
+Friends of Swifts 
 ------------------------
 
-##this is an Live broadcast automation Script with Gui
+this is an Live broadcast automation Script with Gui
+Before Using please make sure you have installed your Ip cameras on your local network and you have their IP addresses
 
-## Usage Instructions:
+Usage Instructions:
 ----------------------
-##Initializing:(do it once)
+Initializing:(do it once)
 ----------------------
 1.download and install AHK on your pc at https://www.autohotkey.com/ 
 
 2.download and install OBS studio on your pc at https://obsproject.com/download 
 
-3.add all camera rtmp streams to OBS and add a scene for each camera, watch video at __LINK__ 
+3.add all camera rtmp streams to OBS and add a scene for each camera and add a Scene to each camera, watch video at __LINK__ 
+  
+  step 1: get all camera Ip addresses from your loacal network , replace CameraIPAddress with them
+  
+  step 2: in OBS studio
+  Adding a scene: click +(scenes)->enter scene name in the field -> click OK
+  
+  Adding a camera stream: click +(sources)-> media source -> create new / add existing ->
+						  -> enter in input field: rtsp://admin:admin@CameraIPAddress:554/11 -> uncheck all other fields -> OK
 
-4.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
+ 4.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
 
 5.create a new live event on YouTube and go to ingestion setting and add the amount of cameras needed, watch video at __LINK__ 
 
 6.make sure to generate 1-6 reusable Streaming key depending on the amount of cameras needed for broadcast, watch video at __LINK__ 
 
 
-##Before running script:(before starting broadcast)
+Before running script:(before starting broadcast)
 ----------------------
 1.open OBS studio with number of instances depending on number of cameras needed for broadcast
 
@@ -34,7 +43,7 @@
 
 watch video showing how __LINK__
 
-##Using the script:
+Using the script:
 ----------------------
 1.first enter the amount of cameras that are streaming (1-6, and can be changed later)
 
@@ -48,7 +57,7 @@ watch video showing how __LINK__
 
 watch video showing how __LINK__
 
-## written by
+written by
 -----------------------
 Evgeny Geyfman
-...
+-----------------------
