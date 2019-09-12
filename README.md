@@ -30,7 +30,7 @@ Initializing:(do it once)
 		  
   step 4: set Frames per Second 10-30 dependingon latency -> click apply -> click OK
   
-		  click on settings -> click on Video ->in FPS field enter desired FPS 
+		  click on settings -> click on Video ->in FPS field enter desired FPS -> click apply -> click OK
 			
 
 4.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
