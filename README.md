@@ -23,7 +23,7 @@ Initializing:(do it once)
   Adding a camera stream: click +(sources)-> media source -> create new / add existing ->
 						  -> enter in input field: rtsp://admin:admin@CameraIPAddress:554/11 -> uncheck all other fields -> OK
 
- 4.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
+4.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
 
 5.create a new live event on YouTube and go to ingestion setting and add the amount of cameras needed, watch video at __LINK__ 
 
@@ -58,7 +58,7 @@ Using the script:
 
 watch video showing how __LINK__
 
-written by:Evgeny Geyfman
+written by: Evgeny Geyfman
 -----------------------
 
 
