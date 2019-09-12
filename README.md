@@ -7,6 +7,7 @@ otherwise see instructions on installing your cameras on your local network here
 
 Usage Instructions:
 ----------------------
+
 Initializing:(do it once)
 ----------------------
 1.download and install AHK on your pc at https://www.autohotkey.com/ 
@@ -15,7 +16,7 @@ Initializing:(do it once)
 
 3.set OBS studio and set all camera rtmp streams to OBS and add a scene for each camera and add a Scene to each camera, watch video at __LINK__ 
   
-  step 1: get all camera Ip addresses from your loacal network , replace __CameraIPAddress__ string with them : rtsp://admin:admin@CameraIPAddress:554/11
+  step 1: get all camera IP addresses from your local network , replace __CameraIPAddress__  with them : rtsp://admin:admin@__CameraIPAddress__:554/11
   
   step 2: open OBS studio
   
@@ -36,7 +37,7 @@ Initializing:(do it once)
   
 		  click on settings ->click output -> in bitrate field enter bitrate youv'e caculated -> click apply ->click OK
 		  
-  step 6: set Frames per Second 10-30 dependingon latency 
+  step 6: set Frames per Second 10-30 depending on latency 
   
 		  click on settings -> click on Video ->in FPS field enter desired FPS -> click apply -> click OK
 			
