@@ -17,19 +17,26 @@ Initializing:(do it once)
   
   step 1: get all camera Ip addresses from your loacal network , replace __CameraIPAddress__ string with them : rtsp://admin:admin@CameraIPAddress:554/11
   
-  step 2: in OBS studio
-  Adding a scene: click +(scenes)->enter scene name in the field -> click OK
+  step 2: open OBS studio
   
-  Adding a camera stream: click +(sources)->click media source ->click create new / add existing ->
-  enter in input field: rtsp://admin:admin@CameraIPAddress:554/11 -> uncheck all other fields ->click OK
+  step 3: Adding a scene
+
+		  click +(scenes)->enter scene name in the field -> click OK
+		  
+  step 4: Adding a camera stream
+  
+		  click +(sources)->click media source ->click create new / add existing ->
+		  enter in input field: rtsp://admin:admin@CameraIPAddress:554/11 -> uncheck all other fields ->click OK
+		  
+  step 5: set up bitrate 
   
   __Remember:__ Total upload speed is an important factor of broadcast bitrate of each camera.
-  - preform a speed test at https://www.speedtest.net/ and get yor upload speed
-  - calculate the birate: bitrate = uploadSpeed/numberOfcameras
+		- preform a speed test at https://www.speedtest.net/ and get yor upload speed
+		- calculate the birate: bitrate = uploadSpeed/numberOfcameras
   
-  setp 3: click on settings ->click output -> in bitrate field enter bitrate youv'e caculated -> click apply ->click OK
+		  click on settings ->click output -> in bitrate field enter bitrate youv'e caculated -> click apply ->click OK
 		  
-  step 4: set Frames per Second 10-30 dependingon latency 
+  step 6: set Frames per Second 10-30 dependingon latency 
   
 		  click on settings -> click on Video ->in FPS field enter desired FPS -> click apply -> click OK
 			
