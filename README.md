@@ -15,13 +15,13 @@ Initializing:(do it once)
 
 3.add all camera rtmp streams to OBS and add a scene for each camera and add a Scene to each camera, watch video at __LINK__ 
   
-  step 1: get all camera Ip addresses from your loacal network , replace CameraIPAddress with them
+  step 1: get all camera Ip addresses from your loacal network , replace __CameraIPAddress__ string with them
   
   step 2: in OBS studio
   Adding a scene: click +(scenes)->enter scene name in the field -> click OK
   
   Adding a camera stream: click +(sources)-> media source -> create new / add existing ->
-						  -> enter in input field: rtsp://admin:admin@CameraIPAddress:554/11 -> uncheck all other fields -> OK
+  enter in input field: rtsp://admin:admin@CameraIPAddress:554/11 -> uncheck all other fields -> OK
 
 4.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
 
