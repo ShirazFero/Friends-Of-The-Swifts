@@ -23,16 +23,16 @@ Initializing:(do it once)
   Adding a camera stream: click +(sources)->click media source ->click create new / add existing ->
   enter in input field: rtsp://admin:admin@CameraIPAddress:554/11 -> uncheck all other fields ->click OK
   
-  _Remember_ your Total upload speed is important factor of broadcast bitrate of each camera, preform a speed test at https://www.speedtest.net/ and get yor upload speed
-  calculate the birate: bitrate = uploadSpeed/numberOfcameras
+  __Remember:__ Total upload speed is an important factor of broadcast bitrate of each camera.
+  - preform a speed test at https://www.speedtest.net/ and get yor upload speed
+  - calculate the birate: bitrate = uploadSpeed/numberOfcameras
   
   setp 3: click on settings ->click output -> in bitrate field enter bitrate youv'e caculated -> click apply ->click OK
 		  
-  step 4: set Frames per Second 10-30 dependingon latency -> click apply -> click OK
+  step 4: set Frames per Second 10-30 dependingon latency 
   
 		  click on settings -> click on Video ->in FPS field enter desired FPS -> click apply -> click OK
 			
-
 4.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
 
 5.create a new live event on YouTube and go to ingestion setting and add the amount of cameras needed, watch video at __LINK__ 
