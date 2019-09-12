@@ -1,7 +1,7 @@
 Friends of Swifts 
 ------------------------
 
-This is an Live broadcast automation Script with Gui.
+This is a Live broadcast automation Script with Gui.
 Before Using please make sure you have installed your Ip cameras on your local network and you have their IP addresses,
 otherwise see instructions on installing your cameras on your local network here: __LINK__
 
@@ -13,7 +13,7 @@ Initializing:(do it once)
 
 2.download and install OBS studio on your pc at https://obsproject.com/download 
 
-3.add all camera rtmp streams to OBS and add a scene for each camera and add a Scene to each camera, watch video at __LINK__ 
+3.set OBS studio and set all camera rtmp streams to OBS and add a scene for each camera and add a Scene to each camera, watch video at __LINK__ 
   
   step 1: get all camera Ip addresses from your loacal network , replace __CameraIPAddress__ string with them : rtsp://admin:admin@CameraIPAddress:554/11
   
@@ -31,8 +31,8 @@ Initializing:(do it once)
   step 5: set up bitrate 
   
   __Remember:__ Total upload speed is an important factor of broadcast bitrate of each camera.
-		- preform a speed test at https://www.speedtest.net/ and get yor upload speed
-		- calculate the birate: bitrate = uploadSpeed/numberOfcameras
+  - preform a speed test at https://www.speedtest.net/ and get yor upload speed
+  - calculate the birate: bitrate = uploadSpeed/numberOfcameras
   
 		  click on settings ->click output -> in bitrate field enter bitrate youv'e caculated -> click apply ->click OK
 		  
