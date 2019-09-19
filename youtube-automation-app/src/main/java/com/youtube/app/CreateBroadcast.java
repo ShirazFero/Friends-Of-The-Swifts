@@ -1,8 +1,7 @@
 package com.youtube.app;
 /*
   	Copyright (c) 2019 Evgeny Geyfman.
- 	this application uses YouTube Live Streaming API 
-	Copyright (c) 2013 Google Inc.
+ 	this application uses YouTube Live Streaming API, Copyright (c) 2013 Google Inc.
 	
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.
@@ -37,8 +36,7 @@ import java.util.List;
  * Use the YouTube Live Streaming API to insert a broadcast and retrieve a stream from the stream list
  * and then bind them together, then start the live broadcast. Use OAuth 2.0 to authorize the API requests.
  *
- * @author Ibrahim Ulukaya
- * @editor Evgeny Geyfman
+ * @author Evgeny Geyfman
  */
 public class CreateBroadcast {
 
@@ -114,51 +112,6 @@ public class CreateBroadcast {
                     "  - Scheduled Start Time: " + returnedBroadcast.getSnippet().getScheduledStartTime());
             System.out.println(
                     "  - Scheduled End Time: " + returnedBroadcast.getSnippet().getScheduledEndTime());
-
-            // Prompt the user to enter a title for the video stream.
-     /*     title = getStreamTitle();
-            System.out.println("You chose " + title + " for stream title.");
-
-            // Create a snippet with the video stream's title.
-            LiveStreamSnippet streamSnippet = new LiveStreamSnippet();
-            streamSnippet.setTitle(title);
-
-            // Define the content distribution network settings for the
-            // video stream. The settings specify the stream's format and
-            // ingestion type. See:
-            // https://developers.google.com/youtube/v3/live/docs/liveStreams#cdn
-            CdnSettings cdnSettings = new CdnSettings();
-            cdnSettings.setFormat("1080p");
-            cdnSettings.setIngestionType("rtmp");
-       
-          	LiveStream stream = new LiveStream();
-            stream.setKind("youtube#liveStream");
-            stream.setSnippet(streamSnippet);
-            stream.setCdn(cdnSettings);
-				
-            // Construct and execute the API request to insert the stream.
-            YouTube.LiveStreams.Insert liveStreamInsert =
-                    youtube.liveStreams().insert("snippet,cdn", stream);
-            LiveStream returnedStream = liveStreamInsert.execute();
-       */
-       /*     
-
-            // Create a request to list liveStream resources.
-            YouTube.LiveStreams.List livestreamRequest = youtube.liveStreams().list("id,snippet,status");
-
-            // Modify results to only return the user's streams.
-            livestreamRequest.setMine(true);
-            //get relevant stream
-            LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
-            List<LiveStream> returnedList = returnedListResponse.getItems();
-            LiveStream returnedStream=null;
-            for (LiveStream stream : returnedList) {
-            	if(stream.getSnippet().getTitle().equals("cam3"))
-            		returnedStream=stream;
-            }  */ 
-            
-            
-            
             
             // Print information from the API response.
             System.out.println("\n================== Returned Stream ==================\n");
@@ -181,10 +134,6 @@ public class CreateBroadcast {
             System.out.println(
                     "  - Bound Stream Id: " + returnedBroadcast.getContentDetails().getBoundStreamId());
           
-         
-            
-            //here need to check stream is active if not error happens 
-           //System.out.println("\nstream status: "+ returnedStream.getStatus().getStreamStatus()+"\n");
             
           //stream status check needed here to make sure it is active
             
@@ -276,22 +225,35 @@ public class CreateBroadcast {
         }
         return title;
     }
+    
+    /***this method retrieves a relevant stream from server from the stream list 
+     * 
+     * @param name - stream name that is requested
+     * @return found stream , null otherwise
+     * @throws IOException
+     */
     private static LiveStream getStreamByName(String name) throws IOException {
     	// Create a request to list liveStream resources.
         YouTube.LiveStreams.List livestreamRequest = youtube.liveStreams().list("id,snippet,status");
-
         // Modify results to only return the user's streams.
         livestreamRequest.setMine(true);
         //get relevant stream
+        LiveStream foundstream=null;	//initite pointer to the stream
         LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
         List<LiveStream> returnedList = returnedListResponse.getItems();
         for (LiveStream stream : returnedList) {
         	if(stream.getSnippet().getTitle().equals(name))
-        		return stream;
+        		foundstream= stream;
         }
-    	return null;
+    	return foundstream;
     }
     
+    /***this method retrieves a relevant broadcast from server from the broadcast list 
+     * 
+     * @param id - broadcast id that is requested
+     * @return found broadcast, null other wise
+     * @throws IOException
+     */
     private static LiveBroadcast getBroadcastById(String id) throws IOException {
     	
     	 YouTube.LiveBroadcasts.List liveBroadcastRequest =
@@ -300,15 +262,15 @@ public class CreateBroadcast {
          // Indicate that the API response should not filter broadcasts
          // based on their type or status.
          liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus("all");
-         
+         LiveBroadcast foundbroadcast=null; 	//initate pointer to the broadcast
          // Execute the API request and return the list of broadcasts.
          LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();
          List<LiveBroadcast> returnedList = returnedListResponse.getItems();
          for (LiveBroadcast broadcast : returnedList) {
         	 if(broadcast.getId().equals(id))
-        		 return broadcast;
+        		 foundbroadcast= broadcast;
          }
-         return null;
+         return foundbroadcast;
     }
     
     
