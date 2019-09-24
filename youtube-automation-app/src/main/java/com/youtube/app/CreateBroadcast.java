@@ -70,11 +70,12 @@ public class CreateBroadcast {
             	System.out.println("stream doesn't exist please try again");
             	return;
             }
-            if(!returnedStream.getStatus().getStreamStatus().equals("active")) {
+            if(!returnedStream.getStatus().getStreamStatus().equals("active") || 
+            		returnedStream.getStatus().getHealthStatus().getStatus().equals("noData")) {
             	System.out.println("stream is not active please start the stream and run this again");
             	return ;
             }
-            
+            System.out.println("  - ingestion Key: " + returnedStream.getCdn().getIngestionInfo().getIngestionAddress());
             // Prompt the user to enter a title for the broadcast.
             title = getBroadcastTitle();
             System.out.println("You chose " + title + " for broadcast title.");
@@ -120,7 +121,7 @@ public class CreateBroadcast {
             System.out.println("  - Status: " + returnedStream.getStatus().getStreamStatus());
             System.out.println("  - Description: " + returnedStream.getSnippet().getDescription());
             System.out.println("  - Published At: " + returnedStream.getSnippet().getPublishedAt());
-
+            	
             // Construct and execute a request to bind the new broadcast
             // and stream.
             YouTube.LiveBroadcasts.Bind liveBroadcastBind =

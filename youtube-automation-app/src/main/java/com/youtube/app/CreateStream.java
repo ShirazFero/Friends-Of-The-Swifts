@@ -95,6 +95,7 @@ public class CreateStream {
             System.out.println("  - Status: " + returnedStream.getStatus().getStreamStatus());
             System.out.println("  - Description: " + returnedStream.getSnippet().getDescription());
             System.out.println("  - Published At: " + returnedStream.getSnippet().getPublishedAt());
+            System.out.println("  - ingestion Key: " + stream.getCdn().getIngestionInfo().getStreamName());
             
         } catch (GoogleJsonResponseException e) {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
