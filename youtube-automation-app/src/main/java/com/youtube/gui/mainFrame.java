@@ -54,7 +54,6 @@ public class mainFrame extends JFrame{
 				for(LiveStream stream: livestreams) {
 					if(checked[i]) {
 						if(stream.getStatus().getStreamStatus().equals("active")) {
-						
 							readyList.add(stream);
 						}
 					
