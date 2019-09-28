@@ -3,51 +3,72 @@ package com.youtube.gui;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableModel;
 
 import com.google.api.services.youtube.model.LiveStream;
 
-public class StatusTableModel extends AbstractTableModel {
+public class StatusTableModel extends DefaultTableModel {
 
-	private static final long serialVersionUID = -1575702782803571819L;
+	private static final long serialVersionUID = 1L;
+
+	private Object[][] data;
 	
-	private List<LiveStream> data;
+	private int datalen;
 	
-	private String[] columnNames = {"Name","Status","Stream Key" };
+	private String[] columnNames = {"Select","Name","Status","Stream Key" };
+	
+	public StatusTableModel() {
+		super();
+		data=null;
+	}
 	
 	public void setData(List<LiveStream> data) {
-		if(this.data!=null)
-			this.data.clear();
-		this.data=data;
+		this.data = new Object[data.size()][4];
+		int i=0;
+		for(LiveStream stream : data) {
+			this.data[i][0]= Boolean.FALSE;
+			this.data[i][1]= stream.getSnippet().getTitle();
+			this.data[i][2]= stream.getStatus().getStreamStatus();
+			this.data[i][3]= stream.getCdn().getIngestionInfo().getStreamName();
+			i++;
+		}
+		datalen=data.size();
 	}
 		
-	@Override
 	public String getColumnName(int col) {
-		// TODO Auto-generated method stub
 		return columnNames[col];
 	}
 
-	@Override
 	public int getColumnCount() {
-		// TODO Auto-generated method stub
-		return 3;
+		return 4;
 	}
 
-	@Override
 	public int getRowCount() {
-		// TODO Auto-generated method stub
-		return data.size();
+			
+			return datalen;
 	}
-
-	@Override
+	
+	public Class<?> getColumnClass(int columnIndex) {
+        return data[0][columnIndex].getClass();
+    }
+	
 	public Object getValueAt(int row, int col) {
-		LiveStream stream = data.get(row);
+		
+		return data[row][col];
+		/*LiveStream stream = data.get(row);
 		
 		switch(col) {
 		case 0: return stream.getSnippet().getTitle(); 						
 		case 1: return stream.getStatus().getStreamStatus(); 				
 		case 2:	return stream.getCdn().getIngestionInfo().getStreamName();
 		}
-		return null;
+		return null;*/
 	}
 
+	@Override
+    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+   //     super.setValueAt(aValue, rowIndex, columnIndex); by default empty implementation is not necesary if direct parent is AbstractTableModel
+        data[rowIndex][columnIndex] = aValue; 
+        fireTableCellUpdated(rowIndex, columnIndex);// notify listeners
+    }
 }

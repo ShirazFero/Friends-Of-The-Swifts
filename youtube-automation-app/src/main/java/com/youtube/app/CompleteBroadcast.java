@@ -36,7 +36,7 @@ import java.util.List;
  *
  * @author Evgeny Geyfman
  */
-public class CompleteBroadcast {
+public class CompleteBroadcast extends Thread {
 
 	
 	  /**
@@ -48,7 +48,7 @@ public class CompleteBroadcast {
     /**
      * Create and insert a liveBroadcast resource.
      */
-    public static void main(String[] args) {
+    public static void run(String[] args) {
 
         // This OAuth 2.0 access scope allows for full read/write access to the
         // authenticated user's account.
