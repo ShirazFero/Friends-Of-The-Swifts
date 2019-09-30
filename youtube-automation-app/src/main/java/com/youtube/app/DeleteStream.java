@@ -1,4 +1,5 @@
 package com.youtube.app;
+
 /*
 	Copyright (c) 2019 Evgeny Geyfman.
 	this application uses YouTube Live Streaming API, Copyright (c) 2013 Google Inc.
@@ -27,9 +28,9 @@ import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.CdnSettings;
 import com.google.api.services.youtube.model.LiveStream;
+import com.google.api.services.youtube.model.LiveStreamListResponse;
 import com.google.api.services.youtube.model.LiveStreamSnippet;
 import com.google.common.collect.Lists;
-import com.youtube.utils.Constants;
 
 
 /**
@@ -38,7 +39,7 @@ import com.youtube.utils.Constants;
  *
  * @author Evgeny Geyfman
  */
-public class CreateStream extends Thread {
+public class DeleteStream extends Thread {
 
     /**
      * Define a global instance of a Youtube object, which will be used
@@ -69,39 +70,17 @@ public class CreateStream extends Thread {
             if(args==null)
             	title = getStreamTitle();
             title=args[0];
-            System.out.println("You chose " + title + " for stream title.");
-
-            // Create a snippet with the video stream's title.
-            LiveStreamSnippet streamSnippet = new LiveStreamSnippet();
-            streamSnippet.setTitle(title);
-
-            // Define the content distribution network settings for the
-            // video stream. The settings specify the stream's format and
-            // ingestion type. See:
-            // https://developers.google.com/youtube/v3/live/docs/liveStreams#cdn
-            CdnSettings cdnSettings = new CdnSettings();
-            cdnSettings.setFormat("1080p");
-            cdnSettings.setIngestionType("rtmp");
-       
-          	LiveStream stream = new LiveStream();
-            stream.setKind("youtube#liveStream");
-            stream.setSnippet(streamSnippet);
-            stream.setCdn(cdnSettings);
+            System.out.println("You chose to delete " + title + " for stream title.");
 				
+            LiveStream stream = getStreamByName(title);
+            System.out.println(stream.getId());
             // Construct and execute the API request to insert the stream.
-            YouTube.LiveStreams.Insert liveStreamInsert =
-                    youtube.liveStreams().insert("snippet,cdn,status", stream);
-            LiveStream returnedStream = liveStreamInsert.execute();
-         // Print information from the API response.
-            if(Constants.DEBUG) {
-            System.out.println("\n================== Returned Inserted Stream ==================\n");
-            System.out.println("  - Id: " + returnedStream.getId());
-            System.out.println("  - Title: " + returnedStream.getSnippet().getTitle());
-            System.out.println("  - Status: " + returnedStream.getStatus().getStreamStatus());
-            System.out.println("  - Description: " + returnedStream.getSnippet().getDescription());
-            System.out.println("  - Published At: " + returnedStream.getSnippet().getPublishedAt());
-            System.out.println("  - ingestion Key: " + stream.getCdn().getIngestionInfo().getStreamName());
-            }
+            YouTube.LiveStreams.Delete liveStreamDelete =
+                    youtube.liveStreams().delete(stream.getId());
+           liveStreamDelete.execute();
+           System.out.println(title +" was deleted");
+      
+            
         } catch (GoogleJsonResponseException e) {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
                     + e.getDetails().getMessage());
@@ -128,5 +107,21 @@ public class CreateStream extends Thread {
                     title = "New Stream";
                 }
                 return title;
+            }
+            
+            private static LiveStream getStreamByName(String name) throws IOException {
+            	// Create a request to list liveStream resources.
+                YouTube.LiveStreams.List livestreamRequest = youtube.liveStreams().list("id,snippet,status");
+
+                // Modify results to only return the user's streams.
+                livestreamRequest.setMine(true);
+                //get relevant stream
+                LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
+                List<LiveStream> returnedList = returnedListResponse.getItems();
+                for (LiveStream stream : returnedList) {
+                	if(stream.getSnippet().getTitle().equals(name))
+                		return stream;
+                }
+            	return null;
             }
 }

@@ -1,8 +1,9 @@
 package com.youtube.gui;
 
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -18,7 +19,7 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private JButton CheckStreambtn;
+	private JButton setIntervalbtn;
 	private JButton StartIntBrdbtn;
 	private JButton StopIntbtn;
 	private JButton Streamsbtn;
@@ -31,8 +32,9 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		Border outerborder = BorderFactory.createTitledBorder("Menu");
 		Border innerborder = BorderFactory.createEmptyBorder(5,5,5,5);
 		setBorder(BorderFactory.createCompoundBorder(outerborder, innerborder));
-		setLayout(new GridBagLayout());
+		setLayout(new GridLayout(6,1));
 		startButtons();
+		getStopIntbtn().setEnabled(false);
 		
 		
 	}
@@ -49,13 +51,21 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	}
 	
 	private void startButtons() {
-		CheckStreambtn = new JButton("Check Stream");
+		setIntervalbtn = new JButton("Set Interval");
 		StartIntBrdbtn = new JButton("Start Interval Broadcast");
 		StopIntbtn = new JButton("Stop Interval Broadcast");
 		Streamsbtn = new JButton("My Streams");
 		AddStreambtn = new JButton("Add Stream");
 		ReomveStreambtn = new JButton("Remove Stream");
-		GridBagConstraints gc = new GridBagConstraints();
+		
+		add(setIntervalbtn);
+		add(StartIntBrdbtn);
+		add(StopIntbtn);
+		add(Streamsbtn);
+		add(AddStreambtn);
+		add(ReomveStreambtn);
+		
+	/*	GridBagConstraints gc = new GridBagConstraints();
 		//--- first button
 		gc.weightx = 0;
 		gc.weighty = 1;
@@ -63,7 +73,7 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		gc.gridy = 0;
 		gc.fill = GridBagConstraints.NONE;
 		gc.anchor = GridBagConstraints.LINE_START;
-		add(CheckStreambtn,gc);
+		add(setIntervalbtn,gc);
 		//--- second button
 		gc.weightx = 0;
 		gc.weighty = 1;
@@ -100,7 +110,9 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		gc.anchor = GridBagConstraints.LINE_START;
 		add(ReomveStreambtn,gc);
 		//-----------------------------
-		CheckStreambtn.addActionListener(this);
+		  
+		 */
+		setIntervalbtn.addActionListener(this);
 		StartIntBrdbtn.addActionListener(this);
 		StopIntbtn.addActionListener(this);
 		Streamsbtn.addActionListener(this);
@@ -108,4 +120,25 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		ReomveStreambtn.addActionListener(this);
 		
 	}
+	
+	//-----button getters----------------
+	public JButton getsetIntervalbtn() {
+		return setIntervalbtn;
+	}
+	public JButton getStartIntBrdbtn() {
+		return StartIntBrdbtn;
+	}
+	public JButton getStopIntbtn() {
+		return StopIntbtn;
+	}
+	public JButton getStreamsbtn() {
+		return Streamsbtn;
+	}
+	public JButton getAddStreambtn() {
+		return AddStreambtn;
+	}
+	public JButton getReomveStreambtn() {
+		return ReomveStreambtn;
+	}
+	
 }

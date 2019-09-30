@@ -3,6 +3,7 @@ package com.youtube.app;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.youtube.app.Auth;
+import com.youtube.utils.Constants;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.LiveStream;
 import com.google.api.services.youtube.model.LiveStreamListResponse;
@@ -10,8 +11,6 @@ import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.util.List;
-
-import javax.swing.JTable;
 
 /**
  * Retrieve a list of a channel's streams, using OAuth 2.0 to authorize
@@ -42,7 +41,7 @@ public class ListStreams extends Thread{
 
             // This object is used to make YouTube Data API requests.
             youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
-                    .setApplicationName("youtube-cmdline-liststreams-sample")
+                    .setApplicationName("youtube-automation-app")
                     .build();
 
             // Create a request to list liveStream resources.
@@ -56,7 +55,7 @@ public class ListStreams extends Thread{
             List<LiveStream> returnedList = returnedListResponse.getItems();
             System.out.println(returnedListResponse.getPageInfo());
             
-           
+           if(Constants.DEBUG) {
             // Print information from the API response.
             System.out.println("\n================== Returned Streams ==================\n");
             for (LiveStream stream : returnedList) {
@@ -68,12 +67,9 @@ public class ListStreams extends Thread{
                 System.out.println("  - ingestion Key: " + stream.getCdn().getIngestionInfo().getStreamName());
                 System.out.println("\n-------------------------------------------------------------\n");
             }
-            
-            //JTable table = new JTable(data, columnNames);
-         
-            
-            
-            return returnedList;
+           }
+           
+           return returnedList;
             
         } catch (GoogleJsonResponseException e) {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "

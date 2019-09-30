@@ -18,6 +18,7 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.DateTime;
 import com.youtube.app.Auth;
+import com.youtube.utils.Constants;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.LiveBroadcast;
 import com.google.api.services.youtube.model.LiveBroadcastListResponse;
@@ -57,7 +58,7 @@ public class ListBroadcasts extends Thread {
 
             // This object is used to make YouTube Data API requests.
             youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
-                    .setApplicationName("youtube-cmdline-listbroadcasts-sample").build();
+                    .setApplicationName("youtube-automation-app").build();
 
             // Create a request to list broadcasts.
             YouTube.LiveBroadcasts.List liveBroadcastRequest =
@@ -65,26 +66,30 @@ public class ListBroadcasts extends Thread {
 
             // Indicate that the API response should not filter broadcasts
             // based on their type or status.
-            liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus("all");
+            liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus("upcoming");
+            
+            liveBroadcastRequest.setMaxResults((long) 50); //show top 10 streams
             
             // Execute the API request and return the list of broadcasts.
             LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();
             List<LiveBroadcast> returnedList = returnedListResponse.getItems();
-
+            
+            if(Constants.DEBUG) {
             // Print information from the API response.
-            System.out.println("\n================== Returned Broadcasts ==================\n");
-            for (LiveBroadcast broadcast : returnedList) {
-                System.out.println("  - Id: " + broadcast.getId());
-                System.out.println("  - Title: " + broadcast.getSnippet().getTitle());
-                System.out.println("  - Description: " + broadcast.getSnippet().getDescription());
-                System.out.println("  - Published At: " + broadcast.getSnippet().getPublishedAt());
-                System.out.println("  - status At: " + broadcast.getStatus());
-                System.out.println(
-                        "  - Scheduled Start Time: " + broadcast.getSnippet().getScheduledStartTime());
-                System.out.println(
-                        "  - Scheduled End Time: " + broadcast.getSnippet().getScheduledEndTime());
-                System.out.println("\n-------------------------------------------------------------\n");
-            }
+	            System.out.println("\n================== Returned Broadcasts ==================\n");
+	            for (LiveBroadcast broadcast : returnedList) {
+	                System.out.println("  - Id: " + broadcast.getId());
+	                System.out.println("  - Title: " + broadcast.getSnippet().getTitle());
+	                System.out.println("  - Description: " + broadcast.getSnippet().getDescription());
+	                System.out.println("  - Published At: " + broadcast.getSnippet().getPublishedAt());
+	                System.out.println("  - status At: " + broadcast.getStatus());
+	                System.out.println(
+	                        "  - Scheduled Start Time: " + broadcast.getSnippet().getScheduledStartTime());
+	                System.out.println(
+	                        "  - Scheduled End Time: " + broadcast.getSnippet().getScheduledEndTime());
+	                System.out.println("\n-------------------------------------------------------------\n");
+	            }
+           }
            return returnedList;
            
             

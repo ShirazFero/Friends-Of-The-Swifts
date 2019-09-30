@@ -61,7 +61,7 @@ public class CreateBroadcast extends Thread{
 
             // This object is used to make YouTube Data API requests.
             youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
-                    .setApplicationName("youtube-app-createbroadcast").build();
+                    .setApplicationName("youtube-automation-app").build();
            
             // get the Stream and validate stream is active
             String title = getStreamTitle();

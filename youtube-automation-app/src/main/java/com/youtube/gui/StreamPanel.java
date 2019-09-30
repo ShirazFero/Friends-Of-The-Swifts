@@ -2,62 +2,65 @@ package com.youtube.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 import javax.swing.table.TableColumnModel;
 
 import com.google.api.services.youtube.model.LiveStream;
 
-public class StatusPanel extends JPanel implements ActionListener {
+public class StreamPanel extends JPanel implements ActionListener {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	
-	private JTable streamstbl;
+	private JTable streamsTbl;
 	
-	private StatusTableModel stm;
+	private StreamTableModel stm;
 	
-	private JButton refreshbtn;
-	private JButton getSelectedbtn;
 	private ButtonListener btnlitsener;
+	
 	private Boolean checked[];
-	public StatusPanel() {
-		
-		refreshbtn = new JButton("Refresh");
-		getSelectedbtn = new JButton("Get Selected");
-		stm = new StatusTableModel();
-		streamstbl = new JTable(stm);
+	
+	private StatusBtnPanel stp;
+	
+	
+	
+	public StreamPanel() {
+		stp = new StatusBtnPanel();
+		stm = new StreamTableModel();
+		streamsTbl = new JTable(stm);
 		int widths[]= {50,50,50,200};
-		setColumnWidths(streamstbl,widths);
-		streamstbl.setPreferredScrollableViewportSize(new Dimension(350, 100));
-		streamstbl.setFillsViewportHeight(true);
-		streamstbl.setEditingColumn(0);
-		refreshbtn.addActionListener(this);
-		getSelectedbtn.addActionListener(new ActionListener() {
+		setColumnWidths(streamsTbl,widths);
+		streamsTbl.setPreferredScrollableViewportSize(new Dimension(350, 100));
+		streamsTbl.setFillsViewportHeight(true);
+		streamsTbl.setEditingColumn(0);
+		stp.getRefreshbtn().addActionListener(this);
+		stp.getAddStreambtn().addActionListener(this);
+		stp.getReomveStreambtn().addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				for(int i = 0 ; i<streamstbl.getRowCount() ;i++) {
-					checked[i]=Boolean.valueOf((boolean) streamstbl.getValueAt(i, 0));
-					
+				for(int i = 0 ; i<streamsTbl.getRowCount() ;i++) {
+					checked[i]=Boolean.valueOf((boolean) streamsTbl.getValueAt(i, 0));
 				}
 				btnlitsener.StreamsSelected(checked);
+				btnlitsener.ButtonPressed("Remove Streams");
 			}
-			
 		});
-		add(new JScrollPane(streamstbl),BorderLayout.CENTER);
-		JPanel btnpnl = new JPanel();
-		add(btnpnl,BorderLayout.SOUTH);
-		btnpnl.setLayout(new FlowLayout());
-		btnpnl.add(refreshbtn);	
-		btnpnl.add(getSelectedbtn);	
+		Border outerborder = BorderFactory.createTitledBorder("Streams Table");
+		Border innerborder = BorderFactory.createEmptyBorder(5,5,5,5);
+		setBorder(BorderFactory.createCompoundBorder(outerborder, innerborder));
+		setLayout(new BorderLayout());
+		add(new JScrollPane(streamsTbl),BorderLayout.CENTER);
+		add(stp,BorderLayout.SOUTH);
+		
 		
 	}
 
@@ -66,7 +69,7 @@ public class StatusPanel extends JPanel implements ActionListener {
 	}
 	
 	public void setData(List<LiveStream> data) { 
-		this.stm.setData(data);   
+		stm.setData(data);   
 		checked = new Boolean[data.size()];
 	}
 	
@@ -74,10 +77,11 @@ public class StatusPanel extends JPanel implements ActionListener {
 		stm.fireTableDataChanged();
 	}
 	
-	public StatusTableModel getStm() {
+	public StreamTableModel getStm() {
 		return stm;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void actionPerformed(ActionEvent ev) {
 		JButton jb = (JButton) ev.getSource();
 		btnlitsener.ButtonPressed(jb.getLabel());
