@@ -1,9 +1,6 @@
 package com.youtube.gui;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -15,18 +12,20 @@ import javax.swing.border.Border;
 public class ButtonPanel extends JPanel implements ActionListener {
 
 	/**
-	 * 
+	 * panel which holds all operating buttons of the GUI
 	 */
 	private static final long serialVersionUID = 1L;
 	
 	private JButton setIntervalbtn;
 	private JButton StartIntBrdbtn;
 	private JButton StopIntbtn;
-	private JButton Streamsbtn;
-	private JButton AddStreambtn;
-	private JButton ReomveStreambtn;
+	private JButton StartBrdbtn;
+	private JButton StopBrdbtn;
+	private JButton Testbtn;
 	private ButtonListener btnListener;
 	
+	
+
 	public ButtonPanel() {
 		
 		Border outerborder = BorderFactory.createTitledBorder("Menu");
@@ -35,7 +34,8 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		setLayout(new GridLayout(6,1));
 		startButtons();
 		getStopIntbtn().setEnabled(false);
-		
+		getStopBrdbtn().setEnabled(false);
+		getStartIntBrdbtn().setEnabled(false);
 		
 	}
 	public void setBtnListener(ButtonListener listener) {
@@ -44,9 +44,7 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	
 	@SuppressWarnings("deprecation")
 	public void actionPerformed(ActionEvent ev) {
-		
 		JButton jb = (JButton) ev.getSource();
-		//System.out.println("btnpanl:"+jb.getLabel());
 		btnListener.ButtonPressed(jb.getLabel());
 	}
 	
@@ -54,70 +52,23 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		setIntervalbtn = new JButton("Set Interval");
 		StartIntBrdbtn = new JButton("Start Interval Broadcast");
 		StopIntbtn = new JButton("Stop Interval Broadcast");
-		Streamsbtn = new JButton("My Streams");
-		AddStreambtn = new JButton("Add Stream");
-		ReomveStreambtn = new JButton("Remove Stream");
+		StartBrdbtn = new JButton("Start Broadcast");
+		StopBrdbtn = new JButton("Stop Broadcast");
+		Testbtn = new JButton("Test");
 		
 		add(setIntervalbtn);
 		add(StartIntBrdbtn);
 		add(StopIntbtn);
-		add(Streamsbtn);
-		add(AddStreambtn);
-		add(ReomveStreambtn);
+		add(StartBrdbtn);
+		add(StopBrdbtn);
+		add(Testbtn);
 		
-	/*	GridBagConstraints gc = new GridBagConstraints();
-		//--- first button
-		gc.weightx = 0;
-		gc.weighty = 1;
-		gc.gridx = 0;
-		gc.gridy = 0;
-		gc.fill = GridBagConstraints.NONE;
-		gc.anchor = GridBagConstraints.LINE_START;
-		add(setIntervalbtn,gc);
-		//--- second button
-		gc.weightx = 0;
-		gc.weighty = 1;
-		gc.gridx =	0;
-		gc.gridy =	1;
-		gc.anchor = GridBagConstraints.LINE_START;
-		add(StartIntBrdbtn,gc);
-		//--- third button
-		gc.weightx = 0;
-		gc.weighty = 1;
-		gc.gridx =	0;
-		gc.gridy =	2;
-		gc.anchor = GridBagConstraints.LINE_START;
-		add(StopIntbtn,gc);
-		//--- fourth button
-		gc.weightx = 0;
-		gc.weighty = 1;
-		gc.gridx =	0;
-		gc.gridy =	3;
-		gc.anchor = GridBagConstraints.LINE_START;
-		add(Streamsbtn,gc);
-		//--- fifth button
-		gc.weightx = 0;
-		gc.weighty = 1;
-		gc.gridx =	0;
-		gc.gridy =	4;
-		gc.anchor = GridBagConstraints.LINE_START;
-		add(AddStreambtn,gc);
-		//--- sixth button
-		gc.weightx = 0;
-		gc.weighty = 1;
-		gc.gridx =	0;
-		gc.gridy =	5;
-		gc.anchor = GridBagConstraints.LINE_START;
-		add(ReomveStreambtn,gc);
-		//-----------------------------
-		  
-		 */
 		setIntervalbtn.addActionListener(this);
 		StartIntBrdbtn.addActionListener(this);
 		StopIntbtn.addActionListener(this);
-		Streamsbtn.addActionListener(this);
-		AddStreambtn.addActionListener(this);
-		ReomveStreambtn.addActionListener(this);
+		StartBrdbtn.addActionListener(this);
+		StopBrdbtn.addActionListener(this);
+		Testbtn.addActionListener(this);
 		
 	}
 	
@@ -131,14 +82,13 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	public JButton getStopIntbtn() {
 		return StopIntbtn;
 	}
-	public JButton getStreamsbtn() {
-		return Streamsbtn;
+	public JButton getStartBrdbtn() {
+		return StartBrdbtn;
 	}
-	public JButton getAddStreambtn() {
-		return AddStreambtn;
+	public JButton getStopBrdbtn() {
+		return StopBrdbtn;
 	}
-	public JButton getReomveStreambtn() {
-		return ReomveStreambtn;
+	public JButton getTestbtn() {
+		return Testbtn;
 	}
-	
 }

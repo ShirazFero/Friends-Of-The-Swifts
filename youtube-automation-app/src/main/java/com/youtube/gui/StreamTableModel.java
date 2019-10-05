@@ -2,7 +2,6 @@ package com.youtube.gui;
 
 import java.util.List;
 
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 
 import com.google.api.services.youtube.model.LiveStream;
@@ -52,14 +51,7 @@ public class StreamTableModel extends DefaultTableModel {
 	public Object getValueAt(int row, int col) {
 		
 		return data[row][col];
-		/*LiveStream stream = data.get(row);
 		
-		switch(col) {
-		case 0: return stream.getSnippet().getTitle(); 						
-		case 1: return stream.getStatus().getStreamStatus(); 				
-		case 2:	return stream.getCdn().getIngestionInfo().getStreamName();
-		}
-		return null;*/
 	}
 
 	@Override

@@ -17,17 +17,12 @@ package com.youtube.app;
 	
  */
 
-import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.util.DateTime;
-import com.youtube.app.Auth;
+import com.youtube.utils.Constants;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.*;
-import com.google.common.collect.Lists;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -40,32 +35,17 @@ import java.util.List;
  */
 public class CreateBroadcast extends Thread{
 
-    /**
-     * Define a global instance of a Youtube object, which will be used
-     * to make YouTube Data API requests.
-     */
-    private static YouTube youtube;
 
     /**
-     * Create and insert a liveBroadcast resource.
+     * Create a liveBroadcast,retrieve a relevant stream by it's title (args[0])
+     * bind them together a and insert resource.
+     * Finally transition to preview mode,  and transition into live stream
      */
     public static void run(String[] args) {
 
-        // This OAuth 2.0 access scope allows for full read/write access to the
-        // authenticated user's account.
-        List<String> scopes = Lists.newArrayList("https://www.googleapis.com/auth/youtube");
-
         try {
-            // Authorize the request.
-            Credential credential = Auth.authorize(scopes, "createbroadcastJos");
-
-            // This object is used to make YouTube Data API requests.
-            youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
-                    .setApplicationName("youtube-automation-app").build();
-           
-            // get the Stream and validate stream is active
-            String title = getStreamTitle();
-            LiveStream returnedStream = getStreamByName(title);
+        	
+            LiveStream returnedStream = getStreamByName(args[0]);
             if(returnedStream==null) {
             	System.out.println("stream doesn't exist please try again");
             	return;
@@ -75,9 +55,9 @@ public class CreateBroadcast extends Thread{
             	System.out.println("stream is not active please start the stream and run this again");
             	return ;
             }
-            System.out.println("  - ingestion Key: " + returnedStream.getCdn().getIngestionInfo().getIngestionAddress());
+            
             // Prompt the user to enter a title for the broadcast.
-            title = getBroadcastTitle();
+            String title = args[0] +" "+ LocalTime.now();
             System.out.println("You chose " + title + " for broadcast title.");
 
             // Create a snippet with the title and scheduled start and end
@@ -85,10 +65,10 @@ public class CreateBroadcast extends Thread{
             LiveBroadcastSnippet broadcastSnippet = new LiveBroadcastSnippet();
             broadcastSnippet.setTitle(title);
             broadcastSnippet.setScheduledStartTime(new DateTime(LocalDate.now()+"T"+LocalTime.now()+"Z"));
-            broadcastSnippet.setScheduledEndTime(new DateTime(LocalDate.now()+"T"+"23:59:59.000Z"));
+            broadcastSnippet.setScheduledEndTime(new DateTime(LocalDate.now()+"T"+args[1]+"Z"));
             												  
-            // Set the broadcast's privacy status to "private". See:
-            // https://developers.google.com/youtube/v3/live/docs/liveBroadcasts#status.privacyStatus
+            // Set the broadcast's privacy status to "public". 
+            //See: https://developers.google.com/youtube/v3/live/docs/liveBroadcasts#status.privacyStatus
             LiveBroadcastStatus status = new LiveBroadcastStatus();
             status.setPrivacyStatus("public");
            
@@ -99,81 +79,83 @@ public class CreateBroadcast extends Thread{
 
             // Construct and execute the API request to insert the broadcast.
             YouTube.LiveBroadcasts.Insert liveBroadcastInsert =
-                    youtube.liveBroadcasts().insert("snippet,status", broadcast);
+            		CreateYouTube.getYoutube().liveBroadcasts().insert("snippet,status", broadcast);
             LiveBroadcast returnedBroadcast = liveBroadcastInsert.execute();
-
-            // Print information from the API response.
-            System.out.println("\n================== Returned Broadcast ==================\n");
-            System.out.println("  - Id: " + returnedBroadcast.getId());
-            System.out.println("  - Title: " + returnedBroadcast.getSnippet().getTitle());
-            System.out.println("  - Status: " + returnedBroadcast.getStatus().getLifeCycleStatus());
-            System.out.println("  - Description: " + returnedBroadcast.getSnippet().getDescription());
-            System.out.println("  - Published At: " + returnedBroadcast.getSnippet().getPublishedAt());
-            System.out.println(
-                    "  - Scheduled Start Time: " + returnedBroadcast.getSnippet().getScheduledStartTime());
-            System.out.println(
-                    "  - Scheduled End Time: " + returnedBroadcast.getSnippet().getScheduledEndTime());
+            if(Constants.DEBUG) {
+	            // Print information from the API response.
+	            System.out.println("\n================== Returned Broadcast ==================\n");
+	            System.out.println("  - Id: " + returnedBroadcast.getId());
+	            System.out.println("  - Title: " + returnedBroadcast.getSnippet().getTitle());
+	            System.out.println("  - Status: " + returnedBroadcast.getStatus().getLifeCycleStatus());
+	            System.out.println("  - Description: " + returnedBroadcast.getSnippet().getDescription());
+	            System.out.println("  - Published At: " + returnedBroadcast.getSnippet().getPublishedAt());
+	            System.out.println(
+	                    "  - Scheduled Start Time: " + returnedBroadcast.getSnippet().getScheduledStartTime());
+	            System.out.println(
+	                    "  - Scheduled End Time: " + returnedBroadcast.getSnippet().getScheduledEndTime());
+	            
+	            // Print information from the API response.
+	            System.out.println("\n================== Returned Stream ==================\n");
+	            System.out.println("  - Id: " + returnedStream.getId());
+	            System.out.println("  - Title: " + returnedStream.getSnippet().getTitle());
+	            System.out.println("  - Status: " + returnedStream.getStatus().getStreamStatus());
+	            System.out.println("  - Description: " + returnedStream.getSnippet().getDescription());
+	            System.out.println("  - Published At: " + returnedStream.getSnippet().getPublishedAt());
+            }
             
-            // Print information from the API response.
-            System.out.println("\n================== Returned Stream ==================\n");
-            System.out.println("  - Id: " + returnedStream.getId());
-            System.out.println("  - Title: " + returnedStream.getSnippet().getTitle());
-            System.out.println("  - Status: " + returnedStream.getStatus().getStreamStatus());
-            System.out.println("  - Description: " + returnedStream.getSnippet().getDescription());
-            System.out.println("  - Published At: " + returnedStream.getSnippet().getPublishedAt());
-            	
             // Construct and execute a request to bind the new broadcast
             // and stream.
             YouTube.LiveBroadcasts.Bind liveBroadcastBind =
-                    youtube.liveBroadcasts().bind(returnedBroadcast.getId(), "id,contentDetails");
+            		CreateYouTube.getYoutube().liveBroadcasts().bind(returnedBroadcast.getId(), "id,contentDetails");
             liveBroadcastBind.setStreamId(returnedStream.getId());
             returnedBroadcast = liveBroadcastBind.execute();
 
-            // Print information from the API response.
-            System.out.println("\n================== Returned Bound Broadcast ==================\n");
-            System.out.println("  - Broadcast Id: " + returnedBroadcast.getId());
-            System.out.println(
-                    "  - Bound Stream Id: " + returnedBroadcast.getContentDetails().getBoundStreamId());
+            if(Constants.DEBUG){
+	            // Print information from the API response.
+	            System.out.println("\n================== Returned Bound Broadcast ==================\n");
+	            System.out.println("  - Broadcast Id: " + returnedBroadcast.getId());
+	            System.out.println(
+	                    "  - Bound Stream Id: " + returnedBroadcast.getContentDetails().getBoundStreamId());
+            }
+            
           
-            
-          //stream status check needed here to make sure it is active
-            
+            //stream status check needed here to make sure it is active
            if(!returnedStream.getStatus().getStreamStatus().equals("active")) {
         	   System.out.println("stream is not active please start sending data on the stream");
-        	   
            }
            else {
         	   System.out.println("stream is active starting transition to live");
            }
            
-          //transition to testing 
-          
-    	   YouTube.LiveBroadcasts.Transition requestTesting = youtube.liveBroadcasts()
+          //transition to testing mode (preview mode)
+    	   YouTube.LiveBroadcasts.Transition requestTesting = CreateYouTube.getYoutube().liveBroadcasts()
                   .transition("testing", returnedBroadcast.getId(), "snippet,status");
            returnedBroadcast = requestTesting.execute();
            //Prompt request status
            System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus());
-           //poll while test starting
+           
+           //poll while test starting (wait while starting preview)
            while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("testStarting")) {
         	   returnedBroadcast = getBroadcastById(returnedBroadcast.getId());
         	   System.out.println("polling testStarting");
            }
-           
+           //preview started
            System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
           
-            //transition to live   
-            YouTube.LiveBroadcasts.Transition requestLive = youtube.liveBroadcasts()
+            //transition to live  mode
+            YouTube.LiveBroadcasts.Transition requestLive = CreateYouTube.getYoutube().liveBroadcasts()
                     .transition("live", returnedBroadcast.getId(), "snippet,status");
             returnedBroadcast = requestLive.execute();
-            //poll while live starting
+            //poll while live starting (wait while starting live)
             while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("liveStarting")) {
             	returnedBroadcast = getBroadcastById(returnedBroadcast.getId());
             	System.out.println("polling liveStarting");
             	Thread.sleep(1000);
             }
+            Thread.sleep(1000);
             returnedBroadcast = getBroadcastById(returnedBroadcast.getId());
+            //promt status to screen
             System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
-           
            
         } catch (GoogleJsonResponseException e) {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
@@ -189,43 +171,6 @@ public class CreateBroadcast extends Thread{
         }
     }
 
-    /*
-     * Prompt the user to enter a title for a broadcast.
-     */
-    private static String getBroadcastTitle() throws IOException {
-
-        String title = "";
-
-        System.out.print("Please enter a broadcast title: ");
-        BufferedReader bReader = new BufferedReader(new InputStreamReader(System.in));
-        title = bReader.readLine();
-
-      
-        
-        if (title.length() < 1) {
-            // Use "New Broadcast" as the default title.
-            title = "New Broadcast";
-        }
-        return title;
-    }
-
-    /*
-     * Prompt the user to enter a title for a stream.
-     */
-    private static String getStreamTitle() throws IOException {
-
-        String title = "";
-
-        System.out.print("Please enter a stream title: ");
-        BufferedReader bReader = new BufferedReader(new InputStreamReader(System.in));
-        title = bReader.readLine();
-
-        if (title.length() < 1) {
-            // Use "New Stream" as the default title.
-            title = "New Stream";
-        }
-        return title;
-    }
     
     /***this method retrieves a relevant stream from server from the stream list 
      * 
@@ -235,14 +180,16 @@ public class CreateBroadcast extends Thread{
      */
     private static LiveStream getStreamByName(String name) throws IOException {
     	// Create a request to list liveStream resources.
-        YouTube.LiveStreams.List livestreamRequest = youtube.liveStreams().list("id,snippet,status");
+        YouTube.LiveStreams.List livestreamRequest = CreateYouTube.getYoutube().liveStreams().list("id,snippet,status");
         // Modify results to only return the user's streams.
         livestreamRequest.setMine(true);
+        livestreamRequest.setMaxResults((long) 10); //show top 10 streams
         //get relevant stream
         LiveStream foundstream=null;	//initite pointer to the stream
         LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
         List<LiveStream> returnedList = returnedListResponse.getItems();
         for (LiveStream stream : returnedList) {
+        	System.out.println(stream.getSnippet().getTitle());
         	if(stream.getSnippet().getTitle().equals(name))
         		foundstream= stream;
         }
@@ -258,7 +205,7 @@ public class CreateBroadcast extends Thread{
     private static LiveBroadcast getBroadcastById(String id) throws IOException {
     	
     	 YouTube.LiveBroadcasts.List liveBroadcastRequest =
-                 youtube.liveBroadcasts().list("id,snippet,status");
+    			 CreateYouTube.getYoutube().liveBroadcasts().list("id,snippet,status");
 
          // Indicate that the API response should not filter broadcasts
          // based on their type or status.

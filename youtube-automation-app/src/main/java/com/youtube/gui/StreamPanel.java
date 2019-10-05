@@ -8,11 +8,9 @@ import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.table.TableColumnModel;
 
@@ -32,8 +30,6 @@ public class StreamPanel extends JPanel implements ActionListener {
 	
 	private StatusBtnPanel stp;
 	
-	
-	
 	public StreamPanel() {
 		stp = new StatusBtnPanel();
 		stm = new StreamTableModel();
@@ -45,23 +41,26 @@ public class StreamPanel extends JPanel implements ActionListener {
 		streamsTbl.setEditingColumn(0);
 		stp.getRefreshbtn().addActionListener(this);
 		stp.getAddStreambtn().addActionListener(this);
-		stp.getReomveStreambtn().addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				for(int i = 0 ; i<streamsTbl.getRowCount() ;i++) {
-					checked[i]=Boolean.valueOf((boolean) streamsTbl.getValueAt(i, 0));
-				}
-				btnlitsener.StreamsSelected(checked);
-				btnlitsener.ButtonPressed("Remove Streams");
-			}
-		});
+		stp.getReomveStreambtn().addActionListener(this);
 		Border outerborder = BorderFactory.createTitledBorder("Streams Table");
 		Border innerborder = BorderFactory.createEmptyBorder(5,5,5,5);
 		setBorder(BorderFactory.createCompoundBorder(outerborder, innerborder));
 		setLayout(new BorderLayout());
-		add(new JScrollPane(streamsTbl),BorderLayout.CENTER);
+		JScrollPane jsp =new JScrollPane(streamsTbl);
+		add(jsp,BorderLayout.CENTER);
 		add(stp,BorderLayout.SOUTH);
 		
 		
+	}
+
+	/**
+	 * @return the checked
+	 */
+	public Boolean[] getChecked() {
+		for(int i = 0 ; i<streamsTbl.getRowCount() ;i++) {
+			checked[i]=Boolean.valueOf((boolean) streamsTbl.getValueAt(i, 0));
+		}
+		return checked;
 	}
 
 	public void setBtnListener(ButtonListener listener) {
@@ -85,6 +84,7 @@ public class StreamPanel extends JPanel implements ActionListener {
 	public void actionPerformed(ActionEvent ev) {
 		JButton jb = (JButton) ev.getSource();
 		btnlitsener.ButtonPressed(jb.getLabel());
+		
 	}
 	
 	public static void setColumnWidths(JTable table, int... widths) {

@@ -1,5 +1,8 @@
 package com.youtube.controller;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -14,29 +17,45 @@ import com.youtube.app.ListBroadcasts;
 import com.youtube.app.ListStreams;
 
 public class Controller {
-
 	private List<LiveStream> streams;
 	private List<LiveBroadcast> broadcasts;
-	private double interval;
+	private static Interval interval;
+	private TimerRunner timerRunner;
 	
-	public double getInterval() {
+	public static Interval getInterval() {
 		return interval;
 	}
 
-	public void setInterval() {
-		String interval= JOptionPane.showInputDialog("please enter requested interval in HH:MM Format ");
-		this.interval = toTimeObject(interval);
-		
+	public void setInterval(String interval) {
+		if(Controller.interval==null)
+			Controller.interval = new Interval();
+		Controller.interval.setInterval(interval);
 	}
 
-	private double toTimeObject(String interval) {
-		
-		return 0;
+	@SuppressWarnings("deprecation")
+	public static Date calcStopTime() {
+		LocalDateTime now = LocalDateTime.now();
+		System.out.println("now: " + now);
+		now = now.plusHours(interval.getHours());
+		now = now.plusMinutes(interval.getMinutes());
+		Date finishDatetime = new Date(LocalDate.now().getYear()-1901,
+				LocalDate.now().getMonthValue()+2,
+				LocalDate.now().getDayOfYear(),
+				now.getHour(),now.getMinute(),now.getSecond());
+		System.out.println("finish: " + now.toString());
+		return finishDatetime;
 	}
 
-	public Controller() {
+	public void initStreams() {
 		streams=ListStreams.run(null);
-		broadcasts=ListBroadcasts.run(null);
+		interval= new Interval();
+		
+	}
+	
+	public void initBroadcasts() {
+		String[] args = {"init","all"};
+		broadcasts=ListBroadcasts.run(args);
+		
 	}
 	
 	public List<LiveStream> getStreams() {
@@ -54,10 +73,11 @@ public class Controller {
 		streams=ListStreams.run(null);
 	}
 	
-	public void refreshBroadcasts() {
+	public void refreshBroadcasts(String filter) {
+		String[] args = {"refresh",filter};
 		if(broadcasts!=null)
 			broadcasts.clear();
-		broadcasts=ListBroadcasts.run(null);
+		broadcasts=ListBroadcasts.run(args);
 	}
 	
 	
@@ -79,14 +99,37 @@ public class Controller {
 		refreshStreams();
 	}
 	
-	public void startBroadcast() {
-		CreateBroadcast.run(null);
-		refreshBroadcasts();
+	public void startBroadcast(Boolean[] checked) {
+		String[] args = new String[2];
+		List<LiveStream> streams = ListStreams.run(null);
+		for(int i=streams.size()-1 ; i>=0 ; i--) {
+			if(checked[i])	{
+				args[0]= streams.get(i).getSnippet().getTitle();
+				args[1]=	"23:59:59.000";
+				System.out.println("starting "+ args[0]+"time "+args[1]);
+				//CreateBroadcast.run(args);
+			}
+		}
 	}
 	
-	public void stopBroadcast() {
-		CompleteBroadcast.run(null);
-		refreshBroadcasts();
+	public void stopBroadcast(Boolean[] checked) {
+		String[] args = {"refresh","active"};
+		List<LiveBroadcast> returnedList =ListBroadcasts.run(args);
+		for(int i=returnedList.size()-1 ; i>=0 ;i--) {
+			if(checked[i]) {
+				args[0]=broadcasts.get(i).getSnippet().getTitle();
+				CompleteBroadcast.run(args);
+			}
+		}
+	}
+
+	public void startTimerRunner() throws InterruptedException {
+		timerRunner = new TimerRunner();
+		timerRunner.doTasks(calcStopTime());
+	}
+	
+	public void cancelTimerRunner() {
+		timerRunner.stopInterval();
 	}
 	
 }

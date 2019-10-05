@@ -20,15 +20,11 @@ package com.youtube.app;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
-
-import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.CdnSettings;
 import com.google.api.services.youtube.model.LiveStream;
 import com.google.api.services.youtube.model.LiveStreamSnippet;
-import com.google.common.collect.Lists;
 import com.youtube.utils.Constants;
 
 
@@ -41,28 +37,11 @@ import com.youtube.utils.Constants;
 public class CreateStream extends Thread {
 
     /**
-     * Define a global instance of a Youtube object, which will be used
-     * to make YouTube Data API requests.
-     */
-    private static YouTube youtube;
-
-    /**
      * Create and insert a liveBroadcast resource.
      */
     public static void run(String[] args) {
 
-        // This OAuth 2.0 access scope allows for full read/write access to the
-        // authenticated user's account.
-        List<String> scopes = Lists.newArrayList("https://www.googleapis.com/auth/youtube");
-
         try {
-            // Authorize the request.
-            Credential credential = Auth.authorize(scopes, "createbroadcastJos");
-
-            // This object is used to make YouTube Data API requests.
-            youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
-                    .setApplicationName("youtube-automation-app").build();
-          
 
             // Prompt the user to enter a title for the video stream.
             String title;
@@ -90,17 +69,17 @@ public class CreateStream extends Thread {
 				
             // Construct and execute the API request to insert the stream.
             YouTube.LiveStreams.Insert liveStreamInsert =
-                    youtube.liveStreams().insert("snippet,cdn,status", stream);
+            		CreateYouTube.getYoutube().liveStreams().insert("snippet,cdn,status", stream);
             LiveStream returnedStream = liveStreamInsert.execute();
-         // Print information from the API response.
             if(Constants.DEBUG) {
-            System.out.println("\n================== Returned Inserted Stream ==================\n");
-            System.out.println("  - Id: " + returnedStream.getId());
-            System.out.println("  - Title: " + returnedStream.getSnippet().getTitle());
-            System.out.println("  - Status: " + returnedStream.getStatus().getStreamStatus());
-            System.out.println("  - Description: " + returnedStream.getSnippet().getDescription());
-            System.out.println("  - Published At: " + returnedStream.getSnippet().getPublishedAt());
-            System.out.println("  - ingestion Key: " + stream.getCdn().getIngestionInfo().getStreamName());
+                // Print information from the API response.
+	            System.out.println("\n================== Returned Inserted Stream ==================\n");
+	            System.out.println("  - Id: " + returnedStream.getId());
+	            System.out.println("  - Title: " + returnedStream.getSnippet().getTitle());
+	            System.out.println("  - Status: " + returnedStream.getStatus().getStreamStatus());
+	            System.out.println("  - Description: " + returnedStream.getSnippet().getDescription());
+	            System.out.println("  - Published At: " + returnedStream.getSnippet().getPublishedAt());
+	            System.out.println("  - ingestion Key: " + stream.getCdn().getIngestionInfo().getStreamName());
             }
         } catch (GoogleJsonResponseException e) {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
@@ -115,18 +94,18 @@ public class CreateStream extends Thread {
             t.printStackTrace();
         }
         }
-            private static String getStreamTitle() throws IOException {
-
-                String title = "";
-
-                System.out.print("Please enter a stream title: ");
-                BufferedReader bReader = new BufferedReader(new InputStreamReader(System.in));
-                title = bReader.readLine();
-
-                if (title.length() < 1) {
-                    // Use "New Stream" as the default title.
-                    title = "New Stream";
-                }
-                return title;
-            }
+        private static String getStreamTitle() throws IOException {
+	        
+        	String title = "";
+	
+	        System.out.print("Please enter a stream title: ");
+	        BufferedReader bReader = new BufferedReader(new InputStreamReader(System.in));
+	        title = bReader.readLine();
+	
+	        if (title.length() < 1) {
+	            // Use "New Stream" as the default title.
+	            title = "New Stream";
+	        }
+	        return title;
+        }
 }
