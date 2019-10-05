@@ -100,14 +100,14 @@ public class Controller {
 	}
 	
 	public void startBroadcast(Boolean[] checked) {
-		String[] args = new String[2];
+		String[] args = new String[2];	// args[0] = title , args[1] = end time
 		List<LiveStream> streams = ListStreams.run(null);
 		for(int i=streams.size()-1 ; i>=0 ; i--) {
 			if(checked[i])	{
 				args[0]= streams.get(i).getSnippet().getTitle();
 				args[1]=	"23:59:59.000";
 				System.out.println("starting "+ args[0]+"time "+args[1]);
-				//CreateBroadcast.run(args);
+				CreateBroadcast.run(args);
 			}
 		}
 	}
