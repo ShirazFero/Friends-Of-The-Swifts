@@ -17,16 +17,10 @@ package com.youtube.app;
 
 */
 
-import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
-import com.youtube.app.Auth;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.*;
-import com.google.common.collect.Lists;
-
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
 
 
@@ -36,35 +30,15 @@ import java.util.List;
  *
  * @author Evgeny Geyfman
  */
-public class CompleteBroadcast {
-
-	
-	  /**
-     * Define a global instance of a Youtube object, which will be used
-     * to make YouTube Data API requests.
-     */
-    private static YouTube youtube;
-    
+public class CompleteBroadcast extends Thread {
     /**
-     * Create and insert a liveBroadcast resource.
+     * find and delete a liveBroadcast resource.
      */
-    public static void main(String[] args) {
-
-        // This OAuth 2.0 access scope allows for full read/write access to the
-        // authenticated user's account.
-        List<String> scopes = Lists.newArrayList("https://www.googleapis.com/auth/youtube");
+    public static void run(String[] args) {
 
         try {
-            // Authorize the request.
-            Credential credential = Auth.authorize(scopes, "completebroadcast");
-
-            // This object is used to make YouTube Data API requests.
-            youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
-                    .setApplicationName("youtube-app-completebroadcast").build();
-            
-            //get the broadcast from the server by it's name
-            String title = setBroadcastTitle();
-            LiveBroadcast returnedBroadcast = getBroadcastByName(title);
+        	
+            LiveBroadcast returnedBroadcast = getBroadcastByName(args[0]);
             
             if(returnedBroadcast==null) {
             	System.out.println("no broadcast with this title was found");
@@ -78,15 +52,15 @@ public class CompleteBroadcast {
             }
            
             //Request transition to complete broadcast
-            YouTube.LiveBroadcasts.Transition requestTesting = youtube.liveBroadcasts()
+            YouTube.LiveBroadcasts.Transition requestTesting = CreateYouTube.getYoutube().liveBroadcasts()
                     .transition("complete", returnedBroadcast.getId(), "snippet,status");
              returnedBroadcast = requestTesting.execute();
              
-             returnedBroadcast = getBroadcastByName(title);
+             returnedBroadcast = getBroadcastByName(args[0]);
              System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus());
              //poll while test starting
              while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("live")) {
-          	   returnedBroadcast = getBroadcastByName(title);
+          	   returnedBroadcast = getBroadcastByName(args[0]);
           	   System.out.println("polling live");
              }
              
@@ -110,7 +84,7 @@ public class CompleteBroadcast {
     private static LiveBroadcast getBroadcastByName(String name) throws IOException {
     	
    	 YouTube.LiveBroadcasts.List liveBroadcastRequest =
-                youtube.liveBroadcasts().list("id,snippet,status");
+   			CreateYouTube.getYoutube().liveBroadcasts().list("id,snippet,status");
 
         // Indicate that the API response should not filter broadcasts
         // based on their type or status.
@@ -125,21 +99,4 @@ public class CompleteBroadcast {
         }
         return null;
    }
-    
-    private static String setBroadcastTitle() throws IOException {
-
-        String title = "";
-
-        System.out.print("Please enter a broadcast title: ");
-        BufferedReader bReader = new BufferedReader(new InputStreamReader(System.in));
-        title = bReader.readLine();
-
-      
-        
-        if (title.length() < 1) {
-            // Use "New Broadcast" as the default title.
-            title = "New Broadcast";
-        }
-        return title;
-    }
 }
