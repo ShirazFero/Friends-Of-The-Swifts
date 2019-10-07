@@ -1,6 +1,6 @@
 Friends of Swifts 
 ------------------------
-this is a test
+this is Shiraz readme
 ------------------------
 This is a Live broadcast automation Script with Gui.
 Before Using please make sure you have installed your Ip cameras on your local network and you have their IP addresses,
