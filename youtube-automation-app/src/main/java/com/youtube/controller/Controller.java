@@ -1,7 +1,9 @@
 package com.youtube.controller;
 
-import java.time.LocalDate;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 
@@ -15,11 +17,16 @@ import com.youtube.app.CreateStream;
 import com.youtube.app.DeleteStream;
 import com.youtube.app.ListBroadcasts;
 import com.youtube.app.ListStreams;
+import com.youtube.utils.Constants;
 
 public class Controller {
+	
 	private List<LiveStream> streams;
+	
 	private List<LiveBroadcast> broadcasts;
+	
 	private static Interval interval;
+	
 	private TimerRunner timerRunner;
 	
 	public static Interval getInterval() {
@@ -32,17 +39,14 @@ public class Controller {
 		Controller.interval.setInterval(interval);
 	}
 
-	@SuppressWarnings("deprecation")
 	public static Date calcStopTime() {
-		LocalDateTime now = LocalDateTime.now();
-		System.out.println("now: " + now);
-		now = now.plusHours(interval.getHours());
-		now = now.plusMinutes(interval.getMinutes());
-		Date finishDatetime = new Date(LocalDate.now().getYear()-1901,
-				LocalDate.now().getMonthValue()+2,
-				LocalDate.now().getDayOfYear(),
-				now.getHour(),now.getMinute(),now.getSecond());
-		System.out.println("finish: " + now.toString());
+		LocalDateTime now = LocalDateTime.now();		//set start time
+		System.out.println("interval start time: " + now);
+		now = now.plusHours(interval.getHours());		//calculate added interval hours
+		now = now.plusMinutes(interval.getMinutes());	//calculate added interval minutes
+		//covert to Date Object applicable with Timer.schedule(Task,Date)
+		Date finishDatetime = Date.from( now.atZone( ZoneId.systemDefault()).toInstant());
+		System.out.println("interval finish time: " + now.toString());
 		return finishDatetime;
 	}
 
@@ -62,7 +66,6 @@ public class Controller {
 		return streams;
 	}
 	
-	
 	public List<LiveBroadcast> getBroadcasts(){
 		return broadcasts;
 	}
@@ -79,7 +82,6 @@ public class Controller {
 			broadcasts.clear();
 		broadcasts=ListBroadcasts.run(args);
 	}
-	
 	
 	public void addStream() {
 		String[] args = new String[1];
@@ -105,7 +107,13 @@ public class Controller {
 		for(int i=streams.size()-1 ; i>=0 ; i--) {
 			if(checked[i])	{
 				args[0]= streams.get(i).getSnippet().getTitle();
-				args[1]=	"23:59:59.000";
+				if(Constants.IntervalBroadcast) {
+					Instant instant = Instant.ofEpochMilli(calcStopTime().getTime());
+				    LocalTime finTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault()).toLocalTime();
+					args[1]= finTime.toString()	;
+				}
+				else
+					args[1]=null;
 				System.out.println("starting "+ args[0]+"time "+args[1]);
 				CreateBroadcast.run(args);
 			}

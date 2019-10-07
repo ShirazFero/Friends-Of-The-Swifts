@@ -1,7 +1,5 @@
 package com.youtube.controller;
 
-import java.text.DateFormat;
-import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Timer;
@@ -14,8 +12,6 @@ import com.google.api.services.youtube.model.LiveStream;
 import com.youtube.app.ListBroadcasts;
 import com.youtube.app.ListStreams;
 import com.youtube.utils.Constants;
-import com.youtube.app.CompleteBroadcast;
-import com.youtube.app.CreateBroadcast;
 
 public class TimerRunner extends Thread {
 	
@@ -26,25 +22,25 @@ public class TimerRunner extends Thread {
 	public void doTasks(Date stoptime) {
 		
 		this.stopTime = stoptime;		//set first stop time
-		System.out.println(stopTime);
-		timer =  new Timer();			//init timer
-		scheduleTimer();						//schdule next interval
+		timer =  new Timer();			//initiate timer
+		scheduleTimer();				//Schedule next interval
 		
 		
 	}
 	
-	public void scheduleTimer(){
+	private TimerTask getTask() {
 		TimerTask task =new TimerTask() {
 			@Override
 			public void run() {
-				System.out.println("running handaling itervals");
+				System.out.println("---------------------------------------");
+				System.out.println("running handling itervals");
 				//in scheduled time complete live broadcasts
 				String[] args = {"refresh","active"};
 				List<LiveBroadcast> returnedList =ListBroadcasts.run(args);
 				System.out.println("completing live broadcasts");
 				for(LiveBroadcast broadcast : returnedList) {
 					args[0]=broadcast.getSnippet().getTitle();
-					System.out.println("completing "+args[0]);
+					//System.out.println("completing "+args[0]);
 					//CompleteBroadcast.run(args);
 				}
 			if(!Constants.IntervalBroadcast) {   // if resume live broadcasts was chosen
@@ -53,20 +49,26 @@ public class TimerRunner extends Thread {
 					return;					   //end timer runner after completing broadcasts on stop time
 				}
 				
-				stopTime = Controller.calcStopTime(); // calculate next interval stop time
 				System.out.println("calc new time and shcdule timer again on "+ stopTime);
+				stopTime = Controller.calcStopTime(); // calculate next interval stop time
+				
 				scheduleTimer();	//schedule timer for next interval
 				args[1]=stopTime.toString();
 														//start live broadcasts again
-				List<LiveStream> streams = ListStreams.run(null);
-				for(LiveStream stream:streams) {
+				System.out.println("creating broadcasts");
+				List<LiveStream> streams = ListStreams.run(null);	//need to get the correct streams that were  
+				for(LiveStream stream:streams) {					// chosen on the first time
 					args[0]= stream.getSnippet().getTitle();
-					System.out.println("creating broadcast: "+args[0]);
+					//System.out.println("creating broadcast: "+args[0]);
 					//CreateBroadcast.run(args);
 				}
 			}
 		};
-		timer.schedule(task, stopTime);
+		return task;
+	}
+	
+	public void scheduleTimer(){
+		timer.schedule(getTask(), stopTime);
 	}
 	
 	public void stopInterval() {
@@ -76,6 +78,7 @@ public class TimerRunner extends Thread {
 			int reply =JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
 			if(reply==JOptionPane.YES_OPTION) {
 				String[] args = {"refresh","active"};
+				System.out.println("completing live broadcasts after click ok");
 				List<LiveBroadcast> returnedList =ListBroadcasts.run(args);
 				for(LiveBroadcast broadcast : returnedList) {
 					args[0]=broadcast.getSnippet().getTitle();

@@ -40,7 +40,8 @@ public class ListBroadcasts extends Thread {
     /**
      * List broadcasts for the user's channel.
      *
-     * @param args command line args (not used).
+     * @param String args[2] ={1st arg is source function :"init/refresh",
+     * 						   2nd arg is filter :"all/upcoming/active/complete"}
      */
     public static List<LiveBroadcast> run(String[] args) {
 
@@ -87,7 +88,6 @@ public class ListBroadcasts extends Thread {
 		            returnedListResponse = liveBroadcastRequest.execute();
 		            returnedList = returnedListResponse.getItems();
 		            fullreturnList.addAll(returnedList);
-		            System.out.println(returnedListResponse.getPageInfo());
 	            }
 	            else
 	            	flag = false;

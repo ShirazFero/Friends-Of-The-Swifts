@@ -57,7 +57,6 @@ public class ListStreams extends Thread {
             // Execute the API request and return the list of streams.
             LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
             List<LiveStream> returnedList = returnedListResponse.getItems();
-            System.out.println(returnedListResponse.getPageInfo());
             List<LiveStream> fullreturnList= new LinkedList<LiveStream>(returnedList);
             
             boolean flag = true;	//flag that checks if there's more pages

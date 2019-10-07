@@ -37,14 +37,16 @@ public class CreateBroadcast extends Thread{
 
 
     /**
-     * Create a liveBroadcast,retrieve a relevant stream by it's title (args[0])
+     * Create a liveBroadcast,retrieve a relevant stream by it's title 
      * bind them together a and insert resource.
      * Finally transition to preview mode,  and transition into live stream
+     * 
+     * @param String[] args ={ "broadcast title","scheduled end time" - could be null}
      */
-    public static void run(String[] args) {
+    public static void run(String[] args) {	
 
         try {
-        	
+        	//Retrieve  a stream by it's title from args
             LiveStream returnedStream = getStreamByName(args[0]);
             if(returnedStream==null) {
             	System.out.println("stream doesn't exist please try again");
@@ -56,17 +58,20 @@ public class CreateBroadcast extends Thread{
             	return ;
             }
             
-            // Prompt the user to enter a title for the broadcast.
+            // set title for the broadcast.
             String title = args[0] +" "+ LocalTime.now();
             System.out.println("You chose " + title + " for broadcast title.");
 
             // Create a snippet with the title and scheduled start and end
-            // times for the broadcast. Currently, those times are hard-coded.
+            // times for the broadcast.
             LiveBroadcastSnippet broadcastSnippet = new LiveBroadcastSnippet();
             broadcastSnippet.setTitle(title);
             broadcastSnippet.setScheduledStartTime(new DateTime(LocalDate.now()+"T"+LocalTime.now()+"Z"));
-            broadcastSnippet.setScheduledEndTime(new DateTime(LocalDate.now()+"T"+args[1]+"Z"));
-            												  
+            if(args[1]!=null)	//set scheduled end time if exists
+            	broadcastSnippet.setScheduledEndTime(new DateTime(LocalDate.now()+"T"+args[1]+"Z"));
+            else
+            	broadcastSnippet.setScheduledEndTime(null);			//indefinite broadcast
+            
             // Set the broadcast's privacy status to "public". 
             //See: https://developers.google.com/youtube/v3/live/docs/liveBroadcasts#status.privacyStatus
             LiveBroadcastStatus status = new LiveBroadcastStatus();

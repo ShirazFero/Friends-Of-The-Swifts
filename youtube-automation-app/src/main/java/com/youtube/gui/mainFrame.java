@@ -99,15 +99,17 @@ public class mainFrame extends JFrame{
 				if(name!=null) {
 					switch(name) {
 						case "Set Interval":
+							System.out.println("---------------------------------------");
 							inputForm.setVisible(true);
 							btnPnl.getStartIntBrdbtn().setEnabled(true);
 							System.out.println("main frame: " +name);
 							break;
 							
 						case "Start Interval Broadcast":				//start interval broadcast
+							System.out.println("---------------------------------------");
 							Constants.IntervalBroadcast = true;
 							//controller.startBroadcast(checkedStreams);	//start the broadcasts
-							System.out.println("starting timer runner");
+							System.out.println("starting first live broadcasts");
 							try {
 								controller.startTimerRunner();			//start timer runner instance
 							}
@@ -123,6 +125,7 @@ public class mainFrame extends JFrame{
 							break;
 						
 						case "Stop Interval Broadcast":					//stop interval broadcast
+							System.out.println("---------------------------------------");
 							Constants.IntervalBroadcast=false;
 							controller.cancelTimerRunner();
 							btnPnl.getStartBrdbtn().setEnabled(true);
@@ -132,6 +135,7 @@ public class mainFrame extends JFrame{
 							break;
 							
 						case "Start Broadcast":	
+							System.out.println("---------------------------------------");
 							checkedStreams = streamPanel.getChecked();
 							controller.startBroadcast(checkedStreams);	//start the broadcasts
 							btnPnl.getStartBrdbtn().setEnabled(false);
@@ -142,6 +146,7 @@ public class mainFrame extends JFrame{
 							break;
 							
 						case "Stop Broadcast":
+							System.out.println("---------------------------------------");
 							checkedBroadcasts = boradcastPanel.getChecked();
 							controller.stopBroadcast(checkedBroadcasts);
 							btnPnl.getStartBrdbtn().setEnabled(true);
@@ -152,7 +157,8 @@ public class mainFrame extends JFrame{
 						    System.out.println("main frame: " +name);	
 							break;
 							
-						case "Test":	
+						case "Test":
+							System.out.println("---------------------------------------");
 							Controller.calcStopTime();
 							break;
 					}
