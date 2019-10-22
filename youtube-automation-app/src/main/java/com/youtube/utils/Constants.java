@@ -1,12 +1,11 @@
 package com.youtube.utils;
 
-import java.util.List;
-
-import com.google.common.collect.Lists;
-
 public class Constants {
 	
 	public static final boolean DEBUG = false;
-	public static boolean IntervalBroadcast = false;
-	public  List<String> scopes = Lists.newArrayList("https://www.googleapis.com/auth/youtube.readonly");
+	public static boolean IntervalBroadcast = false;	// Interval Broadcast flag
+	public static boolean RegularBroadcast = false;		// Regular Broadcast flag
+	public static boolean SetInterval = false;			// set interval flag
+	public static int numOfBroadcasts;
+	public static volatile Boolean[] isLive;			
 }

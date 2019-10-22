@@ -5,6 +5,7 @@ import java.awt.Toolkit;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
+import com.youtube.app.CreateYouTube;
 import com.youtube.gui.mainFrame;
 
 public class BackroundTasks extends SwingWorker<Void, Void> {
@@ -18,10 +19,12 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 	protected Void doInBackground() throws Exception {
 		// TODO Auto-generated method stub
 		int progress = 0;
+		new CreateYouTube(null);			//generate youtube instance authorize it
 		setProgress(progress+=33);
-		controller.initStreams();
+		controller.refreshStreams();		//get initial streams
 		setProgress(progress+=33);
-		controller.initBroadcasts();
+		String[] args = {"init","all"};
+		controller.refreshBroadcasts(args);	//get initial broadcasts
 		setProgress(progress+=34);
 		return null;
 	}
@@ -32,8 +35,7 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 	    Toolkit.getDefaultToolkit().beep();
 	    SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				new mainFrame(controller);
-				
+				mainFrame.getInstance(controller);
 			}
 		});
 	}

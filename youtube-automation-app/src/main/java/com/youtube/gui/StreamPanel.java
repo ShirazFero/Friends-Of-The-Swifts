@@ -30,6 +30,8 @@ public class StreamPanel extends JPanel implements ActionListener {
 	
 	private StatusBtnPanel stp;
 	
+	private JScrollPane jsp;
+	
 	public StreamPanel() {
 		stp = new StatusBtnPanel();
 		stm = new StreamTableModel();
@@ -46,11 +48,16 @@ public class StreamPanel extends JPanel implements ActionListener {
 		Border innerborder = BorderFactory.createEmptyBorder(5,5,5,5);
 		setBorder(BorderFactory.createCompoundBorder(outerborder, innerborder));
 		setLayout(new BorderLayout());
-		JScrollPane jsp =new JScrollPane(streamsTbl);
+		jsp =new JScrollPane(streamsTbl);
 		add(jsp,BorderLayout.CENTER);
 		add(stp,BorderLayout.SOUTH);
 		
 		
+	}
+
+	
+	public JScrollPane getJsp() {
+		return jsp;
 	}
 
 	/**

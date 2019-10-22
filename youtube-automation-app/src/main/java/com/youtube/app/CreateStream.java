@@ -20,6 +20,9 @@ package com.youtube.app;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+
+import javax.swing.JOptionPane;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.CdnSettings;
@@ -85,16 +88,19 @@ public class CreateStream extends Thread {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
                     + e.getDetails().getMessage());
             e.printStackTrace();
-
+            reportError();
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
             e.printStackTrace();
+            reportError();
         } catch (Throwable t) {
             System.err.println("Throwable: " + t.getMessage());
             t.printStackTrace();
+            reportError();
         }
-        }
-        private static String getStreamTitle() throws IOException {
+    }
+    
+    private static String getStreamTitle() throws IOException {
 	        
         	String title = "";
 	
@@ -107,5 +113,15 @@ public class CreateStream extends Thread {
 	            title = "New Stream";
 	        }
 	        return title;
-        }
+    }
+        
+    /**
+     * this method prompts to the GUI about an error occurrence
+     */
+    private static void reportError() {
+    	JOptionPane.showMessageDialog(null,
+                "Problem creating stream",
+                "Server request problem",
+                JOptionPane.ERROR_MESSAGE);
+    }
 }

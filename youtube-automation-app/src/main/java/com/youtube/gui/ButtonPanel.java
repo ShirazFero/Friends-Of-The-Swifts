@@ -35,7 +35,7 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		startButtons();
 		getStopIntbtn().setEnabled(false);
 		getStopBrdbtn().setEnabled(false);
-		getStartIntBrdbtn().setEnabled(false);
+//		getStartIntBrdbtn().setEnabled(false);
 		
 	}
 	public void setBtnListener(ButtonListener listener) {

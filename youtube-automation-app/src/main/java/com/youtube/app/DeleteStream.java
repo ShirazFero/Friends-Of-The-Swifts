@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.LiveStream;
@@ -36,14 +38,10 @@ import com.google.api.services.youtube.model.LiveStreamListResponse;
  * @author Evgeny Geyfman
  */
 public class DeleteStream extends Thread {
-
-
     /**
      * Create and insert a liveBroadcast resource.
      */
     public static void run(String[] args) {
-
-
         try {
 
             // Prompt the user to enter a title for the video stream.
@@ -66,43 +64,55 @@ public class DeleteStream extends Thread {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
                     + e.getDetails().getMessage());
             e.printStackTrace();
-
+            reportError();
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
             e.printStackTrace();
+            reportError();
         } catch (Throwable t) {
             System.err.println("Throwable: " + t.getMessage());
             t.printStackTrace();
+            reportError();
         }
+    }
+    private static String getStreamTitle() throws IOException {
+
+        String title = "";
+
+        System.out.print("Please enter a stream title: ");
+        BufferedReader bReader = new BufferedReader(new InputStreamReader(System.in));
+        title = bReader.readLine();
+
+        if (title.length() < 1) {
+            // Use "New Stream" as the default title.
+            title = "New Stream";
         }
-            private static String getStreamTitle() throws IOException {
-
-                String title = "";
-
-                System.out.print("Please enter a stream title: ");
-                BufferedReader bReader = new BufferedReader(new InputStreamReader(System.in));
-                title = bReader.readLine();
-
-                if (title.length() < 1) {
-                    // Use "New Stream" as the default title.
-                    title = "New Stream";
-                }
-                return title;
-            }
+        return title;
+    }
             
-            private static LiveStream getStreamByName(String name) throws IOException {
-            	// Create a request to list liveStream resources.
-                YouTube.LiveStreams.List livestreamRequest = CreateYouTube.getYoutube().liveStreams().list("id,snippet,status");
+    private static LiveStream getStreamByName(String name) throws IOException {
+    	// Create a request to list liveStream resources.
+        YouTube.LiveStreams.List livestreamRequest = CreateYouTube.getYoutube().liveStreams().list("id,snippet,status");
 
-                // Modify results to only return the user's streams.
-                livestreamRequest.setMine(true);
-                //get relevant stream
-                LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
-                List<LiveStream> returnedList = returnedListResponse.getItems();
-                for (LiveStream stream : returnedList) {
-                	if(stream.getSnippet().getTitle().equals(name))
-                		return stream;
-                }
-            	return null;
-            }
+        // Modify results to only return the user's streams.
+        livestreamRequest.setMine(true);
+        //get relevant stream
+        LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
+        List<LiveStream> returnedList = returnedListResponse.getItems();
+        for (LiveStream stream : returnedList) {
+        	if(stream.getSnippet().getTitle().equals(name))
+        		return stream;
+        }
+    	return null;
+    }
+            
+    /**
+     * this method prompts to the GUI about an error occurrence
+     */
+    private static void reportError() {
+    	JOptionPane.showMessageDialog(null,
+                "Problem deleting stream",
+                "Server request problem",
+                JOptionPane.ERROR_MESSAGE);
+    }
 }

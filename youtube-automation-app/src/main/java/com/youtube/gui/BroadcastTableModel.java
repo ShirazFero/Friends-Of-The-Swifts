@@ -28,6 +28,7 @@ public class BroadcastTableModel extends DefaultTableModel {
 		}
 		datalen=data.size();
 	}
+	
 	public String getColumnName(int col) {
 		return columnNames[col];
 	}
@@ -48,14 +49,6 @@ public class BroadcastTableModel extends DefaultTableModel {
 	public Object getValueAt(int row, int col) {
 		
 		return data[row][col];
-		/*LiveStream stream = data.get(row);
-		
-		switch(col) {
-		case 0: return stream.getSnippet().getTitle(); 						
-		case 1: return stream.getStatus().getStreamStatus(); 				
-		case 2:	return stream.getCdn().getIngestionInfo().getStreamName();
-		}
-		return null;*/
 	}
 
 	@Override

@@ -20,6 +20,8 @@ package com.youtube.app;
 import java.io.IOException;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.youtube.YouTube;
@@ -48,7 +50,7 @@ public class CreateYouTube {
 
 	        try {
 	            // Authorize the request.
-	            Credential credential = Auth.authorize(scopes, "createbroadcast");
+	            Credential credential = Auth.authorize(scopes,"createbroadcast");
 
 	            // This object is used to make YouTube Data API requests.
 	            youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
@@ -59,12 +61,14 @@ public class CreateYouTube {
 	            System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
 	                    + e.getDetails().getMessage());
 	            e.printStackTrace();
-
+	            reportError();
 	        } catch (IOException e) {
 	            System.err.println("IOException: " + e.getMessage());
 	            e.printStackTrace();
+	            reportError();
 	        } catch (Throwable t) {
 	            System.err.println("Throwable: " + t.getMessage());
+	            reportError();
 	        }
 	    }
 
@@ -72,5 +76,13 @@ public class CreateYouTube {
 			return youtube;
 		}
 
-	    
+		/**
+	     * this method prompts to the GUI about an error occurrence
+	     */
+	    private static void reportError() {
+	    	JOptionPane.showMessageDialog(null,
+	                "Problem Authenticating user",
+	                "Server request problem",
+	                JOptionPane.ERROR_MESSAGE);
+	    }
 }

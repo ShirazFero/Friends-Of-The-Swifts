@@ -5,24 +5,24 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 
-import com.youtube.controller.BackroundTasks;
-import com.youtube.controller.Controller;
-import javax.swing.JLabel;
+import com.youtube.controller.LoadingTasks;
 
-
-public class ProgressFrame extends JFrame implements PropertyChangeListener {
-	
-	private JProgressBar progressBar;
-	
-	private BackroundTasks task;
+public class LoadingFrame extends JFrame implements PropertyChangeListener {
 	
 	private static final long serialVersionUID = 1L;
 
-	public ProgressFrame(Controller controller){
+	private JProgressBar progressBar;
+	
+	private LoadingTasks loadTask;
+	
+	public LoadingFrame() {
+		
 		super("Loading");
+		System.out.println("loadnig frame c'tor");
 		JPanel panel = new JPanel();
 		progressBar = new JProgressBar(0, 100);
 		progressBar.setBounds(93, 51, 146, 17);
@@ -32,15 +32,16 @@ public class ProgressFrame extends JFrame implements PropertyChangeListener {
 		panel.setLayout(null);
 		panel.add(progressBar);
 		
-		JLabel lblFetchingDataFrom = new JLabel("Fetching Data from Server...");
+		JLabel lblFetchingDataFrom = new JLabel("Starting Live Broadcasts...");
 		lblFetchingDataFrom.setBounds(93, 26, 165, 14);
 		panel.add(lblFetchingDataFrom);
-		task = new BackroundTasks(controller);
-		task.addPropertyChangeListener(this);
-		task.execute();
+		loadTask = new LoadingTasks();
+		loadTask.addPropertyChangeListener(this);
+		loadTask.execute();
 		setBounds(100, 100, 371,157);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
+		
 	}
 	
 	@Override
@@ -50,11 +51,10 @@ public class ProgressFrame extends JFrame implements PropertyChangeListener {
 		    int progress = (Integer) evt.getNewValue();
 		    progressBar.setValue(progress);
 		}
-		if(task.isDone()) {
-			setVisible(false);
+		if(loadTask.isDone()) {
+			//setVisible(false);
 			dispose();
 		}
-		
 	}
 
 }

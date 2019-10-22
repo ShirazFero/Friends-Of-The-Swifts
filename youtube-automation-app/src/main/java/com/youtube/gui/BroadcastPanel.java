@@ -31,7 +31,7 @@ public class BroadcastPanel extends JPanel  {
 	
 	private ButtonListener btnlistener;
 	
-	
+	private static BroadcastPanel instance;
 
 	public BroadcastPanel(){
 		btm = new BroadcastTableModel();
@@ -56,7 +56,7 @@ public class BroadcastPanel extends JPanel  {
 		comboBox.setBounds(261, 15, 99, 23);
 		comboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
+
 				selected = filter[comboBox.getSelectedIndex()];
 			}
 		} );
@@ -66,7 +66,7 @@ public class BroadcastPanel extends JPanel  {
 		btnFilter.addActionListener(new ActionListener() {
 			@SuppressWarnings("deprecation")
 			public void actionPerformed(ActionEvent ev) {
-				// TODO Auto-generated method stub
+
 				JButton jb = (JButton) ev.getSource();
 				btnlistener.ButtonPressed(jb.getLabel());
 				
@@ -123,5 +123,9 @@ public class BroadcastPanel extends JPanel  {
 		return selected;
 	}
 	
-
+	public static BroadcastPanel getInstance() {
+		if(instance==null)
+			instance = new BroadcastPanel();
+		return instance;
+	}
 }

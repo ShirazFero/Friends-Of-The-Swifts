@@ -27,6 +27,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 /**
  * Use the YouTube Live Streaming API to insert a broadcast and retrieve a stream from the stream list
  * and then bind them together, then start the live broadcast. Use OAuth 2.0 to authorize the API requests.
@@ -35,17 +37,31 @@ import java.util.List;
  */
 public class CreateBroadcast extends Thread{
 
+	private int queueNum;
+	
+	/**
+	 * @param queueNum the queueNum to set
+	 */
+	public void setQueueNum(int queueNum) {
+		this.queueNum = queueNum;
+	}
 
-    /**
+	private String[] args;
+
+	public CreateBroadcast(String[] args) {
+		this.args = args;
+	}
+	/**
      * Create a liveBroadcast,retrieve a relevant stream by it's title 
      * bind them together a and insert resource.
      * Finally transition to preview mode,  and transition into live stream
      * 
      * @param String[] args ={ "broadcast title","scheduled end time" - could be null}
      */
-    public static void run(String[] args) {	
-
+    public  void run() {	
+    	
         try {
+        	System.out.println("Thread "+ Thread.currentThread().getId() + " starting "+args[0]);
         	//Retrieve  a stream by it's title from args
             LiveStream returnedStream = getStreamByName(args[0]);
             if(returnedStream==null) {
@@ -68,7 +84,7 @@ public class CreateBroadcast extends Thread{
             broadcastSnippet.setTitle(title);
             broadcastSnippet.setScheduledStartTime(new DateTime(LocalDate.now()+"T"+LocalTime.now()+"Z"));
             if(args[1]!=null)	//set scheduled end time if exists
-            	broadcastSnippet.setScheduledEndTime(new DateTime(LocalDate.now()+"T"+args[1]+"Z"));
+            	broadcastSnippet.setScheduledEndTime(new DateTime(args[1]+"Z"));
             else
             	broadcastSnippet.setScheduledEndTime(null);			//indefinite broadcast
             
@@ -142,7 +158,8 @@ public class CreateBroadcast extends Thread{
            //poll while test starting (wait while starting preview)
            while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("testStarting")) {
         	   returnedBroadcast = getBroadcastById(returnedBroadcast.getId());
-        	   System.out.println("polling testStarting");
+        	   System.out.println("polling testStarting "+args[0]);
+        	   Thread.sleep(1000);
            }
            //preview started
            System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
@@ -154,29 +171,43 @@ public class CreateBroadcast extends Thread{
             //poll while live starting (wait while starting live)
             while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("liveStarting")) {
             	returnedBroadcast = getBroadcastById(returnedBroadcast.getId());
-            	System.out.println("polling liveStarting");
+            	System.out.println("polling liveStarting "+args[0]);
             	Thread.sleep(1000);
             }
             Thread.sleep(1000);
             returnedBroadcast = getBroadcastById(returnedBroadcast.getId());
             //promt status to screen
-            System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
+            System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus()+" "+ args[0]);
+            if(Constants.isLive!=null)
+            	Constants.isLive[queueNum]=true;
            
         } catch (GoogleJsonResponseException e) {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
                     + e.getDetails().getMessage());
             e.printStackTrace();
-
+            reportError();
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
             e.printStackTrace();
+            reportError();
         } catch (Throwable t) {
             System.err.println("Throwable: " + t.getMessage());
             t.printStackTrace();
+            reportError();
         }
     }
-
     
+    /**
+     * this method prompts to the GUI about an error occurrence
+     */
+    private void reportError() {
+    	JOptionPane.showMessageDialog(null,
+                "Problem starting broadcast "+ args[0] +
+                ", please check manually at https://www.youtube.com/my_live_events",
+                "Server request problem",
+                JOptionPane.ERROR_MESSAGE);
+        Constants.isLive[queueNum]=true;
+    }
     /***this method retrieves a relevant stream from server from the stream list 
      * 
      * @param name - stream name that is requested
@@ -194,7 +225,7 @@ public class CreateBroadcast extends Thread{
         LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
         List<LiveStream> returnedList = returnedListResponse.getItems();
         for (LiveStream stream : returnedList) {
-        	System.out.println(stream.getSnippet().getTitle());
+        	//System.out.println(stream.getSnippet().getTitle());
         	if(stream.getSnippet().getTitle().equals(name))
         		foundstream= stream;
         }
@@ -225,8 +256,6 @@ public class CreateBroadcast extends Thread{
          }
          return foundbroadcast;
     }
-    
-    
     
 }
 

@@ -28,15 +28,15 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Retrieve a list of a channel's broadcasts, using OAuth 2.0 to authorize
+import javax.swing.JOptionPane;
+
+/**this class hold a static method that:
+ * Retrieves a list of a channel's broadcasts, using OAuth 2.0 to authorize
  * API requests.
  *
  * @author Evgeny Geyfman
  */
-public class ListBroadcasts extends Thread {
-
-
+public class ListBroadcasts {
     /**
      * List broadcasts for the user's channel.
      *
@@ -46,7 +46,6 @@ public class ListBroadcasts extends Thread {
     public static List<LiveBroadcast> run(String[] args) {
 
         try {
-        	
             // Create a request to list broadcasts.
             YouTube.LiveBroadcasts.List liveBroadcastRequest =
             		CreateYouTube.getYoutube().liveBroadcasts().list("id,snippet,status");
@@ -64,8 +63,8 @@ public class ListBroadcasts extends Thread {
             List<LiveBroadcast> returnedList = returnedListResponse.getItems();
             List<LiveBroadcast> fullreturnList= new LinkedList<LiveBroadcast>(returnedList);
             
-            boolean flag = true;	//flag that checks if there's more pages
-            while(flag) {
+            boolean nextPageflag = true;	//flag that checks if there's more pages
+            while(nextPageflag) {
 	            if(Constants.DEBUG) {
 	            // Print information from the API response.
 		            System.out.println("\n================== Returned Broadcasts ==================\n");
@@ -90,7 +89,7 @@ public class ListBroadcasts extends Thread {
 		            fullreturnList.addAll(returnedList);
 	            }
 	            else
-	            	flag = false;
+	            	nextPageflag = false;
            }
             
            return fullreturnList;
@@ -99,16 +98,27 @@ public class ListBroadcasts extends Thread {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
                     + e.getDetails().getMessage());
             e.printStackTrace();
-
+            reportError();
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
             e.printStackTrace();
+            reportError();
         } catch (Throwable t) {
             System.err.println("Throwable: " + t.getMessage());
             t.printStackTrace();
+            reportError();
         }
 		return null;
     }
     
+    /**
+     * this method prompts to the GUI about an error occurrence
+     */
+    private static void reportError() {
+    	JOptionPane.showMessageDialog(null,
+                "Problem fethcing broadcasts",
+                "Server request problem",
+                JOptionPane.ERROR_MESSAGE);
+    }
 }
 

@@ -23,6 +23,8 @@ import com.google.api.services.youtube.model.*;
 import java.io.IOException;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 
 /**
  * Use the YouTube Live Streaming API to retrieve a live broadcast
@@ -31,10 +33,17 @@ import java.util.List;
  * @author Evgeny Geyfman
  */
 public class CompleteBroadcast extends Thread {
-    /**
+	
+	private String[] args;
+	
+	public  CompleteBroadcast(String[] args) {
+		this.args = args;
+	}
+
+	/**
      * find and delete a liveBroadcast resource.
      */
-    public static void run(String[] args) {
+    public synchronized void run() {
 
         try {
         	
@@ -57,11 +66,12 @@ public class CompleteBroadcast extends Thread {
              returnedBroadcast = requestTesting.execute();
              
              returnedBroadcast = getBroadcastByName(args[0]);
-             System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus());
+             System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus() + " " + args[0]);
              //poll while test starting
              while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("live")) {
           	   returnedBroadcast = getBroadcastByName(args[0]);
           	   System.out.println("polling live");
+          	   Thread.sleep(1000);
              }
              
              System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
@@ -70,13 +80,15 @@ public class CompleteBroadcast extends Thread {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
                     + e.getDetails().getMessage());
             e.printStackTrace();
-
+            reportError();
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
             e.printStackTrace();
+            reportError();
         } catch (Throwable t) {
             System.err.println("Throwable: " + t.getMessage());
             t.printStackTrace();
+            reportError();
         }
     
     } 
@@ -99,4 +111,15 @@ public class CompleteBroadcast extends Thread {
         }
         return null;
    }
+    
+	/**
+	 * this method prompts to the GUI about an error occurrence
+	 */
+	private  void reportError() {
+		JOptionPane.showMessageDialog(null,
+	            "Problem completing broadcast " + args[0] +
+                ", please check manually at https://www.youtube.com/my_live_events",
+	            "Server request problem",
+	            JOptionPane.ERROR_MESSAGE);
+	}
 }
