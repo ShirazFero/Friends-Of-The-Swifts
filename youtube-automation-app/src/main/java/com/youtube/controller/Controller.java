@@ -308,8 +308,8 @@ public class Controller {
     		System.out.println("closing inteval broadcast");
     	
     		//save interval broadcast flag
-    		obj.put("RegularBroadcast", "OFF");
-    		obj.put("IntervalBroadcast", "ON");
+    		obj.put("Regular Broadcast", "OFF");
+    		obj.put("Interval Broadcast", "ON");
     		
     		//save current interval stop and start time
     		obj.put("Stop Time", Interval.getInstance().getCorrentInterval().toString());
@@ -327,8 +327,8 @@ public class Controller {
     		
     	}
     	else {
-    		obj.put("RegularBroadcast", "OFF");
-    		obj.put("IntervalBroadcast", "OFF");
+    		obj.put("Regular Broadcast", "OFF");
+    		obj.put("Interval Broadcast", "OFF");
     	}
     	try (FileWriter file = new FileWriter("src/main/resources/saved_status.json")) {
 			file.write(obj.toJSONString());
@@ -354,11 +354,11 @@ public class Controller {
  
             JSONObject jsonObject = (JSONObject) obj;
  			
-            String RegularBroadcast = (String) jsonObject.get("RegularBroadcast");
+            String RegularBroadcast = (String) jsonObject.get("Regular Broadcast");
             if(RegularBroadcast.equals("ON")){
             	
             	//start regular flag
-            	Constants.IntervalBroadcast = true;
+            	Constants.RegularBroadcast = true;
             	//refresh broadcast to active panel
             	
             	//set checked streams
@@ -373,7 +373,7 @@ public class Controller {
 				btnPnl.getStopIntbtn().setEnabled(false);
 				btnPnl.getStartIntBrdbtn().setEnabled(false);
             }
-            String IntervalBroadcast = (String) jsonObject.get("IntervalBroadcast");
+            String IntervalBroadcast = (String) jsonObject.get("Interval Broadcast");
             if(IntervalBroadcast.equals("ON")){
             	
             	//set interval panel
