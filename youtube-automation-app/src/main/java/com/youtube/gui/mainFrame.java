@@ -2,7 +2,11 @@ package com.youtube.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.time.Instant;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -17,7 +21,8 @@ import com.youtube.utils.Constants;
 
 /**
  * Main frame of GUI
- * this class handles all buttin lisnteners of all panels of the frame
+ * this class handles all button listeners of all panels of the frame
+ * each button pressed method triggers the designated method that performs the requested option
  * @author Evgeny Geyfman
  *
  */
@@ -35,11 +40,15 @@ public class mainFrame extends JFrame{
 	
 	private static mainFrame instance;
 	
-	public mainFrame(Controller controller) {
-	
+	public mainFrame() {
+
 	//----------------------INIT PANELS---------------------
 		
 		super("Control Panel");
+		
+		
+		Controller controller = Controller.getInstance();
+		
 		getContentPane().setLayout(new BorderLayout());
 	
 		//init new interval panel
@@ -66,9 +75,10 @@ public class mainFrame extends JFrame{
 		getContentPane().add(welcomeLabel,BorderLayout.NORTH);
 		
 		//init new button panel
-		ButtonPanel btnPnl = new ButtonPanel();
+		ButtonPanel btnPnl =  ButtonPanel.getInstance();
 		getContentPane().add(btnPnl,BorderLayout.WEST);
 		
+		controller.loadData();
 		
 		//--------------Adding button listeners to panels------------
 		
@@ -178,11 +188,22 @@ public class mainFrame extends JFrame{
 						    System.out.println("main frame Button Panel: " +name);	
 							break;
 							
-						case "Test":
+						case "Open YouTube Live Streams":
 							System.out.println("---------------------------------------");
-							Instant instant = Instant.ofEpochMilli(controller.calcStopTime().getTime());
-							LocalDateTime finTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-							System.out.println(finTime.toString());
+							try {
+								java.awt.Desktop.getDesktop().browse(new URI(Constants.LiveStreamUrl));
+							} catch (IOException | URISyntaxException e) {
+								e.printStackTrace();
+							}
+							System.out.println("main frame Button Panel: " +name);	
+							break;
+						case "Open YouTube Studio":
+							System.out.println("---------------------------------------");
+							try {
+								java.awt.Desktop.getDesktop().browse(new URI(Constants.StudioUrl));
+							} catch (IOException | URISyntaxException e) {
+								e.printStackTrace();
+							}
 							System.out.println("main frame Button Panel: " +name);	
 							break;
 					}
@@ -199,10 +220,10 @@ public class mainFrame extends JFrame{
 					inputForm.refresh();
 					System.out.println("input form frame: " +btnName);
 					break;
-				case "OK": 
+				case "Start": 
 				
-					checkedStreams = inputForm.getChecked();	// get input of checked streams
-					
+					checkedStreams = inputForm.getChecked();		// set input of checked streams to main frame
+					controller.setCheckedStreams(checkedStreams);	// set input of checked streams to controller
 					// start broadcasting according to pressed button
 					if(Constants.SetInterval) {// set iterval was pressed
 						if(Constants.IntervalBroadcast) {
@@ -251,6 +272,7 @@ public class mainFrame extends JFrame{
 						Constants.SetInterval=false;
 					}
 					else {
+						System.out.println("cancel regular broadcast");
 						Constants.RegularBroadcast = false;
 						inputForm.getBox().setVisible(true);
 						inputForm.getLblPleaseEnterInterval().setVisible(true);
@@ -271,7 +293,7 @@ public class mainFrame extends JFrame{
 				Interval interval = Interval.getInstance();
 				interval.setInterval(inputForm.getSelected());		//set selected interval length
 				System.out.println("interval was set: " + interval.getInterval());
-				controller.setCheckedStreams(checkedStreams);
+				
 				try {
 					controller.startBroadcast(checkedStreams);	//start initial live Broadcasts
 				
@@ -361,7 +383,15 @@ public class mainFrame extends JFrame{
 		
 		setSize(800, 800);
 		setMinimumSize(new Dimension(550,300));
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.addWindowListener(new WindowAdapter(){		//handle App close operation ,if live save corrent status
+			public void windowClosing(WindowEvent e){
+            	//save status of broadcast 
+            	controller.saveData();
+            	System.exit(1);
+            }
+            
+        });
 		setVisible(true);
 		pack();
 	}
@@ -388,9 +418,9 @@ public class mainFrame extends JFrame{
 	 * @param controller
 	 * @return instance
 	 */
-	public static mainFrame getInstance(Controller controller) {
+	public static mainFrame getInstance() {
 		if (instance == null)
-			instance = new mainFrame(controller);
+			instance = new mainFrame();
 		return instance;
 	}
 	

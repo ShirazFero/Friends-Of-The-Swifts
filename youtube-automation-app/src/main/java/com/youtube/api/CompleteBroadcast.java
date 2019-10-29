@@ -1,4 +1,4 @@
-package com.youtube.app;
+package com.youtube.api;
 /*
 	Copyright (c) 2019 Evgeny Geyfman.
 	this application uses YouTube Live Streaming API, Copyright (c) 2013 Google Inc.
@@ -29,7 +29,7 @@ import javax.swing.JOptionPane;
 /**
  * Use the YouTube Live Streaming API to retrieve a live broadcast
  * and complete the broadcast. Use OAuth 2.0 to authorize the API requests.
- *
+ * @param args[0] = broadcast title to be completed
  * @author Evgeny Geyfman
  */
 public class CompleteBroadcast extends Thread {
@@ -61,9 +61,9 @@ public class CompleteBroadcast extends Thread {
             }
            
             //Request transition to complete broadcast
-            YouTube.LiveBroadcasts.Transition requestTesting = CreateYouTube.getYoutube().liveBroadcasts()
+            YouTube.LiveBroadcasts.Transition requestTransition = CreateYouTube.getYoutube().liveBroadcasts()
                     .transition("complete", returnedBroadcast.getId(), "snippet,status");
-             returnedBroadcast = requestTesting.execute();
+             returnedBroadcast = requestTransition.execute();
              
              returnedBroadcast = getBroadcastByName(args[0]);
              System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus() + " " + args[0]);

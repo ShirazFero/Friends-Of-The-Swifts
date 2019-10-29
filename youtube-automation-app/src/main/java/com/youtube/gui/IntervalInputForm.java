@@ -13,20 +13,21 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.List;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 
+/**
+ * This class represents an Interval input form , which will appear when setting an interval,
+ * or Starting a Live Broadcast
+ * @author Evgeny Geyfman
+ *
+ */
 public class IntervalInputForm extends JFrame implements ActionListener {
 	
-	/**
-	 * @return the btnRefresh
-	 */
-	public JButton getBtnRefresh() {
-		return btnRefresh;
-	}
-
 	private static final long serialVersionUID = 1L;
 	
 	private ButtonListener btnlistener;
@@ -53,6 +54,13 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 	private JButton btnRefresh;
 	
 	private JScrollPane jsp;
+	
+	/**
+	 * @return the btnRefresh
+	 */
+	public JButton getBtnRefresh() {
+		return btnRefresh;
+	}
 	
 	public JTable getStreamTable() {
 		return streamTable;
@@ -89,7 +97,7 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		lblPleaseEnterInterval.setBounds(10, 11, 262, 29);
 		panel.add(lblPleaseEnterInterval);
 		
-		JButton btnOk = new JButton("OK");
+		JButton btnOk = new JButton("Start");
 		btnOk.setBounds(20, 212, 74, 23);
 		panel.add(btnOk);
 		btnOk.addActionListener(this);
@@ -106,7 +114,6 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		box.setSelectedIndex(1);
 		box.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				selected = intervals[box.getSelectedIndex()];
 			}
 		} );
@@ -122,6 +129,11 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		lblThereAreNo.setVisible(false);
 		panel.add(lblThereAreNo);
 		
+		this.addWindowListener(new WindowAdapter(){		//on closing act as Cancel was pressed
+            public void windowClosing(WindowEvent e){
+            	btnlistener.ButtonPressed("Cancel");
+            }
+        });
 	}
 	
 	/**

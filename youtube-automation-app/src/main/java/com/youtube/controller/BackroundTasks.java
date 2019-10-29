@@ -5,7 +5,7 @@ import java.awt.Toolkit;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
-import com.youtube.app.CreateYouTube;
+import com.youtube.api.CreateYouTube;
 import com.youtube.gui.mainFrame;
 
 public class BackroundTasks extends SwingWorker<Void, Void> {
@@ -35,7 +35,7 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 	    Toolkit.getDefaultToolkit().beep();
 	    SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				mainFrame.getInstance(controller);
+				mainFrame.getInstance();
 			}
 		});
 	}

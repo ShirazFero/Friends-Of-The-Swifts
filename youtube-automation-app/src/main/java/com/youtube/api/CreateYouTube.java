@@ -1,4 +1,4 @@
-package com.youtube.app;
+package com.youtube.api;
 /*
 	Copyright (c) 2019 Evgeny Geyfman.
 	this application uses YouTube Live Streaming API, Copyright (c) 2013 Google Inc.

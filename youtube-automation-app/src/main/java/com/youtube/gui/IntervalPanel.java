@@ -32,7 +32,7 @@ public class IntervalPanel extends JPanel {
 		lblEndTime.setBounds(10, 83, 60, 14);
 		add(lblEndTime);
 		
-		lblNotSet = new JLabel("not set");
+		lblNotSet = new JLabel("Interval is not set");
 		lblNotSet.setBounds(102, 33, 249, 14);
 		add(lblNotSet);
 		

@@ -1,4 +1,4 @@
-package com.youtube.app;
+package com.youtube.api;
 
 /*
  * Copyright (c) 2013 Google Inc.

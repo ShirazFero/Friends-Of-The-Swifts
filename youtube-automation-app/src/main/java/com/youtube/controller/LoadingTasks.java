@@ -10,7 +10,7 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 	@Override
 	protected Void doInBackground() throws Exception {
 		// TODO Auto-generated method stub
-		Controller controller =Controller.getInstance();
+		Controller controller = Controller.getInstance();
 		int percentage = Math.round(100/ controller.getCheckedStreams().length) ,progress = 0;
 		//Object lock = new Object();	// obtain a lock
 		

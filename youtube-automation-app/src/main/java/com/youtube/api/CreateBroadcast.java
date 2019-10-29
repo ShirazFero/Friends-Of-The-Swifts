@@ -1,4 +1,4 @@
-package com.youtube.app;
+package com.youtube.api;
 /*
   	Copyright (c) 2019 Evgeny Geyfman.
  	this application uses YouTube Live Streaming API, Copyright (c) 2013 Google Inc.
@@ -201,12 +201,13 @@ public class CreateBroadcast extends Thread{
      * this method prompts to the GUI about an error occurrence
      */
     private void reportError() {
+    	Constants.isLive[queueNum]=true;
     	JOptionPane.showMessageDialog(null,
                 "Problem starting broadcast "+ args[0] +
                 ", please check manually at https://www.youtube.com/my_live_events",
                 "Server request problem",
                 JOptionPane.ERROR_MESSAGE);
-        Constants.isLive[queueNum]=true;
+        
     }
     /***this method retrieves a relevant stream from server from the stream list 
      * 

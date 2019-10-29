@@ -21,8 +21,11 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	private JButton StopIntbtn;
 	private JButton StartBrdbtn;
 	private JButton StopBrdbtn;
-	private JButton Testbtn;
+	private JButton LiveStreamsbtn;
+	private JButton Studiobtn;
 	private ButtonListener btnListener;
+	
+	private static ButtonPanel instance;
 	
 	
 
@@ -31,7 +34,7 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		Border outerborder = BorderFactory.createTitledBorder("Menu");
 		Border innerborder = BorderFactory.createEmptyBorder(5,5,5,5);
 		setBorder(BorderFactory.createCompoundBorder(outerborder, innerborder));
-		setLayout(new GridLayout(6,1));
+		setLayout(new GridLayout(7,1));
 		startButtons();
 		getStopIntbtn().setEnabled(false);
 		getStopBrdbtn().setEnabled(false);
@@ -54,25 +57,35 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		StopIntbtn = new JButton("Stop Interval Broadcast");
 		StartBrdbtn = new JButton("Start Broadcast");
 		StopBrdbtn = new JButton("Stop Broadcast");
-		Testbtn = new JButton("Test");
+		LiveStreamsbtn = new JButton("Open YouTube Live Streams");
+		Studiobtn = new JButton("Open YouTube Studio");
 		
 		add(setIntervalbtn);
 		add(StartIntBrdbtn);
 		add(StopIntbtn);
 		add(StartBrdbtn);
 		add(StopBrdbtn);
-		add(Testbtn);
+		add(LiveStreamsbtn);
+		add(Studiobtn);
 		
 		setIntervalbtn.addActionListener(this);
 		StartIntBrdbtn.addActionListener(this);
 		StopIntbtn.addActionListener(this);
 		StartBrdbtn.addActionListener(this);
 		StopBrdbtn.addActionListener(this);
-		Testbtn.addActionListener(this);
+		LiveStreamsbtn.addActionListener(this);
+		Studiobtn.addActionListener(this);
 		
 	}
 	
 	//-----button getters----------------
+	
+	public static ButtonPanel getInstance() {
+		if(instance==null)
+			instance=new ButtonPanel();
+		return instance;
+	}
+	
 	public JButton getsetIntervalbtn() {
 		return setIntervalbtn;
 	}
@@ -88,7 +101,10 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	public JButton getStopBrdbtn() {
 		return StopBrdbtn;
 	}
-	public JButton getTestbtn() {
-		return Testbtn;
+	public JButton getLiveStreamsbtn() {
+		return LiveStreamsbtn;
+	}
+	public JButton getStudiobtn() {
+		return Studiobtn;
 	}
 }

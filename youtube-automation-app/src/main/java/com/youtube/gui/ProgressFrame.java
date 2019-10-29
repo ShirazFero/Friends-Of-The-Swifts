@@ -21,8 +21,9 @@ public class ProgressFrame extends JFrame implements PropertyChangeListener {
 	
 	private static final long serialVersionUID = 1L;
 
-	public ProgressFrame(Controller controller){
+	public ProgressFrame(){
 		super("Loading");
+		Controller controller = Controller.getInstance();
 		JPanel panel = new JPanel();
 		progressBar = new JProgressBar(0, 100);
 		progressBar.setBounds(93, 51, 146, 17);
