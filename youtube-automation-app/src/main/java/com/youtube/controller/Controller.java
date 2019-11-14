@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -156,9 +157,9 @@ public class Controller {
 	}
 	
 	/**
-	 * This method starts new live broadcast to every stream that was chosen ion the GUI
+	 * This method starts new live broadcast to every stream that was chosen on the GUI
 	 * @param checked array indicates whether a stream was chosen or not
-	 * 
+	 * Constants.isLive array delivers data to loading tasks regarding the progress of starting broadcast.
 	 * @throws InterruptedException
 	 */
 	public void startBroadcast(Boolean[] checked) throws InterruptedException {
@@ -174,12 +175,17 @@ public class Controller {
 			if(checked[i])
 				checkedStreamsCount++;
 		}
-		Constants.isLive = new Boolean[checkedStreamsCount];	//init flag array to mark when broadcast is live
-		for(int i=0;i<Constants.isLive.length;i++)
+		Constants.isLive = new Boolean[checkedStreamsCount*2];	//init flag array to mark starting progress of broadcast
+		for(int i=0;i<Constants.isLive.length;i++)				
 			Constants.isLive[i]=false;						
 		System.out.println("loading frame starting...isLive length: "+Constants.isLive.length);
-		new LoadingFrame();
-		
+		SwingUtilities.invokeLater(new Runnable() {
+			
+			public void run() {
+				new LoadingFrame();
+			}
+		});
+		int j=0; // index for setting queue numbers for Constants.isLive 
 		for(int i = checked.length-1 ; i>=0 ; i--) {
 			if(checked[i])	{
 				String[] args = new String[2];		// args[0] = title , args[1] = end time
@@ -197,9 +203,10 @@ public class Controller {
 				else
 					System.out.println("starting "+ args[0]);
 				brd =  new CreateBroadcast(args);				// initiate new CreateBroadcast object
-				brd.setQueueNum(checked.length-1-i);   			// set broadcasts queue index for Constants.isLive array
+				brd.setQueueNum(j);   			// set broadcasts queue index for Constants.isLive array
 				brd.start();									// start new thread
 				Thread.sleep(1000);								// wait 1 second, better handles server requests
+				j+=2;
 			}
 		}
 	}
@@ -207,24 +214,31 @@ public class Controller {
 	/**
 	 * This method stops all active live broadcasts if they were chosen
 	 * @param checked
+	 * @throws InterruptedException 
 	 */
-	public void stopBroadcast(Boolean[] checked) {
+	public void stopBroadcast(Boolean[] checked) throws InterruptedException {
 		String[] args = {"refresh","active"};
 		List<LiveBroadcast> returnedList =ListBroadcasts.run(args);
+		if(returnedList==null) {
+			System.out.println("error fetching broadcasts");
+			return;
+		}
 		for(int i=returnedList.size()-1 ; i>=0 ;i--) {
 			if(checked[i]) {
 				args[0]=broadcasts.get(i).getSnippet().getTitle();
 				CompleteBroadcast cmpBrd = new CompleteBroadcast(args);
 				cmpBrd.start();
-				System.out.println("stoping "+ args[0]);
+				System.out.println("stopped "+ args[0]);
+				Thread.sleep(1000);								// wait 1 second, better handles server requests
 			}
 		}
 	}
 	
 	/**
 	 * This method stops all active live broadcasts
+	 * @throws InterruptedException 
 	 */
-	public void stopBroadcasts() {
+	public void stopBroadcasts() throws InterruptedException {
 		CompleteBroadcast cmpBrd= null;
 		String[] args = {"refresh","active"};
 		List<LiveBroadcast> returnedList =ListBroadcasts.run(args);
@@ -236,7 +250,8 @@ public class Controller {
 			args[0]=broadcasts.get(i).getSnippet().getTitle();
 			cmpBrd = new CompleteBroadcast(args);
 			cmpBrd.start();
-			System.out.println("stoping "+ args[0]);
+			System.out.println("stopped "+ args[0]);
+			Thread.sleep(1000);								// wait 1 second, better handles server requests
 		}
 	}
 
@@ -250,8 +265,9 @@ public class Controller {
 	
 	/**
 	 * This method stops timer runner object
+	 * @throws InterruptedException 
 	 */
-	public void cancelTimerRunner() {
+	public void cancelTimerRunner() throws InterruptedException {
 		timerRunner.stopIntervalBroadcast();
 	}
 
@@ -330,15 +346,17 @@ public class Controller {
     		obj.put("Regular Broadcast", "OFF");
     		obj.put("Interval Broadcast", "OFF");
     	}
-    	try (FileWriter file = new FileWriter("src/main/resources/saved_status.json")) {
+    	
+    	try (FileWriter file = new FileWriter(System.getProperty("user.home")+"\\Documents\\saved_status.json")) {
 			file.write(obj.toJSONString());
-			System.out.println("Successfully Copied JSON Object to File...");
+			System.out.println("Successfully Saved JSON Object to File...");
 			System.out.println("\nJSON Object: " + obj);
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
+
 				e1.printStackTrace();
 			}
 	}
+	
 	/**
 	 * this method loads current broadcast data when window is opening
 	 */
@@ -350,7 +368,7 @@ public class Controller {
         try {
  				
             Object obj = parser.parse(new FileReader(
-                    "src/main/resources/saved_status.json"));
+            		System.getProperty("user.home")+"\\Documents\\saved_status.json"));
  
             JSONObject jsonObject = (JSONObject) obj;
  			

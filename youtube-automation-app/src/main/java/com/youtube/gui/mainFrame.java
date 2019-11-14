@@ -4,9 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -15,6 +19,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+
+import org.json.simple.JSONObject;
+
 import com.youtube.controller.Controller;
 import com.youtube.controller.Interval;
 import com.youtube.utils.Constants;
@@ -40,7 +47,8 @@ public class mainFrame extends JFrame{
 	
 	private static mainFrame instance;
 	
-	public mainFrame() {
+	@SuppressWarnings("unchecked")
+	public mainFrame() throws IOException {
 
 	//----------------------INIT PANELS---------------------
 		
@@ -78,7 +86,29 @@ public class mainFrame extends JFrame{
 		ButtonPanel btnPnl =  ButtonPanel.getInstance();
 		getContentPane().add(btnPnl,BorderLayout.WEST);
 		
-		controller.loadData();
+		final Path path = Paths.get(System.getProperty("user.home")+"\\Documents\\saved_status.json");
+		 
+		if(Files.exists(path))     	//check if there's a file of saved data
+			if(!controller.getBroadcasts().isEmpty()) {	//if there's active broadcasts
+				String message= "Do you want to resume saved Broadcast?"
+						 ,title="Resume Broadcast";
+				int reply =JOptionPane.showConfirmDialog(null, message, title, JOptionPane.CANCEL_OPTION);
+				if(reply==JOptionPane.YES_OPTION) 
+					controller.loadData();	//load it
+			}
+		else {						//else create one
+			JSONObject obj = new JSONObject();
+    		//save regular broadcast flag
+    		obj.put("Regular Broadcast", "ON");
+    		obj.put("Interval Broadcast", "OFF");
+    		try (FileWriter file = new FileWriter(System.getProperty("user.home")+"\\Documents\\saved_status.json")) {
+    			file.write(obj.toJSONString());
+    			System.out.println("Successfully created first JSON Object File...");
+    			System.out.println("\nJSON Object: " + obj);
+    			} catch (IOException e1) {
+    				e1.printStackTrace();
+    			}
+		}
 		
 		//--------------Adding button listeners to panels------------
 		
@@ -159,7 +189,11 @@ public class mainFrame extends JFrame{
 						case "Stop Interval Broadcast":					//stop interval broadcast
 							System.out.println("---------------------------------------");
 							Constants.IntervalBroadcast=false;			//toggle flag off
-							controller.cancelTimerRunner();
+							try {
+								controller.cancelTimerRunner();
+							} catch (InterruptedException e1) {
+								e1.printStackTrace();
+							}
 							btnPnl.getStartBrdbtn().setEnabled(true);	//toggle gui buttons 
 							btnPnl.getStopIntbtn().setEnabled(false);
 							btnPnl.getStartIntBrdbtn().setEnabled(true);
@@ -180,7 +214,11 @@ public class mainFrame extends JFrame{
 						case "Stop Broadcast":
 							System.out.println("---------------------------------------");
 							checkedBroadcasts = boradcastPanel.getChecked();
-							controller.stopBroadcast(checkedBroadcasts);
+							try {
+								controller.stopBroadcasts();
+							} catch (InterruptedException e1) {
+								e1.printStackTrace();
+							}
 							btnPnl.getStartBrdbtn().setEnabled(true);
 							btnPnl.getStopBrdbtn().setEnabled(false);
 							btnPnl.getStartIntBrdbtn().setEnabled(true);	//enable interval broadcast
@@ -388,7 +426,7 @@ public class mainFrame extends JFrame{
 			public void windowClosing(WindowEvent e){
             	//save status of broadcast 
             	controller.saveData();
-            	System.exit(1);
+            	System.exit(0);
             }
             
         });
@@ -417,8 +455,9 @@ public class mainFrame extends JFrame{
 	 * else create one.
 	 * @param controller
 	 * @return instance
+	 * @throws IOException 
 	 */
-	public static mainFrame getInstance() {
+	public static mainFrame getInstance() throws IOException {
 		if (instance == null)
 			instance = new mainFrame();
 		return instance;

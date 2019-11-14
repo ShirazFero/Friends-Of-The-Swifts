@@ -152,34 +152,56 @@ public class CreateBroadcast extends Thread{
     	   YouTube.LiveBroadcasts.Transition requestTesting = CreateYouTube.getYoutube().liveBroadcasts()
                   .transition("testing", returnedBroadcast.getId(), "snippet,status");
            returnedBroadcast = requestTesting.execute();
+           
            //Prompt request status
            System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus());
+           
+           int seconds = 0; // second counter for for server response to transition
            
            //poll while test starting (wait while starting preview)
            while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("testStarting")) {
         	   returnedBroadcast = getBroadcastById(returnedBroadcast.getId());
         	   System.out.println("polling testStarting "+args[0]);
         	   Thread.sleep(1000);
+        	   if(seconds>90) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to Testing
+	           		Constants.isLive[queueNum+1]=true;		//handle error
+	           		args[0] +=" on Transition to Testing";
+	           		reportError();
+           		}
+           		else
+           			seconds++;
            }
+           
            //preview started
            System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
-          
-            //transition to live  mode
+           Constants.isLive[queueNum]=true;		// set 50% OF broadcast starting completed
+            
+           //transition to live  mode
             YouTube.LiveBroadcasts.Transition requestLive = CreateYouTube.getYoutube().liveBroadcasts()
                     .transition("live", returnedBroadcast.getId(), "snippet,status");
             returnedBroadcast = requestLive.execute();
+           
             //poll while live starting (wait while starting live)
+            seconds = 0;
             while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("liveStarting")) {
             	returnedBroadcast = getBroadcastById(returnedBroadcast.getId());
             	System.out.println("polling liveStarting "+args[0]);
             	Thread.sleep(1000);
+            	if(seconds>90) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to live
+            		Constants.isLive[queueNum+1]=true;
+            		args[0] +=" on Transition to Live";
+            		reportError();
+            	}
+            	else
+            		seconds++;
             }
             Thread.sleep(1000);
             returnedBroadcast = getBroadcastById(returnedBroadcast.getId());
+            
             //promt status to screen
             System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus()+" "+ args[0]);
             if(Constants.isLive!=null)
-            	Constants.isLive[queueNum]=true;
+            	Constants.isLive[queueNum+1]=true;
            
         } catch (GoogleJsonResponseException e) {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
@@ -202,6 +224,7 @@ public class CreateBroadcast extends Thread{
      */
     private void reportError() {
     	Constants.isLive[queueNum]=true;
+    	Constants.isLive[queueNum+1]=true;
     	JOptionPane.showMessageDialog(null,
                 "Problem starting broadcast "+ args[0] +
                 ", please check manually at https://www.youtube.com/my_live_events",
@@ -216,7 +239,7 @@ public class CreateBroadcast extends Thread{
      * @throws IOException
      */
     private static LiveStream getStreamByName(String name) throws IOException {
-    	// Create a request to list liveStream resources.
+    	/*// Create a request to list liveStream resources.
         YouTube.LiveStreams.List livestreamRequest = CreateYouTube.getYoutube().liveStreams().list("id,snippet,status");
         // Modify results to only return the user's streams.
         livestreamRequest.setMine(true);
@@ -224,7 +247,9 @@ public class CreateBroadcast extends Thread{
         //get relevant stream
         LiveStream foundstream=null;	//initite pointer to the stream
         LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
-        List<LiveStream> returnedList = returnedListResponse.getItems();
+        List<LiveStream> returnedList = returnedListResponse.getItems();*/
+    	LiveStream foundstream=null;	//initite pointer to the stream
+    	List<LiveStream> returnedList=ListStreams.run(null); //get stram list
         for (LiveStream stream : returnedList) {
         	//System.out.println(stream.getSnippet().getTitle());
         	if(stream.getSnippet().getTitle().equals(name))
@@ -241,17 +266,20 @@ public class CreateBroadcast extends Thread{
      */
     private static LiveBroadcast getBroadcastById(String id) throws IOException {
     	
-    	 YouTube.LiveBroadcasts.List liveBroadcastRequest =
+    	YouTube.LiveBroadcasts.List liveBroadcastRequest =
     			 CreateYouTube.getYoutube().liveBroadcasts().list("id,snippet,status");
 
          // Indicate that the API response should not filter broadcasts
          // based on their type or status.
          liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus("all");
-         LiveBroadcast foundbroadcast=null; 	//initate pointer to the broadcast
+         LiveBroadcast foundbroadcast=null; 	//initiate pointer to the broadcast
+         liveBroadcastRequest.setMaxResults((long) 20); //show top 20 broadcasts
          // Execute the API request and return the list of broadcasts.
          LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();
-         List<LiveBroadcast> returnedList = returnedListResponse.getItems();
+         List<LiveBroadcast> returnedList = returnedListResponse.getItems(); 
+
          for (LiveBroadcast broadcast : returnedList) {
+
         	 if(broadcast.getId().equals(id))
         		 foundbroadcast= broadcast;
          }

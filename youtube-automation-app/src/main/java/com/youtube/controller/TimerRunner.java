@@ -44,7 +44,12 @@ public class TimerRunner {
 				System.out.println("running handling itervals");
 				
 				Controller controller = Controller.getInstance();  //get controller instance
-				controller.stopBroadcasts();                      //on scheduled time complete live broadcasts
+				try {
+					controller.stopBroadcasts();
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}                      //on scheduled time complete live broadcasts
 
 				if(!Constants.IntervalBroadcast) {             // if resume live broadcasts was chosen
 					System.out.println("cancelling timer after terminating last broadcasts");
@@ -80,8 +85,9 @@ public class TimerRunner {
 	/**
 	 * stops interval broadcast by canceling the timer and handling remaining live broadcasts corresponding to
 	 * users choice.
+	 * @throws InterruptedException 
 	 */
-	public void stopIntervalBroadcast() {
+	public void stopIntervalBroadcast() throws InterruptedException {
 		if(!Constants.IntervalBroadcast) {	// if stop interval broadcast was pressed
 			String message= "Do you to stop current live broadcasts now?",title="Stop Broadcast option";
 			int reply =JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION); //ask if to stop current Broadcasts

@@ -43,7 +43,7 @@ public class CompleteBroadcast extends Thread {
 	/**
      * find and delete a liveBroadcast resource.
      */
-    public synchronized void run() {
+    public  void run() {
 
         try {
         	

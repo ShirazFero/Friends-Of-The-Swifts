@@ -39,7 +39,6 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
 		loadTask.addPropertyChangeListener(this);
 		loadTask.execute();
 		setBounds(100, 100, 371,157);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
 		
 	}

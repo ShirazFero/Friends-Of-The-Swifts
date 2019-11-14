@@ -1,6 +1,7 @@
 package com.youtube.controller;
 
 import java.awt.Toolkit;
+import java.io.IOException;
 
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -23,7 +24,7 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 		setProgress(progress+=33);
 		controller.refreshStreams();		//get initial streams
 		setProgress(progress+=33);
-		String[] args = {"init","all"};
+		String[] args = {"init","active"};
 		controller.refreshBroadcasts(args);	//get initial broadcasts
 		setProgress(progress+=34);
 		return null;
@@ -35,7 +36,12 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 	    Toolkit.getDefaultToolkit().beep();
 	    SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				mainFrame.getInstance();
+				try {
+					mainFrame.getInstance();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		});
 	}

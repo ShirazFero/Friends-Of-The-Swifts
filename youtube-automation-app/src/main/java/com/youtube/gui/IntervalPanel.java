@@ -37,7 +37,7 @@ public class IntervalPanel extends JPanel {
 		add(lblNotSet);
 		
 		 lblstime = new JLabel("stime");
-		lblstime.setBounds(104, 58, 237, 14);
+		lblstime.setBounds(102, 58, 237, 14);
 		add(lblstime);
 		lblstime.setVisible(false);
 		
