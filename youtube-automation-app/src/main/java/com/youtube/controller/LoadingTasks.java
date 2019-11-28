@@ -1,6 +1,14 @@
 package com.youtube.controller;
 
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.SwingWorker;
+
+import org.json.simple.parser.ParseException;
 
 import com.youtube.gui.BroadcastPanel;
 import com.youtube.utils.Constants;
@@ -52,15 +60,21 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 	@Override
 	public void done() {
 			//prompt active broadcasts to broadcast panel
-			setProgress(100);
-			System.out.println("done");
-			Controller controller =Controller.getInstance();
-		    String[] args = {"refresh","active"};
-		    controller.refreshBroadcasts(args);
-			BroadcastPanel broadcastPanel =BroadcastPanel.getInstance();
-			broadcastPanel.setData(controller.getBroadcasts());
-			broadcastPanel.refresh();
-		  
+		try {
+				setProgress(100);
+				System.out.println("done");
+				Controller controller;
+				controller = Controller.getInstance();
+			    String[] args = {"refresh","active"};
+			    controller.refreshBroadcasts(args);
+				BroadcastPanel broadcastPanel =BroadcastPanel.getInstance();
+				broadcastPanel.setData(controller.getBroadcasts());
+				broadcastPanel.refresh();
+			} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IOException
+					| ParseException | InvalidAlgorithmParameterException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+		}
 	}
 	
 }

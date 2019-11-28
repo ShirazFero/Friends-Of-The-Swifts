@@ -1,7 +1,16 @@
 package com.youtube.gui;
 
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.*;
+
+import org.json.simple.parser.ParseException;
+
+import com.youtube.controller.Controller;
 
 public class App {
 	
@@ -10,7 +19,16 @@ public class App {
 		SwingUtilities.invokeLater(new Runnable() {
 			
 			public void run() {
-				new ProgressFrame();
+				try {
+					Controller controller = Controller.getInstance();
+					controller.initData(); // set initial data
+					new UserLogin();
+					//new ProgressFrame();
+				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+						| InvalidAlgorithmParameterException | IOException | ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		});
 	}

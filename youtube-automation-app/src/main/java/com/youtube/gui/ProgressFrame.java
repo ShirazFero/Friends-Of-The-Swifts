@@ -3,10 +3,18 @@ package com.youtube.gui;
 import java.awt.BorderLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+
+import org.json.simple.parser.ParseException;
 
 import com.youtube.controller.BackroundTasks;
 import com.youtube.controller.Controller;
@@ -21,7 +29,7 @@ public class ProgressFrame extends JFrame implements PropertyChangeListener {
 	
 	private static final long serialVersionUID = 1L;
 
-	public ProgressFrame(){
+	public ProgressFrame() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException{
 		super("Loading");
 		Controller controller = Controller.getInstance();
 		JPanel panel = new JPanel();
@@ -41,6 +49,7 @@ public class ProgressFrame extends JFrame implements PropertyChangeListener {
 		task.execute();
 		setBounds(100, 100, 371,157);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setLocationRelativeTo(null);
 		setVisible(true);
 	}
 	

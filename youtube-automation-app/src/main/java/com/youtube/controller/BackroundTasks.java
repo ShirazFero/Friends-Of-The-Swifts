@@ -2,9 +2,15 @@ package com.youtube.controller;
 
 import java.awt.Toolkit;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+
+import org.json.simple.parser.ParseException;
 
 import com.youtube.api.CreateYouTube;
 import com.youtube.gui.mainFrame;
@@ -37,8 +43,8 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 	    SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					mainFrame.getInstance();
-				} catch (IOException e) {
+						new mainFrame();
+				} catch (IOException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | ParseException | InvalidAlgorithmParameterException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}

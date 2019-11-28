@@ -134,6 +134,8 @@ public class IntervalInputForm extends JFrame implements ActionListener {
             	btnlistener.ButtonPressed("Cancel");
             }
         });
+		
+		setLocationRelativeTo(null);
 	}
 	
 	/**

@@ -26,6 +26,7 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.youtube.YouTube;
 import com.google.common.collect.Lists;
+import com.youtube.utils.Constants;
 
 
 /**
@@ -49,9 +50,9 @@ public class CreateYouTube {
 	        List<String> scopes = Lists.newArrayList("https://www.googleapis.com/auth/youtube");
 
 	        try {
-	            // Authorize the request.
-	            Credential credential = Auth.authorize(scopes,"createbroadcast");
-
+	            // Authorize the request.//createbroadcast
+	            Credential credential = Auth.authorize(scopes,Constants.Username);
+	            
 	            // This object is used to make YouTube Data API requests.
 	            youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
 	                    .setApplicationName("youtube-automation-app").build();

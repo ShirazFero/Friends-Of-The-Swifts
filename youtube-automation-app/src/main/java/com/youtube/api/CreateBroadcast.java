@@ -24,6 +24,7 @@ import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.*;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -61,6 +62,9 @@ public class CreateBroadcast extends Thread{
     public  void run() {	
     	
         try {
+        	
+        	Object lock = new Object();
+        	
         	System.out.println("Thread "+ Thread.currentThread().getId() + " starting "+args[0]);
         	//Retrieve  a stream by it's title from args
             LiveStream returnedStream = getStreamByName(args[0]);
@@ -75,7 +79,7 @@ public class CreateBroadcast extends Thread{
             }
             
             // set title for the broadcast.
-            String title = args[0] +" "+ LocalTime.now();
+            String title = args[0] +" "+ LocalDateTime.now();
             System.out.println("You chose " + title + " for broadcast title.");
 
             // Create a snippet with the title and scheduled start and end
@@ -83,6 +87,7 @@ public class CreateBroadcast extends Thread{
             LiveBroadcastSnippet broadcastSnippet = new LiveBroadcastSnippet();
             broadcastSnippet.setTitle(title);
             broadcastSnippet.setScheduledStartTime(new DateTime(LocalDate.now()+"T"+LocalTime.now()+"Z"));
+            broadcastSnippet.setDescription(Constants.Description);
             if(args[1]!=null)	//set scheduled end time if exists
             	broadcastSnippet.setScheduledEndTime(new DateTime(args[1]+"Z"));
             else
@@ -143,6 +148,8 @@ public class CreateBroadcast extends Thread{
             //stream status check needed here to make sure it is active
            if(!returnedStream.getStatus().getStreamStatus().equals("active")) {
         	   System.out.println("stream is not active please start sending data on the stream");
+        	   args[0] +=" Stream not active";
+        	   reportError(); //handle error on GUI
            }
            else {
         	   System.out.println("stream is active starting transition to live");
@@ -164,7 +171,6 @@ public class CreateBroadcast extends Thread{
         	   System.out.println("polling testStarting "+args[0]);
         	   Thread.sleep(1000);
         	   if(seconds>90) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to Testing
-	           		Constants.isLive[queueNum+1]=true;		//handle error
 	           		args[0] +=" on Transition to Testing";
 	           		reportError();
            		}
@@ -174,8 +180,9 @@ public class CreateBroadcast extends Thread{
            
            //preview started
            System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
-           Constants.isLive[queueNum]=true;		// set 50% OF broadcast starting completed
-            
+           synchronized (lock) {
+				Constants.isLive[queueNum]=true;		// set 50% OF broadcast starting completed
+			}
            //transition to live  mode
             YouTube.LiveBroadcasts.Transition requestLive = CreateYouTube.getYoutube().liveBroadcasts()
                     .transition("live", returnedBroadcast.getId(), "snippet,status");
@@ -188,7 +195,6 @@ public class CreateBroadcast extends Thread{
             	System.out.println("polling liveStarting "+args[0]);
             	Thread.sleep(1000);
             	if(seconds>90) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to live
-            		Constants.isLive[queueNum+1]=true;
             		args[0] +=" on Transition to Live";
             		reportError();
             	}
@@ -200,8 +206,9 @@ public class CreateBroadcast extends Thread{
             
             //promt status to screen
             System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus()+" "+ args[0]);
-            if(Constants.isLive!=null)
+            synchronized (lock) {
             	Constants.isLive[queueNum+1]=true;
+			}
            
         } catch (GoogleJsonResponseException e) {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
@@ -230,8 +237,9 @@ public class CreateBroadcast extends Thread{
                 ", please check manually at https://www.youtube.com/my_live_events",
                 "Server request problem",
                 JOptionPane.ERROR_MESSAGE);
-        
+    			//send email/push notification
     }
+    
     /***this method retrieves a relevant stream from server from the stream list 
      * 
      * @param name - stream name that is requested
@@ -239,17 +247,9 @@ public class CreateBroadcast extends Thread{
      * @throws IOException
      */
     private static LiveStream getStreamByName(String name) throws IOException {
-    	/*// Create a request to list liveStream resources.
-        YouTube.LiveStreams.List livestreamRequest = CreateYouTube.getYoutube().liveStreams().list("id,snippet,status");
-        // Modify results to only return the user's streams.
-        livestreamRequest.setMine(true);
-        livestreamRequest.setMaxResults((long) 10); //show top 10 streams
-        //get relevant stream
-        LiveStream foundstream=null;	//initite pointer to the stream
-        LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
-        List<LiveStream> returnedList = returnedListResponse.getItems();*/
-    	LiveStream foundstream=null;	//initite pointer to the stream
-    	List<LiveStream> returnedList=ListStreams.run(null); //get stram list
+
+    	LiveStream foundstream=null;			//initite pointer to the stream
+    	List<LiveStream> returnedList= ListStreams.run(null); //get stream list
         for (LiveStream stream : returnedList) {
         	//System.out.println(stream.getSnippet().getTitle());
         	if(stream.getSnippet().getTitle().equals(name))

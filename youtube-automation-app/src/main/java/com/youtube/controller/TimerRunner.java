@@ -1,10 +1,18 @@
 package com.youtube.controller;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.JOptionPane;
+
+import org.json.simple.parser.ParseException;
 
 import com.youtube.utils.Constants;
 /**
@@ -40,35 +48,38 @@ public class TimerRunner {
 		TimerTask task = new TimerTask() {
 			@Override
 			public void run() {
-				System.out.println("---------------------------------------");
-				System.out.println("running handling itervals");
-				
-				Controller controller = Controller.getInstance();  //get controller instance
 				try {
-					controller.stopBroadcasts();
-				} catch (InterruptedException e1) {
+					System.out.println("---------------------------------------");
+					System.out.println("running handling itervals");
+					
+					Controller controller;
+					controller = Controller.getInstance();
+					controller.stopBroadcasts();   //on scheduled time complete live broadcasts
+					                  
+					if(!Constants.IntervalBroadcast) {             // if resume live broadcasts was chosen
+						System.out.println("cancelling timer after terminating last broadcasts");
+						timer.cancel();                          // cancel timer after completing broadcasts on scheduled time 
+						controller.updateIntervalPanel("","");	//remove start/finish date times from interval panel
+						return;				                   //end timer runner after completing broadcasts on stop time
+					}
+					//System.out.println("calc new time and shcdule timer again");
+					//set new start time
+					Date newStartTime = stopTime;						
+					// calculate next interval stop time
+					stopTime = controller.calcStopTime(); 				
+					
+					controller.updateIntervalPanel(newStartTime.toString(),stopTime.toString());
+					//Reschedule timer for next interval
+					scheduleTimer();									
+					
+					//----------------start live broadcasts again-------------------------
+					System.out.println("creating broadcasts");
+					controller.startBroadcast(controller.getCheckedStreams());
+					
+				}catch (InterruptedException | InvalidKeyException | NoSuchAlgorithmException
+						| NoSuchPaddingException | IOException | ParseException | InvalidAlgorithmParameterException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
-				}                      //on scheduled time complete live broadcasts
-
-				if(!Constants.IntervalBroadcast) {             // if resume live broadcasts was chosen
-					System.out.println("cancelling timer after terminating last broadcasts");
-					timer.cancel();                          // cancel timer after completing broadcasts on scheduled time 
-					controller.updateIntervalPanel("","");	//remove start/finish date times from interval panel
-					return;				                   //end timer runner after completing broadcasts on stop time
-				}
-				
-				System.out.println("calc new time and shcdule timer again");
-				Date newStartTime = stopTime;						//set new start time
-				stopTime = controller.calcStopTime(); 				// calculate next interval stop time
-				controller.updateIntervalPanel(newStartTime.toString(),stopTime.toString());
-				scheduleTimer();									//Reschedule timer for next interval
-				//----------------start live broadcasts again-------------------------
-				System.out.println("creating broadcasts");
-				try {
-					controller.startBroadcast(controller.getCheckedStreams());
-				} catch (InterruptedException e) {
-					e.printStackTrace();
 				}
 			}
 		};
@@ -86,8 +97,15 @@ public class TimerRunner {
 	 * stops interval broadcast by canceling the timer and handling remaining live broadcasts corresponding to
 	 * users choice.
 	 * @throws InterruptedException 
+	 * @throws ParseException 
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 * @throws NoSuchPaddingException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public void stopIntervalBroadcast() throws InterruptedException {
+	public void stopIntervalBroadcast() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
 		if(!Constants.IntervalBroadcast) {	// if stop interval broadcast was pressed
 			String message= "Do you to stop current live broadcasts now?",title="Stop Broadcast option";
 			int reply =JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION); //ask if to stop current Broadcasts

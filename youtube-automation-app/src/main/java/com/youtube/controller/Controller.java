@@ -1,25 +1,42 @@
 package com.youtube.controller;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.CharBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import com.google.api.services.youtube.model.LiveBroadcast;
 import com.google.api.services.youtube.model.LiveStream;
+import com.nexmo.client.NexmoClientException;
 import com.youtube.api.CompleteBroadcast;
 import com.youtube.api.CreateBroadcast;
 import com.youtube.api.CreateStream;
@@ -266,8 +283,15 @@ public class Controller {
 	/**
 	 * This method stops timer runner object
 	 * @throws InterruptedException 
+	 * @throws ParseException 
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 * @throws NoSuchPaddingException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public void cancelTimerRunner() throws InterruptedException {
+	public void cancelTimerRunner() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
 		timerRunner.stopIntervalBroadcast();
 	}
 
@@ -347,7 +371,7 @@ public class Controller {
     		obj.put("Interval Broadcast", "OFF");
     	}
     	
-    	try (FileWriter file = new FileWriter(System.getProperty("user.home")+"\\Documents\\saved_status.json")) {
+    	try (FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json")) {
 			file.write(obj.toJSONString());
 			System.out.println("Successfully Saved JSON Object to File...");
 			System.out.println("\nJSON Object: " + obj);
@@ -367,9 +391,8 @@ public class Controller {
 		 
         try {
  				
-            Object obj = parser.parse(new FileReader(
-            		System.getProperty("user.home")+"\\Documents\\saved_status.json"));
- 
+            Object obj = parser.parse(new FileReader(Constants.UserDataPath + Constants.Username + ".json"));
+            		
             JSONObject jsonObject = (JSONObject) obj;
  			
             String RegularBroadcast = (String) jsonObject.get("Regular Broadcast");
@@ -465,11 +488,241 @@ public class Controller {
 	/**
 	 * singleton instance retriever
 	 * @return
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 * @throws NoSuchPaddingException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws ParseException 
+	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public static Controller getInstance() {
+	public static Controller getInstance() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
 		if(instance==null)
 			instance = new Controller();
 		return instance;
+	}
+
+	/** 
+	 * this method registers new user locally
+	 * @param username
+	 * @param password
+	 * @param email
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidKeyException
+	 * @throws FileNotFoundException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws IOException
+	 * @throws ParseException
+	 */
+	@SuppressWarnings("unchecked")
+	public void registerUser(String username, String password, String email) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
+		// TODO Auto-generated method stub
+		
+		JSONParser parser = new JSONParser();
+		
+		String data = fileDecrypt();  //decrypt file
+		
+		Object readObject = parser.parse(data);
+        JSONObject jsonObject = (JSONObject) readObject;
+        JSONObject userObject = new JSONObject();
+		JSONObject userDetailsObject = new JSONObject();
+		
+		userDetailsObject.put("username",username);
+		
+		//encrypt password
+		
+		userDetailsObject.put("password",password);
+		userDetailsObject.put("email",email);
+		
+		userObject.put("User",userDetailsObject);
+		
+		//get user list
+		JSONArray userArray = (JSONArray) jsonObject.get("User List");
+		
+		//add new user object
+		userArray.add(userObject);
+		
+		jsonObject.put("User List", userArray);
+		
+		//save new list to file
+		FileWriter file = new FileWriter(System.getProperty("user.home")+"\\Documents\\AppUsers.json");
+		file.write(jsonObject.toJSONString());
+		System.out.println("Successfully Registerd New User And Saved JSON Object to File...");
+		//System.out.println("\nJSON Object: " + jsonObject);
+		file.close();
+		
+		fileEncrypt(jsonObject.toString());
+	}
+/**
+ 	* this method checks if user exists
+ * @param username
+ * @return
+ * @throws FileNotFoundException
+ * @throws IOException
+ * @throws ParseException
+ * @throws InvalidKeyException
+ * @throws InvalidAlgorithmParameterException
+ * @throws NoSuchAlgorithmException
+ * @throws NoSuchPaddingException
+ */
+	public boolean userExists(String username) throws FileNotFoundException, IOException, ParseException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
+		// TODO Auto-generated method stub
+		
+		String data = fileDecrypt(); //decrypt file
+
+		JSONParser parser = new JSONParser();
+		Object readObject = parser.parse(data);
+		JSONObject jsonObject = (JSONObject) readObject;
+		JSONArray userArray = (JSONArray) jsonObject.get("User List");
+		for(int i=0;i<userArray.size();i++) {
+			JSONObject user = (JSONObject) userArray.get(i);
+			user = (JSONObject) user.get("User");
+			String userInList = (String) user.get("username");
+			if(username.equals(userInList))
+				return true;
+		}
+		return false;
+	}
+	/**
+	 * this method validates the user to be logged in
+	 * @param username
+	 * @param password
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws ParseException
+	 * @throws InvalidKeyException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchPaddingException
+	 */
+	public boolean validateUser(String username, String password) throws FileNotFoundException, IOException, ParseException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
+		// TODO Auto-generated method stub
+		final Path path = Paths.get(Constants.AppUserPath);
+		
+		JSONParser parser = new JSONParser();
+		
+		if(Files.exists(path)) {     	//check if there's a file of saved data
+			//decrypt file
+			String data = fileDecrypt();
+			JSONArray userArray = (JSONArray) ((JSONObject) parser.parse(data)).get("User List");
+			String decryptedPassword = null; 	// to hold the encrypted password exported from the file
+			for(int i=0;i<userArray.size();i++) {
+				JSONObject	user = (JSONObject) ((JSONObject) userArray.get(i)).get("User");
+				String userInList = (String) user.get("username");
+				if(username!=null && username.equals(userInList))
+					decryptedPassword = (String) user.get("password");
+			}
+			if(password.equals(decryptedPassword))
+				return true;
+            return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * this method loads initial user details if they exist otherwise it generates files to hold the details
+	 * 
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchPaddingException
+	 * @throws InvalidKeyException
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws ParseException
+	 * @throws InvalidAlgorithmParameterException
+	 */
+	@SuppressWarnings({ "unchecked" })
+	public void initData() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
+		
+		final Path path = Paths.get(System.getProperty("user.home")+"\\Documents\\info.json");
+		
+		if(!Files.exists(path)) {
+			
+			Constants.SecretKey = KeyGenerator.getInstance("AES").generateKey();
+			
+			// get base64 encoded version of the key
+			String encodedKey = Base64.getEncoder().encodeToString(Constants.SecretKey.getEncoded());
+			
+			JSONObject obj = new JSONObject();
+			obj.put("info", encodedKey);
+			try (FileWriter file = new FileWriter(Constants.InfoPath)) {
+    			file.write(obj.toJSONString());
+    			System.out.println("Successfully created first user list JSON Object File...");
+    			//System.out.println("\nJSON Object: " + obj);
+    			} catch (IOException e1) {
+    				e1.printStackTrace();
+    			}
+		}
+		else {
+			  JSONParser parser = new JSONParser();
+			  JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(Constants.InfoPath));
+			  String key =(String)jsonObject.get("info");
+			  // decode the base64 encoded string
+			  byte[] decodedKey = Base64.getDecoder().decode(key);
+			  // rebuild key using SecretKeySpec
+			  Constants.SecretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES"); 
+			  
+		}
+		
+		final Path path1 = Paths.get(Constants.AppUserPath);
+
+		if(!Files.exists(path1)) {
+			JSONObject obj = new JSONObject();
+			JSONArray userArray = new JSONArray();
+			obj.put("User List", userArray);
+			try (FileWriter file = new FileWriter(Constants.AppUserPath)) {
+    			file.write(obj.toJSONString());
+    			System.out.println("Successfully created first user list JSON Object File...");
+    			//System.out.println("\nJSON Object: " + obj);
+    			} catch (IOException e1) {
+    				e1.printStackTrace();
+    			}
+			
+			fileEncrypt(obj.toString());
+		}
+		else{
+			
+			String data = fileDecrypt();
+			//System.out.println(data);
+			JSONParser parser = new JSONParser();
+			JSONArray userArray = (JSONArray) ((JSONObject) parser.parse(data)).get("User List");
+			Iterator<JSONObject> Iterator = userArray.iterator();
+			Constants.SavedUsers = new String[userArray.size()]; 
+			int i=0;
+			while (Iterator.hasNext()) {
+				Constants.SavedUsers[i++] = (String) ((JSONObject) Iterator.next().get("User")).get("username");
+			}
+		}
+	}
+	
+	/**
+	 * encrypt user file
+	 * @param data
+	 * @throws InvalidKeyException
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchPaddingException
+	 */
+	private void fileEncrypt(String data) throws InvalidKeyException, FileNotFoundException, IOException, NoSuchAlgorithmException, NoSuchPaddingException {
+		FileEncrypterDecrypter fileEncDec = new FileEncrypterDecrypter(Constants.SecretKey,"AES/CBC/PKCS5Padding");
+		fileEncDec.encrypt(data,Constants.AppUserPath);
+	}
+	
+	/**
+	 * decrypt user file
+	 * @return
+	 * @throws InvalidKeyException
+	 * @throws FileNotFoundException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchPaddingException
+	 */
+	private String fileDecrypt() throws InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, NoSuchAlgorithmException, NoSuchPaddingException {
+		FileEncrypterDecrypter fileEncDec = new FileEncrypterDecrypter(Constants.SecretKey,"AES/CBC/PKCS5Padding");
+		return fileEncDec.decrypt(Constants.AppUserPath);
 	}
 	
 }

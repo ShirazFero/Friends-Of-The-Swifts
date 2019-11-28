@@ -11,20 +11,27 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 
 import com.youtube.controller.Controller;
 import com.youtube.controller.Interval;
 import com.youtube.utils.Constants;
+import java.awt.Font;
 
 /**
  * Main frame of GUI
@@ -45,10 +52,10 @@ public class mainFrame extends JFrame{
 	
 	private Boolean[] checkedBroadcasts; 
 	
-	private static mainFrame instance;
+	private ButtonPanel btnPnl;
 	
 	@SuppressWarnings("unchecked")
-	public mainFrame() throws IOException {
+	public mainFrame() throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, ParseException, InvalidAlgorithmParameterException {
 
 	//----------------------INIT PANELS---------------------
 		
@@ -60,7 +67,8 @@ public class mainFrame extends JFrame{
 		getContentPane().setLayout(new BorderLayout());
 	
 		//init new interval panel
-		IntervalPanel intervalPanel =  IntervalPanel.getInstance();
+		IntervalPanel intervalPanel =  new IntervalPanel();
+		IntervalPanel.setInstance(intervalPanel);
 		
 		//init new stream panel
 		StreamPanel streamPanel = new StreamPanel();
@@ -80,15 +88,17 @@ public class mainFrame extends JFrame{
 		
 		//set welcome label
 		welcomeLabel= new JLabel("Welcome to Broadcast Control Panel",SwingConstants.CENTER);
+		welcomeLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		getContentPane().add(welcomeLabel,BorderLayout.NORTH);
 		
 		//init new button panel
-		ButtonPanel btnPnl =  ButtonPanel.getInstance();
+		btnPnl =  ButtonPanel.getInstance();
 		getContentPane().add(btnPnl,BorderLayout.WEST);
-		
-		final Path path = Paths.get(System.getProperty("user.home")+"\\Documents\\saved_status.json");
+		System.out.println(Constants.UserDataPath+ Constants.Username + ".json");
+		final Path path = Paths.get(Constants.UserDataPath+ Constants.Username + ".json");
 		 
-		if(Files.exists(path))     	//check if there's a file of saved data
+		if(Files.exists(path)) {     	//check if there's a file of saved data
+			System.out.println("here if");
 			if(!controller.getBroadcasts().isEmpty()) {	//if there's active broadcasts
 				String message= "Do you want to resume saved Broadcast?"
 						 ,title="Resume Broadcast";
@@ -96,12 +106,14 @@ public class mainFrame extends JFrame{
 				if(reply==JOptionPane.YES_OPTION) 
 					controller.loadData();	//load it
 			}
+		}
 		else {						//else create one
 			JSONObject obj = new JSONObject();
     		//save regular broadcast flag
-    		obj.put("Regular Broadcast", "ON");
+			System.out.println("here else");
+    		obj.put("Regular Broadcast", "OFF");
     		obj.put("Interval Broadcast", "OFF");
-    		try (FileWriter file = new FileWriter(System.getProperty("user.home")+"\\Documents\\saved_status.json")) {
+    		try (FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json")) {
     			file.write(obj.toJSONString());
     			System.out.println("Successfully created first JSON Object File...");
     			System.out.println("\nJSON Object: " + obj);
@@ -111,6 +123,37 @@ public class mainFrame extends JFrame{
 		}
 		
 		//--------------Adding button listeners to panels------------
+		
+		intervalPanel.setBtnListener(new ButtonListener() {
+			@Override
+			public void ButtonPressed(String btnName) {
+				// TODO Auto-generated method stub
+				switch(btnName) {
+				
+				case "Log out": dispose();
+								SwingUtilities.invokeLater(new Runnable() {
+									
+									public void run() {
+										try {
+							            	controller.saveData(); //save status of broadcast 
+											dispose();				
+											Controller controller = Controller.getInstance();
+											controller.initData(); // set initial data
+											new UserLogin();
+											//new ProgressFrame();
+										} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+												| InvalidAlgorithmParameterException | IOException | ParseException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}
+									}
+								});
+								 
+								 System.out.println("input panel "+btnName);
+								 break;
+				}
+			}
+		});
 		
 		boradcastPanel.setBtnlistener(new ButtonListener() {	//set button listener for broadcast panel
 			public void ButtonPressed(String btnName) {
@@ -126,6 +169,7 @@ public class mainFrame extends JFrame{
 						case "Select":	//this button doesn't do anything yet , prints selected broadcasts
 								System.out.println("main frame Broadcast Panel: " +btnName);
 								checkedBroadcasts=boradcastPanel.getChecked();
+								System.out.println(Constants.UserDataPath);
 								for(int i=0;i<checkedBroadcasts.length;i++) 
 									if(checkedBroadcasts[i]) {System.out.println("no "+ i +" "+checkedBroadcasts[i]);}
 								break;
@@ -191,7 +235,7 @@ public class mainFrame extends JFrame{
 							Constants.IntervalBroadcast=false;			//toggle flag off
 							try {
 								controller.cancelTimerRunner();
-							} catch (InterruptedException e1) {
+							} catch (InterruptedException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IOException | ParseException | InvalidAlgorithmParameterException e1) {
 								e1.printStackTrace();
 							}
 							btnPnl.getStartBrdbtn().setEnabled(true);	//toggle gui buttons 
@@ -430,6 +474,8 @@ public class mainFrame extends JFrame{
             }
             
         });
+		
+		setLocationRelativeTo(null);
 		setVisible(true);
 		pack();
 	}
@@ -450,18 +496,6 @@ public class mainFrame extends JFrame{
 		this.checkedBroadcasts = checkedBroadcasts;
 	}
 	
-	/**
-	 * singleton instance method ,retrieves a single instance of main frame if exists
-	 * else create one.
-	 * @param controller
-	 * @return instance
-	 * @throws IOException 
-	 */
-	public static mainFrame getInstance() throws IOException {
-		if (instance == null)
-			instance = new mainFrame();
-		return instance;
-	}
 	
 	
 }
