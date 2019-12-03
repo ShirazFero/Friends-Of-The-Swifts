@@ -22,6 +22,8 @@ public class IntervalPanel extends JPanel implements ActionListener{
 	
 	private JLabel ftime;
 	
+	private JButton btnSetdescription;
+	
 	private ButtonListener btnListener;
 	
 	private static IntervalPanel instance;
@@ -30,48 +32,74 @@ public class IntervalPanel extends JPanel implements ActionListener{
 		setLayout(null);
 		
 		JButton btnLogOut = new JButton("Log out");
-		btnLogOut.setBounds(242, 33, 109, 23);
+		btnLogOut.setBounds(275, 59, 89, 23);
 		btnLogOut.addActionListener(this);
 		add(btnLogOut);
 		
 		JLabel lblHello = new JLabel("Hello "+Constants.Username+",");
 		lblHello.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblHello.setBounds(10, 36, 150, 14);
+		lblHello.setBounds(10, 21, 150, 14);
 		add(lblHello);
 		
 		
 		JLabel lblInterval = new JLabel("Interval:");
-		lblInterval.setBounds(10, 93, 77, 14);
+		lblInterval.setBounds(10, 106, 77, 14);
 		add(lblInterval);
 		
 		JLabel lblStartTime = new JLabel("Start Time:");
-		lblStartTime.setBounds(10, 118, 77, 14);
+		lblStartTime.setBounds(10, 131, 77, 14);
 		add(lblStartTime);
 		
 		JLabel lblEndTime = new JLabel("End Time:");
-		lblEndTime.setBounds(10, 143, 60, 14);
+		lblEndTime.setBounds(10, 156, 60, 14);
 		add(lblEndTime);
 		
 		lblNotSet = new JLabel("Interval is not set");
-		lblNotSet.setBounds(102, 93, 249, 14);
+		lblNotSet.setBounds(102, 106, 249, 14);
 		add(lblNotSet);
 		
 		lblstime = new JLabel("stime");
-		lblstime.setBounds(102, 118, 237, 14);
+		lblstime.setBounds(102, 131, 237, 14);
 		add(lblstime);
 		lblstime.setVisible(false);
 		
 		ftime = new JLabel("ftime");
-		ftime.setBounds(102, 143, 237, 14);
+		ftime.setBounds(102, 156, 237, 14);
 		add(ftime);
 		ftime.setVisible(false);
 		
 		Border outerborder = BorderFactory.createTitledBorder("Interval Panel");
 		Border innerborder = BorderFactory.createEmptyBorder(5,5,5,5);
 		setBorder(BorderFactory.createCompoundBorder(outerborder, innerborder));
+		
+		btnSetdescription = new JButton("Set Description");
+		btnSetdescription.addActionListener(this);
+		btnSetdescription.setBounds(10, 40, 142, 23);
+		add(btnSetdescription);
+		
+		JButton btnNewButton_1 = new JButton("Settings");
+		btnNewButton_1.addActionListener(this);
+		btnNewButton_1.setBounds(275, 33, 89, 23);
+		add(btnNewButton_1);
+		
+		JLabel lblTheDescriptionWill = new JLabel("The description will be set ");
+		lblTheDescriptionWill.setBounds(10, 68, 284, 14);
+		add(lblTheDescriptionWill);
+		
+		JLabel lblAllStartingBroadcasts = new JLabel("To all starting broadcasts");
+		lblAllStartingBroadcasts.setBounds(10, 81, 150, 14);
+		add(lblAllStartingBroadcasts);
 	}
 	
 	
+	/**
+	 * @return the btnSetdescription
+	 */
+	public JButton getBtnSetdescription() {
+		return btnSetdescription;
+	}
+
+
 	public static IntervalPanel getInstance() {
 		if(instance == null)
 			instance = new IntervalPanel();
@@ -138,5 +166,4 @@ public class IntervalPanel extends JPanel implements ActionListener{
 	public void setBtnListener(ButtonListener btnListener) {
 		this.btnListener = btnListener;
 	}
-	
 }

@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -65,7 +67,7 @@ public class CreateBroadcast extends Thread{
         	
         	Object lock = new Object();
         	
-        	System.out.println("Thread "+ Thread.currentThread().getId() + " starting "+args[0]);
+        	//System.out.println("Thread "+ Thread.currentThread().getId() + " starting "+args[0]);
         	//Retrieve  a stream by it's title from args
             LiveStream returnedStream = getStreamByName(args[0]);
             if(returnedStream==null) {
@@ -79,7 +81,7 @@ public class CreateBroadcast extends Thread{
             }
             
             // set title for the broadcast.
-            String title = args[0] +" "+ LocalDateTime.now();
+            String title = args[0] +" "+ Date.from( LocalDateTime.now().atZone( ZoneId.systemDefault()).toInstant());
             System.out.println("You chose " + title + " for broadcast title.");
 
             // Create a snippet with the title and scheduled start and end
@@ -105,7 +107,7 @@ public class CreateBroadcast extends Thread{
 
             // Construct and execute the API request to insert the broadcast.
             YouTube.LiveBroadcasts.Insert liveBroadcastInsert =
-            		CreateYouTube.getYoutube().liveBroadcasts().insert("snippet,status", broadcast);
+            		YouTubeAPI.youtube.liveBroadcasts().insert("snippet,status", broadcast);
             LiveBroadcast returnedBroadcast = liveBroadcastInsert.execute();
             if(Constants.DEBUG) {
 	            // Print information from the API response.
@@ -132,7 +134,7 @@ public class CreateBroadcast extends Thread{
             // Construct and execute a request to bind the new broadcast
             // and stream.
             YouTube.LiveBroadcasts.Bind liveBroadcastBind =
-            		CreateYouTube.getYoutube().liveBroadcasts().bind(returnedBroadcast.getId(), "id,contentDetails");
+            		YouTubeAPI.youtube.liveBroadcasts().bind(returnedBroadcast.getId(), "id,contentDetails");
             liveBroadcastBind.setStreamId(returnedStream.getId());
             returnedBroadcast = liveBroadcastBind.execute();
 
@@ -156,7 +158,7 @@ public class CreateBroadcast extends Thread{
            }
            
           //transition to testing mode (preview mode)
-    	   YouTube.LiveBroadcasts.Transition requestTesting = CreateYouTube.getYoutube().liveBroadcasts()
+    	   YouTube.LiveBroadcasts.Transition requestTesting = YouTubeAPI.youtube.liveBroadcasts()
                   .transition("testing", returnedBroadcast.getId(), "snippet,status");
            returnedBroadcast = requestTesting.execute();
            
@@ -184,7 +186,7 @@ public class CreateBroadcast extends Thread{
 				Constants.isLive[queueNum]=true;		// set 50% OF broadcast starting completed
 			}
            //transition to live  mode
-            YouTube.LiveBroadcasts.Transition requestLive = CreateYouTube.getYoutube().liveBroadcasts()
+            YouTube.LiveBroadcasts.Transition requestLive = YouTubeAPI.youtube.liveBroadcasts()
                     .transition("live", returnedBroadcast.getId(), "snippet,status");
             returnedBroadcast = requestLive.execute();
            
@@ -249,7 +251,7 @@ public class CreateBroadcast extends Thread{
     private static LiveStream getStreamByName(String name) throws IOException {
 
     	LiveStream foundstream=null;			//initite pointer to the stream
-    	List<LiveStream> returnedList= ListStreams.run(null); //get stream list
+    	List<LiveStream> returnedList= YouTubeAPI.listStreams(null); //get stream list
         for (LiveStream stream : returnedList) {
         	//System.out.println(stream.getSnippet().getTitle());
         	if(stream.getSnippet().getTitle().equals(name))
@@ -267,7 +269,7 @@ public class CreateBroadcast extends Thread{
     private static LiveBroadcast getBroadcastById(String id) throws IOException {
     	
     	YouTube.LiveBroadcasts.List liveBroadcastRequest =
-    			 CreateYouTube.getYoutube().liveBroadcasts().list("id,snippet,status");
+    			YouTubeAPI.youtube.liveBroadcasts().list("id,snippet,status");
 
          // Indicate that the API response should not filter broadcasts
          // based on their type or status.

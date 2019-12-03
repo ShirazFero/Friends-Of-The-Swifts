@@ -7,7 +7,6 @@ import java.awt.event.ActionListener;
 import java.util.List;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -33,23 +32,27 @@ public class StreamPanel extends JPanel implements ActionListener {
 	private JScrollPane jsp;
 	
 	public StreamPanel() {
-		stp = new StatusBtnPanel();
 		stm = new StreamTableModel();
 		streamsTbl = new JTable(stm);
-		int widths[]= {50,50,50,200};
+		int widths[]= {50,100,100,200};
 		setColumnWidths(streamsTbl,widths);
 		streamsTbl.setPreferredScrollableViewportSize(new Dimension(350, 100));
 		streamsTbl.setFillsViewportHeight(true);
 		streamsTbl.setEditingColumn(0);
-		stp.getRefreshbtn().addActionListener(this);
-		stp.getAddStreambtn().addActionListener(this);
-		stp.getReomveStreambtn().addActionListener(this);
 		Border outerborder = BorderFactory.createTitledBorder("Streams Table");
 		Border innerborder = BorderFactory.createEmptyBorder(5,5,5,5);
 		setBorder(BorderFactory.createCompoundBorder(outerborder, innerborder));
-		setLayout(new BorderLayout());
-		jsp =new JScrollPane(streamsTbl);
+		setLayout(null);
+		jsp = new JScrollPane(streamsTbl);
+		jsp.setLocation(10, 59);
+		jsp.setSize(350, 140);
 		add(jsp,BorderLayout.CENTER);
+		stp = new StatusBtnPanel();
+		stp.setSize(350, 37);
+		stp.setLocation(10, 22);
+		stp.getRefreshbtn().addActionListener(this);
+		stp.getAddStreambtn().addActionListener(this);
+		stp.getReomveStreambtn().addActionListener(this);
 		add(stp,BorderLayout.SOUTH);
 		
 		
@@ -87,10 +90,8 @@ public class StreamPanel extends JPanel implements ActionListener {
 		return stm;
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void actionPerformed(ActionEvent ev) {
-		JButton jb = (JButton) ev.getSource();
-		btnlitsener.ButtonPressed(jb.getLabel());
+		btnlitsener.ButtonPressed( ev.getActionCommand());
 		
 	}
 	

@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
@@ -26,6 +27,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import com.youtube.controller.Controller;
@@ -106,6 +108,16 @@ public class mainFrame extends JFrame{
 				if(reply==JOptionPane.YES_OPTION) 
 					controller.loadData();	//load it
 			}
+			else { 	// else load only the description
+				JSONParser parser = new JSONParser();
+			 
+	            Object obj = parser.parse(new FileReader(Constants.UserDataPath + Constants.Username + ".json"));
+	            		
+	            JSONObject jsonObject = (JSONObject) obj;
+	 			
+	            Constants.Description = (String) jsonObject.get("Description");
+	        
+			}
 		}
 		else {						//else create one
 			JSONObject obj = new JSONObject();
@@ -113,6 +125,7 @@ public class mainFrame extends JFrame{
 			System.out.println("here else");
     		obj.put("Regular Broadcast", "OFF");
     		obj.put("Interval Broadcast", "OFF");
+    		obj.put("Description", Constants.Description);
     		try (FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json")) {
     			file.write(obj.toJSONString());
     			System.out.println("Successfully created first JSON Object File...");
@@ -149,8 +162,15 @@ public class mainFrame extends JFrame{
 									}
 								});
 								 
-								 System.out.println("input panel "+btnName);
+								 System.out.println("input panel "+ btnName);
 								 break;
+				case "Set Description": String input = JOptionPane.showInputDialog("please enter Description");
+										if(input!=null)
+											Constants.Description = input;
+										else
+											System.out.println("no text was entred");
+										System.out.println("input panel "+ btnName);
+										break;
 				}
 			}
 		});
@@ -166,12 +186,23 @@ public class mainFrame extends JFrame{
 								boradcastPanel.refresh();									//refresh table
 								System.out.println("main frame Broadcast Panel: " +btnName);
 								break;
-						case "Select":	//this button doesn't do anything yet , prints selected broadcasts
-								System.out.println("main frame Broadcast Panel: " +btnName);
+						case "Set Description":	//this button doesn't do anything yet , prints selected broadcasts
+								
 								checkedBroadcasts=boradcastPanel.getChecked();
-								System.out.println(Constants.UserDataPath);
-								for(int i=0;i<checkedBroadcasts.length;i++) 
-									if(checkedBroadcasts[i]) {System.out.println("no "+ i +" "+checkedBroadcasts[i]);}
+								controller.setCheckedBroadcasts(checkedBroadcasts);
+								String decription = JOptionPane.showInputDialog("please enter Description");
+								if(decription!=null) {
+									try {
+										controller.updateDescription(decription);
+									} catch (IOException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+								}
+								else {
+									System.out.println("no description was enterd");
+								}
+								System.out.println("main frame Broadcast Panel: " +btnName);
 								break;
 					}
 				}
@@ -225,6 +256,7 @@ public class mainFrame extends JFrame{
 							System.out.println("---------------------------------------");
 							inputForm.setData(controller.filterStreams("active")); 	//set active streams to form
 							inputForm.refresh();
+							intervalPanel.getBtnSetdescription().setEnabled(false); 
 							Constants.IntervalBroadcast=true;
 							inputForm.setVisible(true);						//open input form
 							System.out.println("main frame Button Panel: " +name);
@@ -241,6 +273,7 @@ public class mainFrame extends JFrame{
 							btnPnl.getStartBrdbtn().setEnabled(true);	//toggle gui buttons 
 							btnPnl.getStopIntbtn().setEnabled(false);
 							btnPnl.getStartIntBrdbtn().setEnabled(true);
+							intervalPanel.getBtnSetdescription().setEnabled(true);
 							System.out.println("main frame Button Panel: " +name);	
 							break;
 							
@@ -248,6 +281,7 @@ public class mainFrame extends JFrame{
 							System.out.println("---------------------------------------");
 							inputForm.setData(controller.filterStreams("active")); 			//set active streams to form
 							inputForm.refresh();
+							intervalPanel.getBtnSetdescription().setEnabled(false);
 							Constants.RegularBroadcast=true;			//toggle flag on
 							inputForm.getBox().setVisible(false);
 							inputForm.getLblPleaseEnterInterval().setVisible(false);
@@ -266,6 +300,7 @@ public class mainFrame extends JFrame{
 							btnPnl.getStartBrdbtn().setEnabled(true);
 							btnPnl.getStopBrdbtn().setEnabled(false);
 							btnPnl.getStartIntBrdbtn().setEnabled(true);	//enable interval broadcast
+							intervalPanel.getBtnSetdescription().setEnabled(true);
 							Constants.RegularBroadcast=false;					//toggle flag off
 						    System.out.println("main frame Button Panel: " +name);	
 							break;
@@ -463,8 +498,8 @@ public class mainFrame extends JFrame{
 			
 		});
 		
-		setSize(800, 800);
-		setMinimumSize(new Dimension(550,300));
+		setSize(600, 700);
+		setMinimumSize(new Dimension(600,700));
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.addWindowListener(new WindowAdapter(){		//handle App close operation ,if live save corrent status
 			public void windowClosing(WindowEvent e){

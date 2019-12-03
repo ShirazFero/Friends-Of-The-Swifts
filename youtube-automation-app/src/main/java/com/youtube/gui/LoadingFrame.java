@@ -22,7 +22,7 @@ public class LoadingFrame extends JFrame implements PropertyChangeListener {
 	public LoadingFrame() {
 		
 		super("Loading");
-		System.out.println("loadnig frame c'tor");
+		//System.out.println("loadnig frame c'tor");
 		JPanel panel = new JPanel();
 		progressBar = new JProgressBar(0, 100);
 		progressBar.setBounds(93, 51, 146, 17);

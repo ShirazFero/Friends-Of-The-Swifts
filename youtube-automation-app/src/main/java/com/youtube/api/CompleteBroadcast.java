@@ -29,6 +29,7 @@ import javax.swing.JOptionPane;
 /**
  * Use the YouTube Live Streaming API to retrieve a live broadcast
  * and complete the broadcast. Use OAuth 2.0 to authorize the API requests.
+ * Thread safe implementation
  * @param args[0] = broadcast title to be completed
  * @author Evgeny Geyfman
  */
@@ -61,7 +62,7 @@ public class CompleteBroadcast extends Thread {
             }
            
             //Request transition to complete broadcast
-            YouTube.LiveBroadcasts.Transition requestTransition = CreateYouTube.getYoutube().liveBroadcasts()
+            YouTube.LiveBroadcasts.Transition requestTransition = YouTubeAPI.youtube.liveBroadcasts()
                     .transition("complete", returnedBroadcast.getId(), "snippet,status");
              returnedBroadcast = requestTransition.execute();
              
@@ -96,7 +97,7 @@ public class CompleteBroadcast extends Thread {
     private static LiveBroadcast getBroadcastByName(String name) throws IOException {
     	
    	 YouTube.LiveBroadcasts.List liveBroadcastRequest =
-   			CreateYouTube.getYoutube().liveBroadcasts().list("id,snippet,status");
+   			YouTubeAPI.youtube.liveBroadcasts().list("id,snippet,status");
 
         // Indicate that the API response should not filter broadcasts
         // based on their type or status.

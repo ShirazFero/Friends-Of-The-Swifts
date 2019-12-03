@@ -53,7 +53,7 @@ public class BroadcastPanel extends JPanel  {
 		
 		String[] filter = {"all","active","completed","upcoming"};
 		JComboBox<?> comboBox = new JComboBox<Object>(filter);
-		comboBox.setBounds(261, 15, 99, 23);
+		comboBox.setBounds(261, 22, 99, 20);
 		comboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				selected = filter[comboBox.getSelectedIndex()];
@@ -67,17 +67,17 @@ public class BroadcastPanel extends JPanel  {
 				btnlistener.ButtonPressed(event.getActionCommand());
 			}
 		});
-		btnFilter.setBounds(165, 15, 86, 23);
+		btnFilter.setBounds(165, 22, 86, 20);
 		add(btnFilter);
 		
-		JButton btnSelect = new JButton("Select");
+		JButton btnSelect = new JButton("Set Description");
 		btnSelect.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				// TODO Auto-generated method stub
 				btnlistener.ButtonPressed(event.getActionCommand());
 			}
 		});
-		btnSelect.setBounds(10, 15, 89, 23);
+		btnSelect.setBounds(10, 22, 123, 20);
 		add(btnSelect);
 	}
 	

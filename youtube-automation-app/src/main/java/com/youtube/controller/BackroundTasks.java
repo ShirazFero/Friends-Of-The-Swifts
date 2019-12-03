@@ -12,7 +12,7 @@ import javax.swing.SwingWorker;
 
 import org.json.simple.parser.ParseException;
 
-import com.youtube.api.CreateYouTube;
+import com.youtube.api.YouTubeAPI;
 import com.youtube.gui.mainFrame;
 
 public class BackroundTasks extends SwingWorker<Void, Void> {
@@ -26,7 +26,7 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 	protected Void doInBackground() throws Exception {
 		// TODO Auto-generated method stub
 		int progress = 0;
-		new CreateYouTube(null);			//generate youtube instance authorize it
+		new YouTubeAPI(null);			//generate youtube instance authorize it
 		setProgress(progress+=33);
 		controller.refreshStreams();		//get initial streams
 		setProgress(progress+=33);

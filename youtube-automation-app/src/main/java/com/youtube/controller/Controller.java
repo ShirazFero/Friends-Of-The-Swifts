@@ -1,11 +1,9 @@
 package com.youtube.controller;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.CharBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,7 +22,6 @@ import java.util.List;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -36,13 +33,9 @@ import org.json.simple.parser.ParseException;
 
 import com.google.api.services.youtube.model.LiveBroadcast;
 import com.google.api.services.youtube.model.LiveStream;
-import com.nexmo.client.NexmoClientException;
 import com.youtube.api.CompleteBroadcast;
 import com.youtube.api.CreateBroadcast;
-import com.youtube.api.CreateStream;
-import com.youtube.api.DeleteStream;
-import com.youtube.api.ListBroadcasts;
-import com.youtube.api.ListStreams;
+import com.youtube.api.YouTubeAPI;
 import com.youtube.gui.BroadcastPanel;
 import com.youtube.gui.ButtonPanel;
 import com.youtube.gui.IntervalPanel;
@@ -50,7 +43,7 @@ import com.youtube.gui.LoadingFrame;
 import com.youtube.utils.Constants;
 
 /**
- * this class handles data flow from the API to the GUI and backwards,
+ * This class handles data flow from the API to the GUI and backwards,
  * all it's functions control API requests , also it temporarily holds
  * the data that is being transported to the GUI.  
  * @author Evgeny Geyfman
@@ -64,12 +57,14 @@ public class Controller {
 	
 	private TimerRunner timerRunner;			//holds current timer runner
 	
-	private  Boolean[] checkedStreams;			//holds shecked streams from inputform
+	private  Boolean[] checkedStreams;			//holds checked streams from inputform
 
+	private  Boolean[] checkedBroadcasts;		//holds checked broadcasts from inputform
+	
 	private static Controller instance;			//singleton instance
 	
 	/**
-	 * gets checked stream
+	 * Gets checked stream
 	 * @return
 	 */
 	public  Boolean[] getCheckedStreams() {
@@ -77,11 +72,46 @@ public class Controller {
 	}
 
 	/**
-	 * sets checked streams from Interval input form
+	 * Sets checked streams from Interval input form
 	 * @param checkedStreams
 	 */
 	public void setCheckedStreams(Boolean[] checkedStreams) {
 		this.checkedStreams = checkedStreams;
+	}
+	
+	/**
+	 * Sets checked broadcasts from broadcast panel
+	 * 
+	 */
+	public void setCheckedBroadcasts(Boolean[] checkedBroadcasts) {
+		this.checkedBroadcasts = checkedBroadcasts;
+	}
+	
+	/**
+	 * Check witch broadcast was chosen to update description and request an update
+	 * @param decription
+	 * @throws IOException
+	 */
+	public void updateDescription(String decription) throws IOException {
+		
+		ArrayList<String> Badresults = new ArrayList<String>();
+		for(int i = checkedBroadcasts.length-1;i>=0;i--) {
+			if(checkedBroadcasts[i]) {
+				if(!YouTubeAPI.updateDescription(decription, broadcasts.get(i))) //try to update
+					Badresults.add( broadcasts.get(i).getSnippet().getTitle());
+			}
+		}
+		if(!Badresults.isEmpty()) {
+			String massage  = "Descriptions of following Broadcasts weren't set correctly to ";
+			for(String title : Badresults) {
+				massage += title + ",\r\n ";
+			}
+			massage += "please check internet connection"; 
+				JOptionPane.showMessageDialog(null,massage,"Server request ERROR",JOptionPane.ERROR_MESSAGE);
+		}
+		JOptionPane.showMessageDialog(null,"Description updated","Completed",JOptionPane.INFORMATION_MESSAGE);	
+			
+		
 	}
 	
 	/**
@@ -106,7 +136,7 @@ public class Controller {
 	}
 	
 	/**
-	 * stream getter
+	 * Stream getter
 	 * @return
 	 */
 	public List<LiveStream> getStreams() {
@@ -122,28 +152,31 @@ public class Controller {
 	}
 	
 	/**
-	 * retrieves  new list of streams , delete old one if exists
+	 * Retrieves  new list of streams , delete old one if exists
 	 */
 	public void refreshStreams() {
 		if(streams!=null)
 			streams.clear();
-		streams=ListStreams.run(null);
+		streams = YouTubeAPI.listStreams(null);
 		if(streams==null) {
 			System.out.println("streams wasn't set correctly");
+			JOptionPane.showMessageDialog(null,"Error Fetching Streams","Server request ERROR",JOptionPane.ERROR_MESSAGE);
 		}
 			
 	}
 	
 	/**
-	 * retrieves  new list of broadcasts and filter it depending on args , delete old one if exists ,
+	 * Retrieves  new list of broadcasts and filter it depending on args , delete old one if exists ,
 	 * @param args
 	 */
 	public void refreshBroadcasts(String[] args) {
 		if(broadcasts!=null)
 			broadcasts.clear();
-		broadcasts=ListBroadcasts.run(args);
+		broadcasts = YouTubeAPI.listBroadcasts(args);
 		if(broadcasts==null) {
 			System.out.println("broadcasts wasn't set correctly");
+			JOptionPane.showMessageDialog(null,"Error Fetching broadcasts","Server request ERROR",JOptionPane.ERROR_MESSAGE);
+
 		}
 	}
 	
@@ -154,8 +187,21 @@ public class Controller {
 	public void addStream() {
 		String[] args = new String[1];
 		args[0]=JOptionPane.showInputDialog("please enter stream name");
-		CreateStream.run(args);
-		refreshStreams();
+		if(args[0]!=null && YouTubeAPI.createStream(args)) {
+				refreshStreams();
+				JOptionPane.showMessageDialog(null,args[0] + " Stream Added Successfully","Completed",JOptionPane.INFORMATION_MESSAGE);	
+				return;
+			}
+		else {
+			//show error massage
+			System.out.println("stream wasn't added");
+			JOptionPane.showMessageDialog(null,
+	    			"stream wasn't added please try again",
+	                "Server request problem",
+	                JOptionPane.ERROR_MESSAGE);
+			//send massage
+			return;
+		}
 	}
 	
 	/**
@@ -164,13 +210,27 @@ public class Controller {
 	 */
 	public void removeStream(Boolean[] checked) {
 		String[] args = new String[1];
+		ArrayList<String> Badresults = new ArrayList<String>();
 		for(int i=0;i<streams.size();i++) {
 			if(checked[i]) {
 				args[0]=streams.get(i).getSnippet().getTitle();
-				DeleteStream.run(args);
+				if(!YouTubeAPI.deleteStream(args)) {
+					Badresults.add(args[0]);
+				}
+					
 			}
 		}
+		if(!Badresults.isEmpty()) {
+			String massage  = "Following Streams weren't deleted:  ";
+			for(String title : Badresults) {
+				massage += title + ",\r\n ";
+			}
+			massage += "please check internet connection"; 
+				JOptionPane.showMessageDialog(null,massage,"Server request ERROR",JOptionPane.ERROR_MESSAGE);
+		}
 		refreshStreams();
+		JOptionPane.showMessageDialog(null,"Finished Deleting Streams","Completed",JOptionPane.INFORMATION_MESSAGE);	
+
 	}
 	
 	/**
@@ -195,9 +255,8 @@ public class Controller {
 		Constants.isLive = new Boolean[checkedStreamsCount*2];	//init flag array to mark starting progress of broadcast
 		for(int i=0;i<Constants.isLive.length;i++)				
 			Constants.isLive[i]=false;						
-		System.out.println("loading frame starting...isLive length: "+Constants.isLive.length);
+
 		SwingUtilities.invokeLater(new Runnable() {
-			
 			public void run() {
 				new LoadingFrame();
 			}
@@ -235,7 +294,7 @@ public class Controller {
 	 */
 	public void stopBroadcast(Boolean[] checked) throws InterruptedException {
 		String[] args = {"refresh","active"};
-		List<LiveBroadcast> returnedList =ListBroadcasts.run(args);
+		List<LiveBroadcast> returnedList =YouTubeAPI.listBroadcasts(args);
 		if(returnedList==null) {
 			System.out.println("error fetching broadcasts");
 			return;
@@ -258,7 +317,8 @@ public class Controller {
 	public void stopBroadcasts() throws InterruptedException {
 		CompleteBroadcast cmpBrd= null;
 		String[] args = {"refresh","active"};
-		List<LiveBroadcast> returnedList =ListBroadcasts.run(args);
+		refreshBroadcasts(args);
+		List<LiveBroadcast> returnedList = broadcasts;
 		if(returnedList==null) {
 			System.out.println("error fetching broadcasts");
 			return;
@@ -273,7 +333,7 @@ public class Controller {
 	}
 
 	/**
-	 * this method creates and start a timer runner object 
+	 * This method creates and start a timer runner object 
 	 * @throws InterruptedException
 	 */
 	public void startTimerRunner() throws InterruptedException {
@@ -324,7 +384,7 @@ public class Controller {
 	}
 
 	/**
-	 * this method saves current broadcast data on window closing event
+	 * This method saves current broadcast data on window closing event
 	 */
 	@SuppressWarnings("unchecked")
 	public void saveData() {
@@ -371,6 +431,8 @@ public class Controller {
     		obj.put("Interval Broadcast", "OFF");
     	}
     	
+    	obj.put("Description", Constants.Description);
+    	
     	try (FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json")) {
 			file.write(obj.toJSONString());
 			System.out.println("Successfully Saved JSON Object to File...");
@@ -382,7 +444,7 @@ public class Controller {
 	}
 	
 	/**
-	 * this method loads current broadcast data when window is opening
+	 * This method loads current broadcast data when window is opening
 	 */
 	@SuppressWarnings("unchecked")
 	public void loadData() {
@@ -395,6 +457,8 @@ public class Controller {
             		
             JSONObject jsonObject = (JSONObject) obj;
  			
+            Constants.Description = (String) jsonObject.get("Description");
+            
             String RegularBroadcast = (String) jsonObject.get("Regular Broadcast");
             if(RegularBroadcast.equals("ON")){
             	
@@ -486,7 +550,7 @@ public class Controller {
 	}
 	
 	/**
-	 * singleton instance retriever
+	 * Singleton instance retriever
 	 * @return
 	 * @throws IOException 
 	 * @throws FileNotFoundException 
@@ -503,7 +567,7 @@ public class Controller {
 	}
 
 	/** 
-	 * this method registers new user locally
+	 * This method registers new user locally
 	 * @param username
 	 * @param password
 	 * @param email
@@ -553,19 +617,22 @@ public class Controller {
 		file.close();
 		
 		fileEncrypt(jsonObject.toString());
+		JOptionPane.showMessageDialog(null,"User Registerd Successfully","Completed",JOptionPane.INFORMATION_MESSAGE);	
+
 	}
-/**
- 	* this method checks if user exists
- * @param username
- * @return
- * @throws FileNotFoundException
- * @throws IOException
- * @throws ParseException
- * @throws InvalidKeyException
- * @throws InvalidAlgorithmParameterException
- * @throws NoSuchAlgorithmException
- * @throws NoSuchPaddingException
- */
+
+	/**
+ 	 * This method checks if user exists
+	 * @param username
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws IOException
+	 * @throws ParseException
+	 * @throws InvalidKeyException
+	 * @throws InvalidAlgorithmParameterException
+	 * @throws NoSuchAlgorithmException
+	 * @throws NoSuchPaddingException
+	 */
 	public boolean userExists(String username) throws FileNotFoundException, IOException, ParseException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
 		// TODO Auto-generated method stub
 		
@@ -584,8 +651,9 @@ public class Controller {
 		}
 		return false;
 	}
+	
 	/**
-	 * this method validates the user to be logged in
+	 * This method validates the user to be logged in
 	 * @param username
 	 * @param password
 	 * @return
@@ -622,7 +690,7 @@ public class Controller {
 	}
 	
 	/**
-	 * this method loads initial user details if they exist otherwise it generates files to hold the details
+	 * This method loads initial user details if they exist otherwise it generates files to hold the details
 	 * 
 	 * @throws NoSuchAlgorithmException
 	 * @throws NoSuchPaddingException
@@ -697,7 +765,7 @@ public class Controller {
 	}
 	
 	/**
-	 * encrypt user file
+	 * Encrypt user file
 	 * @param data
 	 * @throws InvalidKeyException
 	 * @throws FileNotFoundException
@@ -711,7 +779,7 @@ public class Controller {
 	}
 	
 	/**
-	 * decrypt user file
+	 * Decrypt user file
 	 * @return
 	 * @throws InvalidKeyException
 	 * @throws FileNotFoundException
