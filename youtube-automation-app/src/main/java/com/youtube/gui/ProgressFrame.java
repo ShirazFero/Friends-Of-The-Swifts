@@ -18,20 +18,31 @@ import org.json.simple.parser.ParseException;
 
 import com.youtube.controller.BackroundTasks;
 import com.youtube.controller.Controller;
+import com.youtube.controller.LoadingTasks;
+import com.youtube.controller.UpdateTasks;
+
 import javax.swing.JLabel;
 
 
 public class ProgressFrame extends JFrame implements PropertyChangeListener {
 	
+	
+	private static final long serialVersionUID = -4984062073217802768L;
+
 	private JProgressBar progressBar;
 	
 	private BackroundTasks task;
 	
-	private static final long serialVersionUID = 1L;
+	private LoadingTasks loadTask;
+	
+	private UpdateTasks updateTask;
+	
+	private JLabel lblFetch;
+	
 
 	public ProgressFrame() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException{
 		super("Loading");
-		Controller controller = Controller.getInstance();
+		
 		JPanel panel = new JPanel();
 		progressBar = new JProgressBar(0, 100);
 		progressBar.setBounds(93, 51, 146, 17);
@@ -41,16 +52,37 @@ public class ProgressFrame extends JFrame implements PropertyChangeListener {
 		panel.setLayout(null);
 		panel.add(progressBar);
 		
-		JLabel lblFetchingDataFrom = new JLabel("Fetching Data from Server...");
-		lblFetchingDataFrom.setBounds(93, 26, 165, 14);
-		panel.add(lblFetchingDataFrom);
-		task = new BackroundTasks(controller);
-		task.addPropertyChangeListener(this);
-		task.execute();
+		lblFetch = new JLabel("");
+		lblFetch.setBounds(93, 26, 165, 14);
+		panel.add(lblFetch);
+		
 		setBounds(100, 100, 371,157);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLocationRelativeTo(null);
 		setVisible(true);
+	}
+	
+	public void initTask() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
+		Controller controller = Controller.getInstance();
+		lblFetch.setText("Fetching Data from Server...");
+		task = new BackroundTasks(controller);
+		task.addPropertyChangeListener(this);
+		task.execute();
+	}
+	
+	public void loadTask() {
+		
+		lblFetch.setText("Starting Live Broadcasts...");
+		loadTask = new LoadingTasks();
+		loadTask.addPropertyChangeListener(this);
+		loadTask.execute();
+	}
+	
+	public void updateTask() {
+		lblFetch.setText("Updating descriptions...");
+		updateTask = new UpdateTasks();
+		updateTask.addPropertyChangeListener(this);
+		updateTask.execute();
 	}
 	
 	@Override
@@ -60,8 +92,16 @@ public class ProgressFrame extends JFrame implements PropertyChangeListener {
 		    int progress = (Integer) evt.getNewValue();
 		    progressBar.setValue(progress);
 		}
-		if(task.isDone()) {
+		if(task!=null && task.isDone()) {
 			setVisible(false);
+			dispose();
+		}
+		if(loadTask!=null && loadTask.isDone()) {
+			setVisible(false);
+			dispose();
+		}
+		if(updateTask!=null && updateTask.isDone()) {
+			//setVisible(false);
 			dispose();
 		}
 		

@@ -9,6 +9,10 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.border.Border;
 
+import com.youtube.utils.Constants;
+
+import java.awt.Font;
+
 public class ButtonPanel extends JPanel implements ActionListener {
 
 	/**
@@ -29,6 +33,12 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	
 	
 
+	/**
+	 * @param instance the instance to set
+	 */
+	public  void setInstance(ButtonPanel instance) {
+		ButtonPanel.instance = instance;
+	}
 	public ButtonPanel() {
 		
 		Border outerborder = BorderFactory.createTitledBorder("Menu");
@@ -53,12 +63,19 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	
 	private void startButtons() {
 		setIntervalbtn = new JButton("Set Interval");
+		setIntervalbtn.setFont(new Font("Tahoma", Font.BOLD, 15));
 		StartIntBrdbtn = new JButton("Start Interval Broadcast");
+		StartIntBrdbtn.setFont(new Font("Tahoma", Font.BOLD, 15));
 		StopIntbtn = new JButton("Stop Interval Broadcast");
+		StopIntbtn.setFont(new Font("Tahoma", Font.BOLD, 15));
 		StartBrdbtn = new JButton("Start Broadcast");
+		StartBrdbtn.setFont(new Font("Tahoma", Font.BOLD, 15));
 		StopBrdbtn = new JButton("Stop Broadcast");
-		LiveStreamsbtn = new JButton("Open YouTube Live Streams");
+		StopBrdbtn.setFont(new Font("Tahoma", Font.BOLD, 15));
+		LiveStreamsbtn = new JButton(Constants.OYLS);
+		LiveStreamsbtn.setFont(new Font("Tahoma", Font.BOLD, 15));
 		Studiobtn = new JButton("Open YouTube Studio");
+		Studiobtn.setFont(new Font("Tahoma", Font.BOLD, 15));
 		
 		add(setIntervalbtn);
 		add(StartIntBrdbtn);

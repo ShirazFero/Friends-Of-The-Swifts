@@ -17,6 +17,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,7 +40,7 @@ import com.youtube.api.YouTubeAPI;
 import com.youtube.gui.BroadcastPanel;
 import com.youtube.gui.ButtonPanel;
 import com.youtube.gui.IntervalPanel;
-import com.youtube.gui.LoadingFrame;
+import com.youtube.gui.ProgressFrame;
 import com.youtube.utils.Constants;
 
 /**
@@ -67,7 +68,7 @@ public class Controller {
 	 * Gets checked stream
 	 * @return
 	 */
-	public  Boolean[] getCheckedStreams() {
+	public Boolean[] getCheckedStreams() {
 		return checkedStreams;
 	}
 
@@ -94,23 +95,29 @@ public class Controller {
 	 */
 	public void updateDescription(String decription) throws IOException {
 		
-		ArrayList<String> Badresults = new ArrayList<String>();
-		for(int i = checkedBroadcasts.length-1;i>=0;i--) {
+		Constants.BroadcastsToUpdate = new ArrayList<LiveBroadcast>();
+		for(int i = 0;i<checkedBroadcasts.length ;i++) {
 			if(checkedBroadcasts[i]) {
-				if(!YouTubeAPI.updateDescription(decription, broadcasts.get(i))) //try to update
-					Badresults.add( broadcasts.get(i).getSnippet().getTitle());
+				Constants.BroadcastsToUpdate.add(broadcasts.get(i));
 			}
 		}
-		if(!Badresults.isEmpty()) {
-			String massage  = "Descriptions of following Broadcasts weren't set correctly to ";
-			for(String title : Badresults) {
-				massage += title + ",\r\n ";
-			}
-			massage += "please check internet connection"; 
-				JOptionPane.showMessageDialog(null,massage,"Server request ERROR",JOptionPane.ERROR_MESSAGE);
+		if(Constants.BroadcastsToUpdate.size()>100) {
+			JOptionPane.showMessageDialog(null,"Please select less then 100 broadcasts","Server request ERROR",JOptionPane.ERROR_MESSAGE);
+			return;
 		}
-		JOptionPane.showMessageDialog(null,"Description updated","Completed",JOptionPane.INFORMATION_MESSAGE);	
 			
+		Constants.Description = decription;
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					new ProgressFrame().updateTask();
+				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+						| InvalidAlgorithmParameterException | IOException | ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
 		
 	}
 	
@@ -178,28 +185,58 @@ public class Controller {
 			JOptionPane.showMessageDialog(null,"Error Fetching broadcasts","Server request ERROR",JOptionPane.ERROR_MESSAGE);
 
 		}
+		
+		BroadcastPanel bpanel = BroadcastPanel.getInstance();
+		if(Constants.NextPageToken!=null)
+			bpanel.getBtnNextPage().setEnabled(true);
+		else
+			bpanel.getBtnNextPage().setEnabled(false);
+		if(Constants.PrevPageToken!=null)
+			bpanel.getBtnPreviousPage().setEnabled(true);
+		else
+			bpanel.getBtnPreviousPage().setEnabled(false);
+		
 	}
 	
 	/**
 	 * This method inserts a new live stream to the database
 	 * @param checked array indicates whether a stream was chosen or not
+	 * @throws IOException 
 	 */
-	public void addStream() {
+	public void addStream() throws IOException {
 		String[] args = new String[1];
 		args[0]=JOptionPane.showInputDialog("please enter stream name");
+		if(args[0] == null) {
+			System.out.println("requset cancelled");
+			return;
+		}
+		if("".equals(args[0])) {
+			//bad input
+			JOptionPane.showMessageDialog(null,"No stream name entered","Not Completed",
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+			
+		int desLen = args[0].getBytes("UTF-8").length;
+		System.out.println("deslen: "+ desLen);
+		if(desLen>128 || desLen < 1) {
+			//bad input
+			JOptionPane.showMessageDialog(null,"Stream name is too long or too short try again","Not Completed",
+	                JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		if(args[0]!=null && YouTubeAPI.createStream(args)) {
 				refreshStreams();
 				JOptionPane.showMessageDialog(null,args[0] + " Stream Added Successfully","Completed",JOptionPane.INFORMATION_MESSAGE);	
+				LiveStream stream =YouTubeAPI.getStreamByName(args[0]);
+				Constants.StreamDescription.put(stream.getId(),Constants.Description); //set default description
 				return;
 			}
 		else {
 			//show error massage
 			System.out.println("stream wasn't added");
-			JOptionPane.showMessageDialog(null,
-	    			"stream wasn't added please try again",
-	                "Server request problem",
+			JOptionPane.showMessageDialog(null,"stream wasn't added please try again","Server request problem",
 	                JOptionPane.ERROR_MESSAGE);
-			//send massage
 			return;
 		}
 	}
@@ -207,15 +244,19 @@ public class Controller {
 	/**
 	 * This method removes a live stream from database
 	 * @param checked array indicates whether a stream was chosen or not
+	 * @throws IOException 
 	 */
-	public void removeStream(Boolean[] checked) {
+	public void removeStream(Boolean[] checked) throws IOException {
 		String[] args = new String[1];
 		ArrayList<String> Badresults = new ArrayList<String>();
 		for(int i=0;i<streams.size();i++) {
 			if(checked[i]) {
 				args[0]=streams.get(i).getSnippet().getTitle();
-				if(!YouTubeAPI.deleteStream(args)) {
-					Badresults.add(args[0]);
+				if(!YouTubeAPI.deleteStream(args)) { //if didn't succeed
+					Badresults.add(args[0]);		//add stream title to error massage
+				}
+				else { //remove from  description map
+					Constants.StreamDescription.remove(streams.get(i).getId()); 
 				}
 					
 			}
@@ -241,6 +282,7 @@ public class Controller {
 	 */
 	public void startBroadcast(Boolean[] checked) throws InterruptedException {
 		
+		Constants.badResults =  new ArrayList<String>();
 		List<LiveStream> streams = filterStreams("active");		
 		if(streams==null) {
 			System.out.println("error retrieving streams");
@@ -252,13 +294,23 @@ public class Controller {
 			if(checked[i])
 				checkedStreamsCount++;
 		}
+		if(checkedStreamsCount>100) {				//100> num of broadcasts
+			JOptionPane.showMessageDialog(null,"Please select less then 100 broadcasts","Server request ERROR",JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		Constants.isLive = new Boolean[checkedStreamsCount*2];	//init flag array to mark starting progress of broadcast
 		for(int i=0;i<Constants.isLive.length;i++)				
 			Constants.isLive[i]=false;						
 
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				new LoadingFrame();
+				try {
+					new ProgressFrame().loadTask();
+				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+						| InvalidAlgorithmParameterException | IOException | ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		});
 		int j=0; // index for setting queue numbers for Constants.isLive 
@@ -267,8 +319,8 @@ public class Controller {
 				String[] args = new String[2];		// args[0] = title , args[1] = end time
 				args[0]= streams.get(i).getSnippet().getTitle();
 				if(Constants.IntervalBroadcast) {	//calculate interval end time and set it as args 
-					Instant instant = Instant.ofEpochMilli(calcStopTime().getTime());
-					LocalDateTime finTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+					LocalDateTime finTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(calcStopTime().getTime())
+							, ZoneId.systemDefault());
 					args[1]= finTime.toString()	;
 				}
 				else { 								//if it's indefinite Broadcast no end time is set
@@ -285,6 +337,7 @@ public class Controller {
 				j+=2;
 			}
 		}
+		
 	}
 	
 	/**
@@ -431,6 +484,9 @@ public class Controller {
     		obj.put("Interval Broadcast", "OFF");
     	}
     	
+    	JSONObject MapObject = new JSONObject(Constants.StreamDescription);
+    	obj.put("Map" ,MapObject);
+    	
     	obj.put("Description", Constants.Description);
     	
     	try (FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json")) {
@@ -446,7 +502,7 @@ public class Controller {
 	/**
 	 * This method loads current broadcast data when window is opening
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked" })
 	public void loadData() {
 		
 		JSONParser parser = new JSONParser();
@@ -458,6 +514,8 @@ public class Controller {
             JSONObject jsonObject = (JSONObject) obj;
  			
             Constants.Description = (String) jsonObject.get("Description");
+            
+            Constants.StreamDescription = (HashMap<String,String>) jsonObject.get("Map");
             
             String RegularBroadcast = (String) jsonObject.get("Regular Broadcast");
             if(RegularBroadcast.equals("ON")){
@@ -475,12 +533,11 @@ public class Controller {
                 ButtonPanel btnPnl =  ButtonPanel.getInstance();
                 btnPnl.getStartBrdbtn().setEnabled(false);	
 				btnPnl.getStopBrdbtn().setEnabled(true);
-				btnPnl.getStopIntbtn().setEnabled(false);
 				btnPnl.getStartIntBrdbtn().setEnabled(false);
             }
             String IntervalBroadcast = (String) jsonObject.get("Interval Broadcast");
             if(IntervalBroadcast.equals("ON")){
-            	
+            	System.out.println("load interval broadcast");
             	//set interval panel
             	Constants.IntervalBroadcast = true;
             	
@@ -537,11 +594,11 @@ public class Controller {
                 }
                 
             	//toggle buttons on GUI
+                System.out.println("toggleing buttons");
             	ButtonPanel btnPnl =  ButtonPanel.getInstance();
             	btnPnl.getStartIntBrdbtn().setEnabled(false); 
 				btnPnl.getStopIntbtn().setEnabled(true);
 				btnPnl.getStartBrdbtn().setEnabled(false);
-				btnPnl.getStopBrdbtn().setEnabled(false);
             }
             
         } catch (Exception e) {
@@ -675,15 +732,20 @@ public class Controller {
 			//decrypt file
 			String data = fileDecrypt();
 			JSONArray userArray = (JSONArray) ((JSONObject) parser.parse(data)).get("User List");
-			String decryptedPassword = null; 	// to hold the encrypted password exported from the file
+			String decryptedPassword = null ,email =null; 	// to hold the encrypted password exported from the file
 			for(int i=0;i<userArray.size();i++) {
 				JSONObject	user = (JSONObject) ((JSONObject) userArray.get(i)).get("User");
 				String userInList = (String) user.get("username");
-				if(username!=null && username.equals(userInList))
+				if(username!=null && username.equals(userInList)) {
 					decryptedPassword = (String) user.get("password");
+				    email = (String) user.get("email");
+				}
 			}
-			if(password.equals(decryptedPassword))
+			if(password.equals(decryptedPassword)) {
+				Constants.UserEmail = email;
 				return true;
+			}
+				
             return false;
 		}
 		return true;
@@ -702,6 +764,8 @@ public class Controller {
 	 */
 	@SuppressWarnings({ "unchecked" })
 	public void initData() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
+		
+		Constants.StreamDescription = new HashMap<String,String>();
 		
 		final Path path = Paths.get(System.getProperty("user.home")+"\\Documents\\info.json");
 		
@@ -792,5 +856,34 @@ public class Controller {
 		FileEncrypterDecrypter fileEncDec = new FileEncrypterDecrypter(Constants.SecretKey,"AES/CBC/PKCS5Padding");
 		return fileEncDec.decrypt(Constants.AppUserPath);
 	}
+
 	
+	/**
+	 * 
+	 * @return
+	 */
+	public String[] getStreamTitles() {
+		// TODO Auto-generated method stub
+		String[] titles = new String[streams.size()];
+		int index = 0;
+		for(LiveStream stream :streams) {
+				titles[index++] = stream.getSnippet().getTitle();
+			
+		}
+		return titles;
+	}
+	
+	/**
+	 * 
+	 * @param title
+	 * @return
+	 */
+	public String getID(String title){
+		for(LiveStream stream :streams) {
+			if(title.equals(stream.getSnippet().getTitle()))	 
+				return stream.getId();
+			
+		}
+		return null;
+	}
 }

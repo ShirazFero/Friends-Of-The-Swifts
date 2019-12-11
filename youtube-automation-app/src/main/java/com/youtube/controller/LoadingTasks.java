@@ -6,6 +6,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
 import javax.crypto.NoSuchPaddingException;
+import javax.mail.MessagingException;
 import javax.swing.SwingWorker;
 
 import org.json.simple.parser.ParseException;
@@ -43,7 +44,6 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 				}
 			//}
 			if(allMarked(marked)) {	//if all broadcasts have been marked 
-				done();				//complete 
 				return null;
 			}
 		}
@@ -61,6 +61,22 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 	public void done() {
 			//prompt active broadcasts to broadcast panel
 		try {
+				// prepare failure message
+				if(!Constants.badResults.isEmpty()) {
+					String allTitles =" ";
+					for(String title:Constants.badResults) {
+						allTitles+=", " + title;
+					}
+					try {  //send failure message
+						MailUtil.sendMail(Constants.UserEmail,
+								"Server request problem",
+								"Problem starting broadcast\\s "+ allTitles +",\n"+
+				                "please check manually at " +Constants.LiveStreamUrl);
+					} catch (MessagingException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 				setProgress(100);
 				System.out.println("done");
 				Controller controller;

@@ -30,7 +30,7 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 		setProgress(progress+=33);
 		controller.refreshStreams();		//get initial streams
 		setProgress(progress+=33);
-		String[] args = {"init","active"};
+		String[] args = {"init","active",null,null};
 		controller.refreshBroadcasts(args);	//get initial broadcasts
 		setProgress(progress+=34);
 		return null;

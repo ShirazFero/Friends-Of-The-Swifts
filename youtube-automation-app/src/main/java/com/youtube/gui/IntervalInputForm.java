@@ -34,7 +34,8 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 	
 	private String selected;
 	
-	private String[] intervals = {"00:01","00:05","00:10","00:15","00:30","00:45","01:00","01:30","02:00","03:00","04:00"
+	private String[] intervals = {"00:05","00:10","00:15","00:20","00:25","00:30","00:35","00:40","00:45"
+			,"00:50","00:55","01:00","01:15","01:30","02:00","03:00","04:00"
 			,"05:00","06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00"};
 	
 	private JComboBox<Object> box;

@@ -20,9 +20,6 @@ package com.youtube.api;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import javax.swing.JOptionPane;
 
 import com.google.api.client.auth.oauth2.Credential;
@@ -47,16 +44,8 @@ import com.youtube.utils.Constants;
  * */
 public class YouTubeAPI {
 	
-	public static YouTube youtube;	//YouTube Object 
+	public static YouTube youtube;	//YouTube resource 
 
-	public static final Pattern VALID_STREAM_NAME = 
-		    Pattern.compile("(?=\\S+$)", Pattern.CASE_INSENSITIVE);
-	
-	public static boolean validateStreamName(String name) {
-        Matcher matcher = VALID_STREAM_NAME .matcher(name);
-        return matcher.find();
-}
-	
 	    /**
 	 * Create and insert a YouTube resource, authorize via OAuth 2.0 resource.
 	 */
@@ -93,8 +82,10 @@ public class YouTubeAPI {
 	/**
      * retrieve a List of broadcasts from the user's channel.
     * according to parameters:
-    * @param String args[2] ={ 1st arg is source function :"init/refresh",
-    * 						   2nd arg is filter :"all/upcoming/active/complete"}
+    * @param String args[4] ={ 1st argument is source function :"init/refresh",
+    * 						   2nd argument is filter :"all/upcoming/active/complete"
+    * 						   3rd argument is next page token if exists, null otherwise}
+    * 						   4th argument is previous page token if exists, null otherwise}
     */
 	public static List<LiveBroadcast> listBroadcasts(String[] args) {
 	
@@ -109,43 +100,26 @@ public class YouTubeAPI {
 	    	liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus(args[1]);
 	    else if(args[0].equals("refresh"))
 	    	liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus(args[1]);
-	    liveBroadcastRequest.setMaxResults((long) 50); //show top 50 streams
+	    liveBroadcastRequest.setMaxResults((long) Constants.NumberOfResulsts); //show up to 50 broadcasts
+	    
+	    //set next page token if exists
+	    if(args[2]!=null)
+	    	liveBroadcastRequest.setPageToken(Constants.NextPageToken);
+	    if(args[3]!=null)
+	    	liveBroadcastRequest.setPageToken(Constants.PrevPageToken);
 	    
 	    // Execute the API request and return the list of broadcasts.
 	    LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();
 	    List<LiveBroadcast> returnedList = returnedListResponse.getItems();
 	    List<LiveBroadcast> fullreturnList= new LinkedList<LiveBroadcast>(returnedList);
 	    
-	    boolean nextPageflag = true;	//flag that checks if there's more pages
-	    while(nextPageflag) {
-	        if(Constants.DEBUG) {
-	        // Print information from the API response.
-	            System.out.println("\n================== Returned Broadcasts ==================\n");
-	            for (LiveBroadcast broadcast : returnedList) {
-	                System.out.println("  - Id: " + broadcast.getId());
-	                System.out.println("  - Title: " + broadcast.getSnippet().getTitle());
-	                System.out.println("  - Description: " + broadcast.getSnippet().getDescription());
-	                System.out.println("  - Published At: " + broadcast.getSnippet().getPublishedAt());
-	                System.out.println("  - status At: " + broadcast.getStatus());
-	                System.out.println(
-	                        "  - Scheduled Start Time: " + broadcast.getSnippet().getScheduledStartTime());
-	                System.out.println(
-	                        "  - Scheduled End Time: " + broadcast.getSnippet().getScheduledEndTime());
-	                System.out.println("\n-------------------------------------------------------------\n");
-	            }
-	        }
-	        //check if there are more pages of broadcasts
-	        if(returnedListResponse.getNextPageToken()!=null) {
-	            liveBroadcastRequest.setPageToken(returnedListResponse.getNextPageToken());
-	            returnedListResponse = liveBroadcastRequest.execute();
-	            returnedList = returnedListResponse.getItems();
-	            fullreturnList.addAll(returnedList);
-	        }
-	        else
-	        	nextPageflag = false;
-	   }
-	    
-	   return fullreturnList;
+	    Constants.NextPageToken = returnedListResponse.getNextPageToken();
+	    if(Constants.NextPageToken!=null)
+	    	System.out.println("next page token is: " + Constants.NextPageToken);
+	    Constants.PrevPageToken = returnedListResponse.getPrevPageToken();
+	    if(Constants.PrevPageToken!=null)
+	    	System.out.println("prev page token is: " + Constants.PrevPageToken);
+	    return fullreturnList;
 	   
 	} catch (GoogleJsonResponseException e) {
 	    System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
@@ -160,6 +134,7 @@ public class YouTubeAPI {
 	    }
 		return null;
 	}
+
 	
 	/**
 	 * retrieve a List of Streams from the user's channel.
@@ -233,7 +208,7 @@ public class YouTubeAPI {
 		
 	        // Prompt the user to enter a title for the video stream.
 		    String title;
-		    if(args==null || !validateStreamName(args[0]))
+		    if(args==null)
 		    	title = "New Stream";
 		    else
 		    	title=args[0];
@@ -249,8 +224,8 @@ public class YouTubeAPI {
 		    // ingestion type. See:
 		    // https://developers.google.com/youtube/v3/live/docs/liveStreams#cdn
 		    CdnSettings cdnSettings = new CdnSettings();
-		    cdnSettings.setFormat("1080p");
-		    cdnSettings.setIngestionType("rtmp");
+		    cdnSettings.setFormat(Constants.Format);
+		    cdnSettings.setIngestionType(Constants.IngetionType);
 		   
 		      	LiveStream stream = new LiveStream();
 		        stream.setKind("youtube#liveStream");
@@ -379,7 +354,7 @@ public class YouTubeAPI {
 	 * @return
 	 * @throws IOException
 	 */
- 	private static LiveStream getStreamByName(String name) throws IOException {
+ 	public static LiveStream getStreamByName(String name) throws IOException {
 		// Create a request to list liveStream resources.
 	YouTube.LiveStreams.List livestreamRequest = youtube.liveStreams().list("id,snippet,status");
 	

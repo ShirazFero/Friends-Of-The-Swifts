@@ -22,7 +22,7 @@ public class FileEncrypterDecrypter {
 	private SecretKey secretKey;
 	private Cipher cipher;
 
-	FileEncrypterDecrypter(SecretKey secretKey, String transformation) throws NoSuchAlgorithmException, NoSuchPaddingException {
+	public FileEncrypterDecrypter(SecretKey secretKey, String transformation) throws NoSuchAlgorithmException, NoSuchPaddingException {
 	    this.secretKey = secretKey;
 	    this.cipher = Cipher.getInstance(transformation);
 	}
@@ -38,7 +38,7 @@ public class FileEncrypterDecrypter {
 	    }
 	}
 	
-	String decrypt(String fileName) throws FileNotFoundException, IOException, InvalidKeyException, InvalidAlgorithmParameterException {
+	public String decrypt(String fileName) throws FileNotFoundException, IOException, InvalidKeyException, InvalidAlgorithmParameterException {
 	    String content;
 	 
 	    try (FileInputStream fileIn = new FileInputStream(fileName)) {

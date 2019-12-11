@@ -107,7 +107,7 @@ public class TimerRunner {
 	 */
 	public void stopIntervalBroadcast() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
 		if(!Constants.IntervalBroadcast) {	// if stop interval broadcast was pressed
-			String message= "Do you to stop current live broadcasts now?",title="Stop Broadcast option";
+			String message= "Do you want to stop current live broadcasts now?",title="Stop Broadcast option";
 			int reply =JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION); //ask if to stop current Broadcasts
 			if(reply==JOptionPane.YES_OPTION) {						  // if pressed Yes, complete all live broadcasts
 				Controller controller = Controller.getInstance();

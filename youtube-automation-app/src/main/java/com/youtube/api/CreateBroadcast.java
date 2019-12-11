@@ -24,10 +24,7 @@ import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.*;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 
 import javax.swing.JOptionPane;
@@ -81,15 +78,21 @@ public class CreateBroadcast extends Thread{
             }
             
             // set title for the broadcast.
-            String title = args[0] +" "+ Date.from( LocalDateTime.now().atZone( ZoneId.systemDefault()).toInstant());
+            String title = args[0]; //+" "+ Date.from( LocalDateTime.now().atZone( ZoneId.systemDefault()).toInstant());
             System.out.println("You chose " + title + " for broadcast title.");
 
             // Create a snippet with the title and scheduled start and end
+           
             // times for the broadcast.
             LiveBroadcastSnippet broadcastSnippet = new LiveBroadcastSnippet();
             broadcastSnippet.setTitle(title);
+            
+            //set start time as current time
             broadcastSnippet.setScheduledStartTime(new DateTime(LocalDate.now()+"T"+LocalTime.now()+"Z"));
-            broadcastSnippet.setDescription(Constants.Description);
+            
+            //set description of stream
+            broadcastSnippet.setDescription(Constants.StreamDescription.get(returnedStream.getId())); 
+          
             if(args[1]!=null)	//set scheduled end time if exists
             	broadcastSnippet.setScheduledEndTime(new DateTime(args[1]+"Z"));
             else
@@ -98,7 +101,7 @@ public class CreateBroadcast extends Thread{
             // Set the broadcast's privacy status to "public". 
             //See: https://developers.google.com/youtube/v3/live/docs/liveBroadcasts#status.privacyStatus
             LiveBroadcastStatus status = new LiveBroadcastStatus();
-            status.setPrivacyStatus("public");
+            status.setPrivacyStatus(Constants.Privacy);
            
             LiveBroadcast broadcast = new LiveBroadcast();
             broadcast.setKind("youtube#liveBroadcast");
@@ -109,6 +112,7 @@ public class CreateBroadcast extends Thread{
             YouTube.LiveBroadcasts.Insert liveBroadcastInsert =
             		YouTubeAPI.youtube.liveBroadcasts().insert("snippet,status", broadcast);
             LiveBroadcast returnedBroadcast = liveBroadcastInsert.execute();
+           
             if(Constants.DEBUG) {
 	            // Print information from the API response.
 	            System.out.println("\n================== Returned Broadcast ==================\n");
@@ -217,15 +221,23 @@ public class CreateBroadcast extends Thread{
                     + e.getDetails().getMessage());
             e.printStackTrace();
             reportError();
+            Constants.badResults.add(args[0]);
+            return;
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
             e.printStackTrace();
             reportError();
+            Constants.badResults.add(args[0]);
+            return;
         } catch (Throwable t) {
             System.err.println("Throwable: " + t.getMessage());
             t.printStackTrace();
             reportError();
+            Constants.badResults.add(args[0]);
+            return;
         }
+       
+        return;
     }
     
     /**
@@ -236,7 +248,7 @@ public class CreateBroadcast extends Thread{
     	Constants.isLive[queueNum+1]=true;
     	JOptionPane.showMessageDialog(null,
                 "Problem starting broadcast "+ args[0] +
-                ", please check manually at https://www.youtube.com/my_live_events",
+                ", please check manually at " +Constants.LiveStreamUrl,
                 "Server request problem",
                 JOptionPane.ERROR_MESSAGE);
     			//send email/push notification
