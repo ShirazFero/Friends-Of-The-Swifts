@@ -1,7 +1,9 @@
 package com.youtube.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -12,9 +14,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.border.Border;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 import com.google.api.services.youtube.model.LiveStream;
+import com.youtube.utils.Constants;
+
+import javax.swing.SwingConstants;
 
 public class StreamPanel extends JPanel implements ActionListener {
 
@@ -28,29 +34,74 @@ public class StreamPanel extends JPanel implements ActionListener {
 	
 	private Boolean checked[];
 	
-	private StatusBtnPanel stp;
+	//private StatusBtnPanel stp;
+	
+	private JScrollPane jsp;
+	
+	private JButton refreshbtn = new JButton("Refresh");
+	
+	private JButton AddStreambtn = new JButton("Add Stream");
+	
+	private JButton ReomveStreambtn = new JButton("Remove Streams");
+	
+	private JButton btnSetDescription;
 	
 	public StreamPanel() {
-		stp = new StatusBtnPanel();
 		stm = new StreamTableModel();
 		streamsTbl = new JTable(stm);
-		int widths[]= {50,50,50,200};
+		int widths[]= {50,100,100,200};
 		setColumnWidths(streamsTbl,widths);
 		streamsTbl.setPreferredScrollableViewportSize(new Dimension(350, 100));
 		streamsTbl.setFillsViewportHeight(true);
 		streamsTbl.setEditingColumn(0);
-		stp.getRefreshbtn().addActionListener(this);
-		stp.getAddStreambtn().addActionListener(this);
-		stp.getReomveStreambtn().addActionListener(this);
+		streamsTbl.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		Border outerborder = BorderFactory.createTitledBorder("Streams Table");
 		Border innerborder = BorderFactory.createEmptyBorder(5,5,5,5);
 		setBorder(BorderFactory.createCompoundBorder(outerborder, innerborder));
-		setLayout(new BorderLayout());
-		JScrollPane jsp =new JScrollPane(streamsTbl);
+		setLayout(null);
+		jsp = new JScrollPane(streamsTbl);
+		jsp.setBounds(10, 73, 378, 140);
 		add(jsp,BorderLayout.CENTER);
-		add(stp,BorderLayout.SOUTH);
+		refreshbtn = new JButton("Refresh");
+		refreshbtn.addActionListener(this);
+		refreshbtn.setBounds(296, 22, 91, 37);
+		
+		AddStreambtn = new JButton(Constants.addStream);
+		AddStreambtn.addActionListener(this);
+		AddStreambtn.setSize(91, 37);
+		AddStreambtn.setLocation(105, 22);
 		
 		
+		ReomveStreambtn = new JButton(Constants.removeStream);
+		ReomveStreambtn.addActionListener(this);
+		ReomveStreambtn.setSize(92, 37);
+		ReomveStreambtn.setLocation(200, 22);
+		
+		add(refreshbtn);
+		add(AddStreambtn);
+		add(ReomveStreambtn);
+		
+		btnSetDescription = new JButton(Constants.setDescription);
+		btnSetDescription.setHorizontalAlignment(SwingConstants.LEFT);
+		btnSetDescription.setToolTipText("Select the streams to update their description");
+		btnSetDescription.setBounds(10, 22, 91, 37);
+		btnSetDescription.addActionListener(this);
+		add(btnSetDescription);
+		
+		
+	}
+
+	
+	/**
+	 * @return the btnSetDescription
+	 */
+	public JButton getBtnSetDescription() {
+		return btnSetDescription;
+	}
+
+
+	public JScrollPane getJsp() {
+		return jsp;
 	}
 
 	/**
@@ -74,16 +125,15 @@ public class StreamPanel extends JPanel implements ActionListener {
 	
 	public void refresh() {
 		stm.fireTableDataChanged();
+		resizeColumnWidth(streamsTbl);
 	}
 	
 	public StreamTableModel getStm() {
 		return stm;
 	}
 	
-	@SuppressWarnings("deprecation")
 	public void actionPerformed(ActionEvent ev) {
-		JButton jb = (JButton) ev.getSource();
-		btnlitsener.ButtonPressed(jb.getLabel());
+		btnlitsener.ButtonPressed( ev.getActionCommand());
 		
 	}
 	
@@ -96,5 +146,28 @@ public class StreamPanel extends JPanel implements ActionListener {
 	        else break;
 	    }
 	    
+	}
+	
+	public void resizeColumnWidth(JTable table) {
+	    final TableColumnModel columnModel = table.getColumnModel();
+	    for (int column = 0; column < table.getColumnCount(); column++) {
+	        int width = 15; // Min width
+	        for (int row = 0; row < table.getRowCount(); row++) {
+	            TableCellRenderer renderer = table.getCellRenderer(row, column);
+	            Component comp = table.prepareRenderer(renderer, row, column);
+	            width = Math.max(comp.getPreferredSize().width +1 , width);
+	        }
+	        if(width > 300)
+	            width=300;
+	        columnModel.getColumn(column).setPreferredWidth(width);
+	    }
+	}
+
+
+	/**
+	 * @return the streamsTbl
+	 */
+	public JTable getStreamsTbl() {
+		return streamsTbl;
 	}
 }
