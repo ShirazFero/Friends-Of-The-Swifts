@@ -16,8 +16,6 @@ public class StreamTableModel extends DefaultTableModel {
 	
 	private String[] columnNames = {"Select","Name","Status","Stream Key" };
 	
-	
-	
 	public void setData(List<LiveStream> data) {
 		this.data = new Object[data.size()][4];
 		int i=0;
@@ -56,7 +54,7 @@ public class StreamTableModel extends DefaultTableModel {
 
 	@Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-   //     super.setValueAt(aValue, rowIndex, columnIndex); by default empty implementation is not necesary if direct parent is AbstractTableModel
+   //   super.setValueAt(aValue, rowIndex, columnIndex); by default empty implementation is not necesary if direct parent is AbstractTableModel
         data[rowIndex][columnIndex] = aValue; 
         fireTableCellUpdated(rowIndex, columnIndex);// notify listeners
     }
