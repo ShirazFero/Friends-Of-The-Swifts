@@ -118,7 +118,7 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 			                "Completed",
 			                JOptionPane.PLAIN_MESSAGE);
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-						| InvalidAlgorithmParameterException | IOException | ParseException e1) {
+						| InvalidAlgorithmParameterException | IOException  e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
@@ -160,18 +160,17 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 		// TODO Auto-generated method stub
 		try {
 		
-		String ID = Controller.getInstance().getID(list.getSelectedValue());
-		//System.out.println(ID);
-		
-		//System.out.println(idDes);
-		String description = Constants.StreamDescription.get(ID);
-		//System.out.println(description);
-		if (!arg0.getValueIsAdjusting()) {
-			   textArea.setText(description);
-			}
-			
+			String ID = Controller.getInstance().getID(list.getSelectedValue());
+
+			String description = Constants.StreamDescription.get(ID);
+	
+			//set current description to text field
+			if (!arg0.getValueIsAdjusting()) {
+				   textArea.setText(description);
+				}
+				
 		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-				| InvalidAlgorithmParameterException | IOException | ParseException e) {
+				| InvalidAlgorithmParameterException | IOException  e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

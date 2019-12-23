@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import java.awt.Font;
 import java.awt.Color;
-import javax.swing.JPasswordField;
 import javax.swing.JCheckBox;
 
 public class UserSettingsFrame extends JFrame implements ActionListener{
@@ -97,7 +96,7 @@ public class UserSettingsFrame extends JFrame implements ActionListener{
 		
 		JCheckBox chckbxAddDateAnd = new JCheckBox("Add Date and Time to Broadcast title");
 		chckbxAddDateAnd.setSelected(true);
-		chckbxAddDateAnd.setBounds(10, 202, 286, 23);
+		chckbxAddDateAnd.setBounds(8, 202, 286, 23);
 		getContentPane().add(chckbxAddDateAnd);
 		
 		setSize(447,303);

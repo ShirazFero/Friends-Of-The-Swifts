@@ -1,5 +1,6 @@
 package com.youtube.controller;
 
+import java.awt.HeadlessException;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -36,6 +37,7 @@ import com.google.api.services.youtube.model.LiveBroadcast;
 import com.google.api.services.youtube.model.LiveStream;
 import com.youtube.api.CompleteBroadcast;
 import com.youtube.api.CreateBroadcast;
+import com.youtube.api.ErrorHandler;
 import com.youtube.api.YouTubeAPI;
 import com.youtube.gui.BroadcastPanel;
 import com.youtube.gui.ButtonPanel;
@@ -160,32 +162,32 @@ public class Controller {
 	
 	/**
 	 * Retrieves  new list of streams , delete old one if exists
+	 * @throws ParseException 
 	 */
-	public void refreshStreams() {
+	public boolean refreshStreams()  {
 		if(streams!=null)
 			streams.clear();
 		streams = YouTubeAPI.listStreams(null);
 		if(streams==null) {
-			System.out.println("streams wasn't set correctly");
-			JOptionPane.showMessageDialog(null,"Error Fetching Streams","Server request ERROR",JOptionPane.ERROR_MESSAGE);
+			return false;
 		}
-			
+		return true;
 	}
 	
 	/**
 	 * Retrieves  new list of broadcasts and filter it depending on args , delete old one if exists ,
 	 * @param args
+	 * @throws ParseException 
 	 */
-	public void refreshBroadcasts(String[] args) {
+	public boolean refreshBroadcasts(String[] args)  {
 		if(broadcasts!=null)
 			broadcasts.clear();
 		broadcasts = YouTubeAPI.listBroadcasts(args);
 		if(broadcasts==null) {
-			System.out.println("broadcasts wasn't set correctly");
-			JOptionPane.showMessageDialog(null,"Error Fetching broadcasts","Server request ERROR",JOptionPane.ERROR_MESSAGE);
-
+			return false;
 		}
 		
+		//handle page tokens
 		BroadcastPanel bpanel = BroadcastPanel.getInstance();
 		if(Constants.NextPageToken!=null)
 			bpanel.getBtnNextPage().setEnabled(true);
@@ -196,25 +198,29 @@ public class Controller {
 		else
 			bpanel.getBtnPreviousPage().setEnabled(false);
 		
+		return true;
+		
 	}
 	
 	/**
 	 * This method inserts a new live stream to the database
 	 * @param checked array indicates whether a stream was chosen or not
 	 * @throws IOException 
+	 * @throws ParseException 
+	 * @throws HeadlessException 
 	 */
-	public void addStream() throws IOException {
+	public boolean addStream() throws IOException, HeadlessException {
 		String[] args = new String[1];
 		args[0]=JOptionPane.showInputDialog("please enter stream name");
 		if(args[0] == null) {
 			System.out.println("requset cancelled");
-			return;
+			return false;
 		}
-		if("".equals(args[0])) {
+		/*if("".equals(args[0])) {
 			//bad input
 			JOptionPane.showMessageDialog(null,"No stream name entered","Not Completed",
 					JOptionPane.ERROR_MESSAGE);
-			return;
+			return false;
 		}
 			
 		int desLen = args[0].getBytes("UTF-8").length;
@@ -223,28 +229,24 @@ public class Controller {
 			//bad input
 			JOptionPane.showMessageDialog(null,"Stream name is too long or too short try again","Not Completed",
 	                JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+			return false;
+		}*/
 		if(args[0]!=null && YouTubeAPI.createStream(args)) {
 				refreshStreams();
 				JOptionPane.showMessageDialog(null,args[0] + " Stream Added Successfully","Completed",JOptionPane.INFORMATION_MESSAGE);	
 				LiveStream stream =YouTubeAPI.getStreamByName(args[0]);
 				Constants.StreamDescription.put(stream.getId(),Constants.Description); //set default description
-				return;
+				return true;
 			}
-		else {
-			//show error massage
-			System.out.println("stream wasn't added");
-			JOptionPane.showMessageDialog(null,"stream wasn't added please try again","Server request problem",
-	                JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+		return false;
+		
 	}
 	
 	/**
 	 * This method removes a live stream from database
 	 * @param checked array indicates whether a stream was chosen or not
 	 * @throws IOException 
+	 * @throws ParseException 
 	 */
 	public void removeStream(Boolean[] checked) throws IOException {
 		String[] args = new String[1];
@@ -264,10 +266,10 @@ public class Controller {
 		if(!Badresults.isEmpty()) {
 			String massage  = "Following Streams weren't deleted:  ";
 			for(String title : Badresults) {
-				massage += title + ",\r\n ";
+				massage += title +" ERROR code: " + Constants.ErrorArgs[0] + ", ERROR message : "+ Constants.ErrorArgs[1]+ ",\r\n ";
 			}
-			massage += "please check internet connection"; 
-				JOptionPane.showMessageDialog(null,massage,"Server request ERROR",JOptionPane.ERROR_MESSAGE);
+			ErrorHandler.HandleMultipleError(massage);
+			
 		}
 		refreshStreams();
 		JOptionPane.showMessageDialog(null,"Finished Deleting Streams","Completed",JOptionPane.INFORMATION_MESSAGE);	
@@ -279,10 +281,14 @@ public class Controller {
 	 * @param checked array indicates whether a stream was chosen or not
 	 * Constants.isLive array delivers data to loading tasks regarding the progress of starting broadcast.
 	 * @throws InterruptedException
+	 * @throws ParseException 
 	 */
 	public void startBroadcast(Boolean[] checked) throws InterruptedException {
 		
 		Constants.badResults =  new ArrayList<String>();
+		if(Constants.LiveId!= null && !Constants.LiveId.isEmpty())
+			Constants.LiveId.clear();
+		Constants.LiveId = new ArrayList<String>();
 		List<LiveStream> streams = filterStreams("active");		
 		if(streams==null) {
 			System.out.println("error retrieving streams");
@@ -294,13 +300,13 @@ public class Controller {
 			if(checked[i])
 				checkedStreamsCount++;
 		}
-		if(checkedStreamsCount>100) {				//100> num of broadcasts
-			JOptionPane.showMessageDialog(null,"Please select less then 100 broadcasts","Server request ERROR",JOptionPane.ERROR_MESSAGE);
+		if(checkedStreamsCount>10) {				//100> num of broadcasts
+			JOptionPane.showMessageDialog(null,"Please select less then 10 broadcasts","Server request ERROR",JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		Constants.isLive = new Boolean[checkedStreamsCount*2];	//init flag array to mark starting progress of broadcast
-		for(int i=0;i<Constants.isLive.length;i++)				
-			Constants.isLive[i]=false;						
+		Constants.isLive = checkedStreamsCount*2;	//init flag array to mark starting progress of broadcast
+		/*for(int i=0;i<Constants.isLive.length;i++)				
+			Constants.isLive[i]=false;	*/					
 
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
@@ -344,9 +350,10 @@ public class Controller {
 	 * This method stops all active live broadcasts if they were chosen
 	 * @param checked
 	 * @throws InterruptedException 
+	 * @throws ParseException 
 	 */
 	public void stopBroadcast(Boolean[] checked) throws InterruptedException {
-		String[] args = {"refresh","active"};
+		String[] args = {"refresh","active",null,null};
 		List<LiveBroadcast> returnedList =YouTubeAPI.listBroadcasts(args);
 		if(returnedList==null) {
 			System.out.println("error fetching broadcasts");
@@ -366,22 +373,17 @@ public class Controller {
 	/**
 	 * This method stops all active live broadcasts
 	 * @throws InterruptedException 
+	 * @throws ParseException 
 	 */
 	public void stopBroadcasts() throws InterruptedException {
-		CompleteBroadcast cmpBrd= null;
-		String[] args = {"refresh","active"};
-		refreshBroadcasts(args);
-		List<LiveBroadcast> returnedList = broadcasts;
-		if(returnedList==null) {
-			System.out.println("error fetching broadcasts");
-			return;
-		}
-		for(int i=returnedList.size()-1 ; i>=0 ;i--) {
-			args[0]=broadcasts.get(i).getSnippet().getTitle();
+		CompleteBroadcast cmpBrd = null;
+		String[] args = new String[1];
+		for(String ID : Constants.LiveId) {
+			args[0] =  ID;
 			cmpBrd = new CompleteBroadcast(args);
 			cmpBrd.start();
 			System.out.println("stopped "+ args[0]);
-			Thread.sleep(1000);								// wait 1 second, better handles server requests
+			Thread.sleep(1000);	// wait 1 second, better handles server requests
 		}
 	}
 
@@ -404,7 +406,7 @@ public class Controller {
 	 * @throws InvalidKeyException 
 	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public void cancelTimerRunner() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
+	public void cancelTimerRunner() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException {
 		timerRunner.stopIntervalBroadcast();
 	}
 
@@ -425,8 +427,9 @@ public class Controller {
 	 * This method filters streams by there status={active,ready,inactive}
 	 * @param filter
 	 * @return filterdList
+	 * @throws ParseException 
 	 */
-	public List<LiveStream> filterStreams(String filter){
+	public List<LiveStream> filterStreams(String filter) {
 		refreshStreams();											// get latest list of streams from server
 		List<LiveStream> filterdList = new ArrayList<LiveStream>();	//init return list
 		for(LiveStream stream : streams) {
@@ -456,6 +459,12 @@ public class Controller {
     			checkedStreamList.add(checked);
     		obj.put("Stream List", checkedStreamList);
     		
+    		//save Live broadcasts id's
+    		JSONArray LiveIdList = new JSONArray();
+    		for(String ID: Constants.LiveId)
+    			checkedStreamList.add(ID);
+    		obj.put("Live ID List", LiveIdList);
+    		
     	}
     	else if(Constants.IntervalBroadcast) {
     		System.out.println("closing inteval broadcast");
@@ -478,6 +487,11 @@ public class Controller {
     		obj.put("Stream List", checkedStreamList);
     		System.out.println("stream list size: "+ checkedStreamList.size());
     		
+    		//save Live broadcasts id's
+    		JSONArray LiveIdList = new JSONArray();
+    		for(String ID: Constants.LiveId)
+    			checkedStreamList.add(ID);
+    		obj.put("Live ID List", LiveIdList);
     	}
     	else {
     		obj.put("Regular Broadcast", "OFF");
@@ -487,7 +501,7 @@ public class Controller {
     	JSONObject MapObject = new JSONObject(Constants.StreamDescription);
     	obj.put("Map" ,MapObject);
     	
-    	obj.put("Description", Constants.Description);
+    	//obj.put("Description", Constants.Description);
     	
     	try (FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json")) {
 			file.write(obj.toJSONString());
@@ -513,11 +527,21 @@ public class Controller {
             		
             JSONObject jsonObject = (JSONObject) obj;
  			
-            Constants.Description = (String) jsonObject.get("Description");
-            
             Constants.StreamDescription = (HashMap<String,String>) jsonObject.get("Map");
-            
+           
+            if((ArrayList<String>) jsonObject.get("Live ID List")!=null)
+            	Constants.LiveId = (ArrayList<String>) jsonObject.get("Live ID List");
+           
             String RegularBroadcast = (String) jsonObject.get("Regular Broadcast");
+            IntervalPanel intervalPanel = IntervalPanel.getInstance();
+           
+            //refresh broadcast to active panel
+        	String[] args = {"refresh","active",null,null};
+		    refreshBroadcasts(args);
+		    BroadcastPanel broadcastPanel =BroadcastPanel.getInstance();
+    		broadcastPanel.setData(broadcasts);			//set new data
+		    broadcastPanel.refresh();
+            
             if(RegularBroadcast.equals("ON")){
             	
             	//start regular flag
@@ -529,39 +553,29 @@ public class Controller {
             	checkedStreams = new Boolean[streamList.size()];
             	streamList.toArray(checkedStreams);
             	
-            	//toggle buttons
-                ButtonPanel btnPnl =  ButtonPanel.getInstance();
-                btnPnl.getStartBrdbtn().setEnabled(false);	
-				btnPnl.getStopBrdbtn().setEnabled(true);
-				btnPnl.getStartIntBrdbtn().setEnabled(false);
+            	//set non stop label
+                intervalPanel.getLblNotSet().setText("Non-Stop");
+				
             }
             String IntervalBroadcast = (String) jsonObject.get("Interval Broadcast");
             if(IntervalBroadcast.equals("ON")){
-            	System.out.println("load interval broadcast");
+
             	//set interval panel
             	Constants.IntervalBroadcast = true;
             	
-            	//refresh broadcast to active panel
-            	String[] args = {"refresh","active"};
-    		    refreshBroadcasts(args);
-    		    BroadcastPanel broadcastPanel =BroadcastPanel.getInstance();
-	    		broadcastPanel.setData(broadcasts);			//set new data
-    		    broadcastPanel.refresh();
     		    //set checked streams
     		    JSONArray streamList = (JSONArray) jsonObject.get("Stream List");
             	checkedStreams = new Boolean[streamList.size()];
             	streamList.toArray(checkedStreams);
-            	for(int i=0 ; i<checkedStreams.length ; i++) {
-            		System.out.println("checked streams at index: " + i  +" is: " +checkedStreams[i]);
-            	}
-            	System.out.println("checked streams ");
             	
+            	
+            	//set data to interval panel
                 Interval interval =Interval.getInstance(); 				//load saved interval
                 interval.setInterval((String) jsonObject.get("Interval"));
-                IntervalPanel intervalPanel = IntervalPanel.getInstance();
                 intervalPanel.getLblNotSet().setText(interval.getHours() +
 						 " Hours and " + interval.getMinutes() +" minutes");
 
+                //load and cast stored stop time
                 SimpleDateFormat dateformat = new SimpleDateFormat("E MMM dd HH:mm:ss z yyyy");
                 String stp = (String) jsonObject.get("Stop Time");
 				Date stoptime =  dateformat.parse(stp);
@@ -569,37 +583,37 @@ public class Controller {
 				
 				Date now = Date.from(LocalDateTime.now().atZone( ZoneId.systemDefault()).toInstant());
 				
-                if(stoptime.after(now)) {
-                	 //if stop time hasn't passed yet
+                if(stoptime.after(now)) {//if stop time hasn't passed yet
             		//set interval panel
                 	System.out.println("setting interval panel");
                 	updateIntervalPanel((String) jsonObject.get("Start Time"),stoptime.toString());
                 	intervalPanel.getFtime().setVisible(true);						
                 	intervalPanel.getLblstime().setVisible(true);
                 	interval.setCorrentInterval(stoptime);										//set it to current interval
-                	//start timer run
-                	timerRunner = new TimerRunner(stoptime);
+                	
                 	
                 }
-                else { 
-                	//else stop current broadcasts ,start them again ,
-                	//and start timer runner with new stop time
+                else { /*else stop current broadcasts ,start them again ,
+                			and start timer runner with new stop time */
                 	stopBroadcasts();
                 	startBroadcast(checkedStreams);
-                	timerRunner = new TimerRunner(calcStopTime());
+                	stoptime = calcStopTime();
                 	intervalPanel = IntervalPanel.getInstance();
                 	updateIntervalPanel(now.toString(),interval.getCorrentInterval().toString());
                 	intervalPanel.getLblstime().setVisible(true);
     				intervalPanel.getFtime().setVisible(true);
                 }
-                
-            	//toggle buttons on GUI
-                System.out.println("toggleing buttons");
-            	ButtonPanel btnPnl =  ButtonPanel.getInstance();
-            	btnPnl.getStartIntBrdbtn().setEnabled(false); 
-				btnPnl.getStopIntbtn().setEnabled(true);
-				btnPnl.getStartBrdbtn().setEnabled(false);
+                //start timer run
+            	if(timerRunner==null) //if program was closed
+            		timerRunner = new TimerRunner(stoptime);
+            	else	//if user was logged out
+            		timerRunner.scheduleTimer(stoptime);
             }
+        	//toggle buttons on GUI
+            System.out.println("toggleing buttons");
+        	ButtonPanel btnPnl =  ButtonPanel.getInstance();
+        	btnPnl.getStartIntBrdbtn().setEnabled(false); 
+			btnPnl.getStopIntbtn().setEnabled(true);
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -617,7 +631,7 @@ public class Controller {
 	 * @throws ParseException 
 	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public static Controller getInstance() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
+	public static Controller getInstance() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException {
 		if(instance==null)
 			instance = new Controller();
 		return instance;
@@ -655,6 +669,7 @@ public class Controller {
 		
 		userDetailsObject.put("password",password);
 		userDetailsObject.put("email",email);
+		userDetailsObject.put("rememberpass","false");
 		
 		userObject.put("User",userDetailsObject);
 		
@@ -692,19 +707,19 @@ public class Controller {
 	 */
 	public boolean userExists(String username) throws FileNotFoundException, IOException, ParseException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
 		// TODO Auto-generated method stub
-		
-		String data = fileDecrypt(); //decrypt file
-
-		JSONParser parser = new JSONParser();
-		Object readObject = parser.parse(data);
-		JSONObject jsonObject = (JSONObject) readObject;
-		JSONArray userArray = (JSONArray) jsonObject.get("User List");
-		for(int i=0;i<userArray.size();i++) {
-			JSONObject user = (JSONObject) userArray.get(i);
-			user = (JSONObject) user.get("User");
-			String userInList = (String) user.get("username");
-			if(username.equals(userInList))
-				return true;
+		if(username!=null && !"".equals(username)) {
+			String data = fileDecrypt(); //decrypt file
+			JSONParser parser = new JSONParser();
+			Object readObject = parser.parse(data);
+			JSONObject jsonObject = (JSONObject) readObject;
+			JSONArray userArray = (JSONArray) jsonObject.get("User List");
+			for(int i=0;i<userArray.size();i++) {
+				JSONObject user = (JSONObject) userArray.get(i);
+				user = (JSONObject) user.get("User");
+				String userInList = (String) user.get("username");
+				if(username.equals(userInList))
+					return true;
+			}
 		}
 		return false;
 	}
@@ -857,7 +872,6 @@ public class Controller {
 		return fileEncDec.decrypt(Constants.AppUserPath);
 	}
 
-	
 	/**
 	 * 
 	 * @return
@@ -871,6 +885,10 @@ public class Controller {
 			
 		}
 		return titles;
+	}
+	
+	public TimerRunner getTimerRunner() {
+		return timerRunner;
 	}
 	
 	/**

@@ -23,7 +23,6 @@ public class App {
 					Controller controller = Controller.getInstance();
 					controller.initData(); // set initial data
 					new UserLogin();
-					//new ProgressFrame();
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 						| InvalidAlgorithmParameterException | IOException | ParseException e) {
 					// TODO Auto-generated catch block

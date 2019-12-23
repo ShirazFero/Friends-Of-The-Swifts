@@ -132,12 +132,42 @@ public class RegistrationForm extends JFrame implements ActionListener{
 			case "Submit": 
 				//controller.checkRegisterForm(usernameField.getText(),);
 				if(controller.userExists(usernameField.getText())) {
-					lblBadInputMsg.setText("user Exists already");
+					lblBadInputMsg.setText("User Exists already");
+					lblBadInputMsg.setVisible(true);
+					break;
+				}
+				if(usernameField.getText()==null || "".equals(usernameField.getText())) {
+					lblBadInputMsg.setText("No user name entered");
+					lblBadInputMsg.setVisible(true);
+					break;
+				}
+				if(usernameField.getText().length()>20) {
+					lblBadInputMsg.setText("User name is too long please use less then 20 letters");
+					lblBadInputMsg.setVisible(true);
+					break;
+				}
+				if(passwordField.getPassword()==null || passwordField.getPassword().length==0) {
+					lblBadInputMsg.setText("No password entered");
+					lblBadInputMsg.setVisible(true);
+					break;
+				}
+				if(passwordField.getPassword().length>20) {
+					lblBadInputMsg.setText("Password is too long please use less then 20 letters");
 					lblBadInputMsg.setVisible(true);
 					break;
 				}
 				if(!Arrays.equals(passwordField.getPassword(),passwordConfirmField.getPassword())) {
 					lblBadInputMsg.setText("Password doesn't match cofirmation Password");
+					lblBadInputMsg.setVisible(true);
+					break;
+				}
+				if(emailField.getText()==null || "".equals(emailField.getText())) {
+					lblBadInputMsg.setText("NO user email entered");
+					lblBadInputMsg.setVisible(true);
+					break;
+				}
+				if(emailField.getText().length()>30) {
+					lblBadInputMsg.setText("Email is too long please use less then 20 letters");
 					lblBadInputMsg.setVisible(true);
 					break;
 				}

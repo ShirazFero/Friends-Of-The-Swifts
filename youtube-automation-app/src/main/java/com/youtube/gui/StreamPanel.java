@@ -21,6 +21,9 @@ import com.google.api.services.youtube.model.LiveStream;
 import com.youtube.utils.Constants;
 
 import javax.swing.SwingConstants;
+import java.awt.SystemColor;
+import javax.swing.UIManager;
+import java.awt.Color;
 
 public class StreamPanel extends JPanel implements ActionListener {
 
@@ -34,8 +37,6 @@ public class StreamPanel extends JPanel implements ActionListener {
 	
 	private Boolean checked[];
 	
-	//private StatusBtnPanel stp;
-	
 	private JScrollPane jsp;
 	
 	private JButton refreshbtn = new JButton("Refresh");
@@ -44,7 +45,7 @@ public class StreamPanel extends JPanel implements ActionListener {
 	
 	private JButton ReomveStreambtn = new JButton("Remove Streams");
 	
-	private JButton btnSetDescription;
+	private JButton btnSetDescription; 
 	
 	public StreamPanel() {
 		stm = new StreamTableModel();
@@ -55,13 +56,15 @@ public class StreamPanel extends JPanel implements ActionListener {
 		streamsTbl.setFillsViewportHeight(true);
 		streamsTbl.setEditingColumn(0);
 		streamsTbl.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		Border outerborder = BorderFactory.createTitledBorder("Streams Table");
+		Border outerborder = BorderFactory.createTitledBorder("Stream Table");
 		Border innerborder = BorderFactory.createEmptyBorder(5,5,5,5);
 		setBorder(BorderFactory.createCompoundBorder(outerborder, innerborder));
 		setLayout(null);
 		jsp = new JScrollPane(streamsTbl);
 		jsp.setBounds(10, 73, 378, 140);
 		add(jsp,BorderLayout.CENTER);
+		
+		
 		refreshbtn = new JButton("Refresh");
 		refreshbtn.addActionListener(this);
 		refreshbtn.setBounds(296, 22, 91, 37);
@@ -76,6 +79,7 @@ public class StreamPanel extends JPanel implements ActionListener {
 		ReomveStreambtn.addActionListener(this);
 		ReomveStreambtn.setSize(92, 37);
 		ReomveStreambtn.setLocation(200, 22);
+		ReomveStreambtn.setContentAreaFilled(true);
 		
 		add(refreshbtn);
 		add(AddStreambtn);
@@ -98,6 +102,7 @@ public class StreamPanel extends JPanel implements ActionListener {
 	public JButton getBtnSetDescription() {
 		return btnSetDescription;
 	}
+	
 
 
 	public JScrollPane getJsp() {

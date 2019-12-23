@@ -30,7 +30,7 @@ import javax.swing.JOptionPane;
  * Use the YouTube Live Streaming API to retrieve a live broadcast
  * and complete the broadcast. Use OAuth 2.0 to authorize the API requests.
  * Thread safe implementation
- * @param args[0] = broadcast title to be completed
+ * @param args[0] = broadcast Id to be completed
  * @author Evgeny Geyfman
  */
 public class CompleteBroadcast extends Thread {
@@ -48,7 +48,7 @@ public class CompleteBroadcast extends Thread {
 
         try {
         	
-            LiveBroadcast returnedBroadcast = getBroadcastByName(args[0]);
+            LiveBroadcast returnedBroadcast = getBroadcastByID(args[0]);
             
             if(returnedBroadcast==null) {
             	System.out.println("no broadcast with this title was found");
@@ -66,11 +66,12 @@ public class CompleteBroadcast extends Thread {
                     .transition("complete", returnedBroadcast.getId(), "snippet,status");
              returnedBroadcast = requestTransition.execute();
              
-             returnedBroadcast = getBroadcastByName(args[0]);
-             System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus() + " " + args[0]);
+             returnedBroadcast = getBroadcastByID(args[0]);
+             System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus() + "title "+returnedBroadcast.getId()
+            		 + "ID: " + args[0]);
              //poll while test starting
              while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("live")) {
-          	   returnedBroadcast = getBroadcastByName(args[0]);
+          	   returnedBroadcast = getBroadcastByID(args[0]);
           	   System.out.println("polling live");
           	   Thread.sleep(1000);
              }
@@ -94,7 +95,7 @@ public class CompleteBroadcast extends Thread {
     
     } 
     
-    private static LiveBroadcast getBroadcastByName(String name) throws IOException {
+    private static LiveBroadcast getBroadcastByID(String id) throws IOException {
     	
    	 YouTube.LiveBroadcasts.List liveBroadcastRequest =
    			YouTubeAPI.youtube.liveBroadcasts().list("id,snippet,status");
@@ -102,12 +103,13 @@ public class CompleteBroadcast extends Thread {
         // Indicate that the API response should not filter broadcasts
         // based on their type or status.
         liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus("all");
+        liveBroadcastRequest.setMaxResults((long)20);
         
         // Execute the API request and return the list of broadcasts.
         LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();
         List<LiveBroadcast> returnedList = returnedListResponse.getItems();
         for (LiveBroadcast broadcast : returnedList) {
-       	 if(broadcast.getSnippet().getTitle().equals(name))
+       	 if(broadcast.getId().equals(id))
        		 return broadcast;
         }
         return null;

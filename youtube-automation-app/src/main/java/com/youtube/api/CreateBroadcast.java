@@ -29,6 +29,8 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
+import org.json.simple.parser.ParseException;
+
 /**
  * Use the YouTube Live Streaming API to insert a broadcast and retrieve a stream from the stream list
  * and then bind them together, then start the live broadcast. Use OAuth 2.0 to authorize the API requests.
@@ -187,7 +189,8 @@ public class CreateBroadcast extends Thread{
            //preview started
            System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
            synchronized (lock) {
-				Constants.isLive[queueNum]=true;		// set 50% OF broadcast starting completed
+				//Constants.isLive[queueNum]=true;		// set 50% OF broadcast starting completed
+        	   Constants.isLive--;
 			}
            //transition to live  mode
             YouTube.LiveBroadcasts.Transition requestLive = YouTubeAPI.youtube.liveBroadcasts()
@@ -213,8 +216,10 @@ public class CreateBroadcast extends Thread{
             //promt status to screen
             System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus()+" "+ args[0]);
             synchronized (lock) {
-            	Constants.isLive[queueNum+1]=true;
+            //	Constants.isLive[queueNum+1]=true;
+            	Constants.isLive--;
 			}
+            Constants.LiveId.add(returnedBroadcast.getId());
            
         } catch (GoogleJsonResponseException e) {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
@@ -244,8 +249,9 @@ public class CreateBroadcast extends Thread{
      * this method prompts to the GUI about an error occurrence
      */
     private void reportError() {
-    	Constants.isLive[queueNum]=true;
-    	Constants.isLive[queueNum+1]=true;
+    	//Constants.isLive[queueNum]=true;
+    	//Constants.isLive[queueNum+1]=true;
+    	Constants.isLive--;
     	JOptionPane.showMessageDialog(null,
                 "Problem starting broadcast "+ args[0] +
                 ", please check manually at " +Constants.LiveStreamUrl,
@@ -259,8 +265,9 @@ public class CreateBroadcast extends Thread{
      * @param name - stream name that is requested
      * @return found stream , null otherwise
      * @throws IOException
+     * @throws ParseException 
      */
-    private static LiveStream getStreamByName(String name) throws IOException {
+    private static LiveStream getStreamByName(String name) throws IOException, ParseException {
 
     	LiveStream foundstream=null;			//initite pointer to the stream
     	List<LiveStream> returnedList= YouTubeAPI.listStreams(null); //get stream list

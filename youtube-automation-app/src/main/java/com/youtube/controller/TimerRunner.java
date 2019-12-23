@@ -35,7 +35,7 @@ public class TimerRunner {
 	public TimerRunner(Date stoptime) {
 		this.stopTime = stoptime;		//set first stop time
 		timer =  new Timer();			//initiate timer
-		scheduleTimer();				//Schedule first interval broadcast
+		rescheduleTimer();				//Schedule first interval broadcast
 	}
 	
 	/***
@@ -50,7 +50,7 @@ public class TimerRunner {
 			public void run() {
 				try {
 					System.out.println("---------------------------------------");
-					System.out.println("running handling itervals");
+					System.out.println("running handling itervals" +Thread.currentThread().getId());
 					
 					Controller controller;
 					controller = Controller.getInstance();
@@ -70,14 +70,14 @@ public class TimerRunner {
 					
 					controller.updateIntervalPanel(newStartTime.toString(),stopTime.toString());
 					//Reschedule timer for next interval
-					scheduleTimer();									
+					rescheduleTimer();									
 					
 					//----------------start live broadcasts again-------------------------
 					System.out.println("creating broadcasts");
 					controller.startBroadcast(controller.getCheckedStreams());
 					
 				}catch (InterruptedException | InvalidKeyException | NoSuchAlgorithmException
-						| NoSuchPaddingException | IOException | ParseException | InvalidAlgorithmParameterException e1) {
+						| NoSuchPaddingException | IOException | InvalidAlgorithmParameterException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
@@ -89,8 +89,15 @@ public class TimerRunner {
 	/**
 	 * schedule timer with new stop time , and same task
 	 */
-	public void scheduleTimer(){
+	private void rescheduleTimer(){
 		timer.schedule(getTask(), stopTime);
+	}
+	
+	/**
+	 * schedule timer with new stop time , and same task
+	 */
+	public void scheduleTimer(Date time){
+		timer.schedule(getTask(), time);
 	}
 	
 	/**
@@ -105,7 +112,7 @@ public class TimerRunner {
 	 * @throws InvalidKeyException 
 	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public void stopIntervalBroadcast() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
+	public void stopIntervalBroadcast() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException {
 		if(!Constants.IntervalBroadcast) {	// if stop interval broadcast was pressed
 			String message= "Do you want to stop current live broadcasts now?",title="Stop Broadcast option";
 			int reply =JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION); //ask if to stop current Broadcasts
@@ -118,5 +125,10 @@ public class TimerRunner {
 			}
 		}
 	}
-
+	
+	public void cancelTimer() {
+		
+		timer.cancel();	
+		timer.purge();
+	}
 }

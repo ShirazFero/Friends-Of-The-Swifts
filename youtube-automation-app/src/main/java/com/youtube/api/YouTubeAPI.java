@@ -20,7 +20,8 @@ package com.youtube.api;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
-import javax.swing.JOptionPane;
+
+import org.json.simple.parser.ParseException;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
@@ -48,35 +49,37 @@ public class YouTubeAPI {
 
 	    /**
 	 * Create and insert a YouTube resource, authorize via OAuth 2.0 resource.
+	     * @throws ParseException 
 	 */
-	public YouTubeAPI(String[] args) {
+	public YouTubeAPI(String[] args)  {
 	
 	    // This OAuth 2.0 access scope allows for full read/write access to the
-	// authenticated user's account.
-	List<String> scopes = Lists.newArrayList("https://www.googleapis.com/auth/youtube");
+		// authenticated user's account.
+		List<String> scopes = Lists.newArrayList("https://www.googleapis.com/auth/youtube");
 	
-	try {
-	    // Authorize the request.//createbroadcast
-	    Credential credential = Auth.authorize(scopes,Constants.Username);
-	    
-	    // This object is used to make YouTube Data API requests.
-	    youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
-	            .setApplicationName("youtube-automation-app").build();
-	    
-	    
-	} catch (GoogleJsonResponseException e) {
-	    System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
-	            + e.getDetails().getMessage());
-	    e.printStackTrace();
-	    reportError("Problem Authenticating user");
-	} catch (IOException e) {
-	    System.err.println("IOException: " + e.getMessage());
-	    e.printStackTrace();
-	    reportError("Problem Authenticating user");
-	} catch (Throwable t) {
-	    System.err.println("Throwable: " + t.getMessage());
-	    reportError("Problem Authenticating user");
-	    }
+		try {
+		    // Authorize the request.//createbroadcast
+		    Credential credential = Auth.authorize(scopes,Constants.Username);
+		    
+		    // This object is used to make YouTube Data API requests.
+		    youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
+		            .setApplicationName("youtube-automation-app").build();
+		    
+		    
+		} catch (GoogleJsonResponseException e) {
+		    System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
+		            + e.getDetails().getMessage());
+		    Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage(),e.getDetails().getErrors()};
+		    ErrorHandler.HandleError(errorArgs); 
+		    e.printStackTrace();
+		} catch (IOException e) {
+		    System.err.println("IOException: " + e.getMessage());
+		    e.printStackTrace();
+		    ErrorHandler.HandleUnknownError(e.getMessage());
+		} catch (Throwable t) {
+			ErrorHandler.HandleUnknownError(t.getMessage());
+		    System.err.println("Throwable: " + t.getMessage());
+		    }
 	}
 	
 	/**
@@ -86,61 +89,66 @@ public class YouTubeAPI {
     * 						   2nd argument is filter :"all/upcoming/active/complete"
     * 						   3rd argument is next page token if exists, null otherwise}
     * 						   4th argument is previous page token if exists, null otherwise}
+	 * @throws ParseException 
     */
-	public static List<LiveBroadcast> listBroadcasts(String[] args) {
+	public static List<LiveBroadcast> listBroadcasts(String[] args)  {
 	
 	    try {
-	        // Create a request to list broadcasts.
-	    YouTube.LiveBroadcasts.List liveBroadcastRequest =
-	    		youtube.liveBroadcasts().list("id,snippet,status");
-	
-	    // Indicate that the API response should not filter broadcasts
-	    // based on their type or status.
-	    if(args[0].equals("init"))
-	    	liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus(args[1]);
-	    else if(args[0].equals("refresh"))
-	    	liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus(args[1]);
-	    liveBroadcastRequest.setMaxResults((long) Constants.NumberOfResulsts); //show up to 50 broadcasts
-	    
-	    //set next page token if exists
-	    if(args[2]!=null)
-	    	liveBroadcastRequest.setPageToken(Constants.NextPageToken);
-	    if(args[3]!=null)
-	    	liveBroadcastRequest.setPageToken(Constants.PrevPageToken);
-	    
-	    // Execute the API request and return the list of broadcasts.
-	    LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();
-	    List<LiveBroadcast> returnedList = returnedListResponse.getItems();
-	    List<LiveBroadcast> fullreturnList= new LinkedList<LiveBroadcast>(returnedList);
-	    
-	    Constants.NextPageToken = returnedListResponse.getNextPageToken();
-	    if(Constants.NextPageToken!=null)
-	    	System.out.println("next page token is: " + Constants.NextPageToken);
-	    Constants.PrevPageToken = returnedListResponse.getPrevPageToken();
-	    if(Constants.PrevPageToken!=null)
-	    	System.out.println("prev page token is: " + Constants.PrevPageToken);
-	    return fullreturnList;
+		        // Create a request to list broadcasts.
+		    YouTube.LiveBroadcasts.List liveBroadcastRequest =
+		    		youtube.liveBroadcasts().list("id,snippet,status");
+		
+		    // Indicate that the API response should not filter broadcasts
+		    // based on their type or status.
+		    if(args[0].equals("init"))
+		    	liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus(args[1]);
+		    else if(args[0].equals("refresh"))
+		    	liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus(args[1]);
+		    liveBroadcastRequest.setMaxResults((long) Constants.NumberOfResulsts); //show up to 50 broadcasts
+		    
+		    //set next page token if exists
+		    if(args[2]!=null)
+		    	liveBroadcastRequest.setPageToken(Constants.NextPageToken);
+		    if(args[3]!=null)
+		    	liveBroadcastRequest.setPageToken(Constants.PrevPageToken);
+		    
+		    // Execute the API request and return the list of broadcasts.
+		    LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();
+		    List<LiveBroadcast> returnedList = returnedListResponse.getItems();
+		    List<LiveBroadcast> fullreturnList= new LinkedList<LiveBroadcast>(returnedList);
+		    
+		    Constants.NextPageToken = returnedListResponse.getNextPageToken();
+		    if(Constants.NextPageToken!=null)
+		    	System.out.println("next page token is: " + Constants.NextPageToken);
+		    Constants.PrevPageToken = returnedListResponse.getPrevPageToken();
+		    if(Constants.PrevPageToken!=null)
+		    	System.out.println("prev page token is: " + Constants.PrevPageToken);
+		    return fullreturnList;
 	   
-	} catch (GoogleJsonResponseException e) {
-	    System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
-	            + e.getDetails().getMessage());
-	    e.printStackTrace();
-	} catch (IOException e) {
-	    System.err.println("IOException: " + e.getMessage());
-	    e.printStackTrace();
-	} catch (Throwable t) {
-	    System.err.println("Throwable: " + t.getMessage());
-	    t.printStackTrace();
-	    }
-		return null;
+		} catch (GoogleJsonResponseException e) {
+		    System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
+		            + e.getDetails().getMessage());
+		    Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage(),e.getDetails().getErrors()};
+		    ErrorHandler.HandleError(errorArgs);
+		    e.printStackTrace();
+		} catch (IOException e) {
+		    System.err.println("IOException: " + e.getMessage());
+		    e.printStackTrace();
+		    ErrorHandler.HandleUnknownError(e.getMessage());
+		} catch (Throwable t) {
+		    System.err.println("Throwable: " + t.getMessage());
+		    t.printStackTrace();
+		    ErrorHandler.HandleUnknownError(t.getMessage());
+		    }
+			return null;
 	}
-
 	
 	/**
 	 * retrieve a List of Streams from the user's channel.
+	 * @throws ParseException 
 	 *
 	 */
-	public static List<LiveStream> listStreams(String[] args) {
+	public static List<LiveStream> listStreams(String[] args)  {
 	
 	    try {
 	    	// Create a request to list liveStream resources.
@@ -186,23 +194,31 @@ public class YouTubeAPI {
 	   return fullreturnList;	//return full list
 	   
 	} catch (GoogleJsonResponseException e) {
+		
 	    System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
 	            + e.getDetails().getMessage());
+	    Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage(),e.getDetails().getErrors()};
+	    ErrorHandler.HandleError(errorArgs);
 	    e.printStackTrace();
+	   	
 	} catch (IOException e) {
 	    System.err.println("IOException: " + e.getMessage());
 	    e.printStackTrace();
+	    ErrorHandler.HandleUnknownError(e.getMessage());
 	} catch (Throwable t) {
 	    System.err.println("Throwable: " + t.getMessage());
 	    t.printStackTrace();
+	    ErrorHandler.HandleUnknownError(t.getMessage());
 	    }
 		return null;
 	}
 	
 	/**
 	 * Create and insert a liveStream resource.
+	 * @throws ParseException 
+	 * @throws IOException 
 	 */
-	public static boolean createStream(String[] args) {
+	public static boolean createStream(String[] args) throws IOException {
 	
 	    try {
 		
@@ -235,29 +251,25 @@ public class YouTubeAPI {
 		    // Construct and execute the API request to insert the stream.
 		    YouTube.LiveStreams.Insert liveStreamInsert =
 		    		youtube.liveStreams().insert("snippet,cdn,status", stream);
-		    LiveStream returnedStream = liveStreamInsert.execute();
-		    if(Constants.DEBUG) {
-		        // Print information from the API response.
-		        System.out.println("\n================== Returned Inserted Stream ==================\n");
-		        System.out.println("  - Id: " + returnedStream.getId());
-		        System.out.println("  - Title: " + returnedStream.getSnippet().getTitle());
-		        System.out.println("  - Status: " + returnedStream.getStatus().getStreamStatus());
-		        System.out.println("  - Description: " + returnedStream.getSnippet().getDescription());
-		        System.out.println("  - Published At: " + returnedStream.getSnippet().getPublishedAt());
-		        System.out.println("  - ingestion Key: " + stream.getCdn().getIngestionInfo().getStreamName());
-		    }
+		    liveStreamInsert.execute();
+	
 		    return true;
+		    
 		} catch (GoogleJsonResponseException e) {
 		    System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
 		            + e.getDetails().getMessage());
+		    Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage(),e.getDetails().getErrors()};
+		    ErrorHandler.HandleError(errorArgs);
 		    e.printStackTrace();
 		    return false;
 		} catch (IOException e) {
 		    System.err.println("IOException: " + e.getMessage());
 		    e.printStackTrace();
+		    ErrorHandler.HandleUnknownError(e.getMessage());
 		    return false;
 		} catch (Throwable t) {
 		    System.err.println("Throwable: " + t.getMessage());
+		    ErrorHandler.HandleUnknownError(t.getMessage());
 		    t.printStackTrace();
 		    return false;
 	    }
@@ -288,15 +300,19 @@ public class YouTubeAPI {
 	    } catch (GoogleJsonResponseException e) {
 	        System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
 	            + e.getDetails().getMessage());
+	        Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage()};
+	        Constants.ErrorArgs = errorArgs.clone();
 		    e.printStackTrace();
 		    return false;
 		} catch (IOException e) {
 		    System.err.println("IOException: " + e.getMessage());
 		    e.printStackTrace();
+		    ErrorHandler.HandleUnknownError(e.getMessage());
 		    return false;
 		} catch (Throwable t) {
 		    System.err.println("Throwable: " + t.getMessage());
 		    t.printStackTrace();
+		    ErrorHandler.HandleUnknownError(t.getMessage());
 		    return false;
 	    }
 	}
@@ -335,6 +351,8 @@ public class YouTubeAPI {
 		} catch (GoogleJsonResponseException e) {
 		        System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
 		            + e.getDetails().getMessage());
+		        Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage()};
+		        Constants.ErrorArgs = errorArgs.clone();
 			    e.printStackTrace();
 			    return false;
 			} catch (IOException e) {
@@ -344,6 +362,7 @@ public class YouTubeAPI {
 			} catch (Throwable t) {
 			    System.err.println("Throwable: " + t.getMessage());
 			    t.printStackTrace();
+			    ErrorHandler.HandleUnknownError(t.getMessage());
 			    return false;
 		    }    
 	}
@@ -370,14 +389,5 @@ public class YouTubeAPI {
 		return null;
 	}
 	
-	/**
-	 * this method prompts to the GUI about an error occurrence
-	 */
-	private static void reportError(String problem) {
-	    	JOptionPane.showMessageDialog(null,
-	    			problem,
-	                "Server request ERROR",
-	                JOptionPane.ERROR_MESSAGE);
-	    			//send massage
-	    }
+	
 }
