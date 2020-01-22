@@ -8,7 +8,7 @@ import com.google.api.services.youtube.model.LiveBroadcast;
 
 public class BroadcastTableModel extends DefaultTableModel {
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -6241837059514897003L;
 
 	private Object[][] data;
 	
@@ -23,7 +23,7 @@ public class BroadcastTableModel extends DefaultTableModel {
 			this.data[i][0]= Boolean.FALSE;
 			this.data[i][1]= broadcast.getSnippet().getTitle();
 			this.data[i][2]= broadcast.getStatus().getLifeCycleStatus();
-			this.data[i][3]= broadcast.getSnippet().getPublishedAt();
+			this.data[i][3]= broadcast.getSnippet().getScheduledStartTime();
 			i++;
 		}
 		datalen=data.size();
@@ -53,8 +53,7 @@ public class BroadcastTableModel extends DefaultTableModel {
 
 	@Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-   //     super.setValueAt(aValue, rowIndex, columnIndex); by default empty implementation is not necesary if direct parent is AbstractTableModel
         data[rowIndex][columnIndex] = aValue; 
-        fireTableCellUpdated(rowIndex, columnIndex);// notify listeners
+        fireTableCellUpdated(rowIndex, columnIndex); // notify listeners
     }
 }

@@ -25,6 +25,7 @@ import javax.swing.JButton;
 import java.awt.Color;
 import java.awt.Dimension;
 import javax.swing.JTextPane;
+import java.awt.SystemColor;
 
 public class RegistrationForm extends JFrame implements ActionListener{
 	
@@ -37,6 +38,7 @@ public class RegistrationForm extends JFrame implements ActionListener{
 	private JLabel lblBadInputMsg;
 	
 	public RegistrationForm() {
+		getContentPane().setBackground(SystemColor.textHighlightText);
 		getContentPane().setFont(new Font("Tahoma", Font.PLAIN, 13));
 		getContentPane().setLayout(null);
 		
@@ -57,7 +59,7 @@ public class RegistrationForm extends JFrame implements ActionListener{
 		
 		JLabel lblNewLabel = new JLabel("Register New User");
 		lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		lblNewLabel.setBounds(133, 11, 135, 19);
+		lblNewLabel.setBounds(178, 11, 135, 19);
 		getContentPane().add(lblNewLabel);
 		
 		usernameField = new JTextField();
@@ -109,8 +111,10 @@ public class RegistrationForm extends JFrame implements ActionListener{
 		getContentPane().add(lblBadInputMsg);
 		
 		JTextPane txtpnpasswordMustHave = new JTextPane();
-		txtpnpasswordMustHave.setText("Password  Rules: \r\nat least 8 characters\r\n1 digit 1-9\r\n1 lower case letter\r\n1 upper case letter\r\n1 special character @,#,$,%,^,&,+,= \r\nno spaces allowed\r\n");
-		txtpnpasswordMustHave.setBounds(346, 50, 105, 146);
+		txtpnpasswordMustHave.setEditable(false);
+		txtpnpasswordMustHave.setFont(new Font("Tahoma", Font.PLAIN, 11));
+		txtpnpasswordMustHave.setText("Password  Rules: \r\n- at least 8 characters long\r\n- one digit 1-9\r\n- one lower case letter\r\n- one 1 upper case letter\r\n- one  special character @,#,$,%,^,&,+,= \r\n- no spaces allowed\r\n");
+		txtpnpasswordMustHave.setBounds(356, 65, 178, 141);
 		getContentPane().add(txtpnpasswordMustHave);
 		lblBadInputMsg.setVisible(false);
 

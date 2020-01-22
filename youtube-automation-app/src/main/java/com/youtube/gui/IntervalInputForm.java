@@ -15,10 +15,13 @@ import javax.swing.JFrame;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 import java.util.List;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.awt.Color;
+import java.awt.SystemColor;
 
 /**
  * This class represents an Interval input form , which will appear when setting an interval,
@@ -28,13 +31,14 @@ import java.awt.event.ActionEvent;
  */
 public class IntervalInputForm extends JFrame implements ActionListener {
 	
-	private static final long serialVersionUID = 1L;
 	
+	private static final long serialVersionUID = 424851761694278102L;
+
 	private ButtonListener btnlistener;
 	
 	private String selected;
 	
-	private String[] intervals = {"Non-Stop","00:02","00:05","00:10","00:15","00:20","00:25","00:30","00:35","00:40","00:45"
+	private String[] intervals = {"Non-Stop","00:05","00:10","00:15","00:20","00:25","00:30","00:35","00:40","00:45"
 			,"00:50","00:55","01:00","01:15","01:30","02:00","03:00","04:00"
 			,"05:00","06:00","07:00","08:00","09:00","10:00","11:00","12:00","13:00","14:00"};
 	
@@ -56,6 +60,10 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 	
 	private JScrollPane jsp;
 	
+	private JButton btnOk;
+	
+	private JButton btnCancel;
+	
 	/**
 	 * @return the btnRefresh
 	 */
@@ -67,18 +75,19 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		return streamTable;
 	}
 
-
 	public static IntervalInputForm getInstance() {
 		if(instance == null)
-			instance=new IntervalInputForm();
+			instance = new IntervalInputForm();
 		return instance;
 	}
 
 	public IntervalInputForm() {
 		super("Starting Live Broadcast");
+		getContentPane().setBackground(SystemColor.textHighlightText);
 		setSize(462, 307);
 		getContentPane().setLayout(null);
 		JPanel panel = new JPanel();
+		panel.setBackground(SystemColor.textHighlightText);
 		panel.setBounds(10, 11, 426, 246);
 		getContentPane().add(panel);
 		panel.setLayout(null);
@@ -92,43 +101,39 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		jsp = new JScrollPane(streamTable);
 		jsp.setBounds(20,51,352,117);
 		panel.add(jsp,BorderLayout.SOUTH);
-		selected="00:05";	//set default 5 min 
+		selected = "Non-Stop";	//set default 5 min 
 		
 		lblPleaseEnterInterval = new JLabel("Please Select Interval time in HH:MM format");
 		lblPleaseEnterInterval.setBounds(10, 11, 262, 29);
 		panel.add(lblPleaseEnterInterval);
 		
-		JButton btnOk = new JButton("Start");
-		btnOk.setBounds(20, 212, 74, 23);
+		btnOk = new JButton("Start");
+		btnOk.setBounds(20, 212, 89, 23);
 		panel.add(btnOk);
 		btnOk.addActionListener(this);
 		
-		JButton btnCancel = new JButton("Cancel");
+		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
-		btnCancel.setBounds(104, 212, 88, 23);
+		btnCancel.setBounds(123, 212, 89, 23);
 		panel.add(btnCancel);
-		
 		
 		
 		box = new JComboBox<Object>(intervals);
 		box.setBounds(284, 14, 88, 23);
-		box.setSelectedIndex(1);
-		box.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				selected = intervals[box.getSelectedIndex()];
-			}
-		} );
+		box.setSelectedItem(selected);
 		panel.add(box);
 		
 		btnRefresh = new JButton("Refresh");
-		btnRefresh.setBounds(202, 212, 89, 23);
+		btnRefresh.setBounds(226, 212, 89, 23);
 		btnRefresh.addActionListener(this);
 		panel.add(btnRefresh);
 		
-		lblThereAreNo = new JLabel("There are no active streams available please refresh and try again");
-		lblThereAreNo.setBounds(20, 179, 382, 14);
+		lblThereAreNo = new JLabel("<html>There are no active streams available,<br>\r\nPlease start streaming on your Encoder, then press refresh</html>");
+		lblThereAreNo.setForeground(Color.RED);
+		lblThereAreNo.setBounds(20, 175, 382, 29);
 		lblThereAreNo.setVisible(false);
 		panel.add(lblThereAreNo);
+		
 		
 		this.addWindowListener(new WindowAdapter(){		//on closing act as Cancel was pressed
             public void windowClosing(WindowEvent e){
@@ -139,6 +144,27 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		setLocationRelativeTo(null);
 	}
 	
+	/**
+	 * @return the btnCancel
+	 */
+	public JButton getBtnCancel() {
+		return btnCancel;
+	}
+
+	/**
+	 * @param selected the selected to set
+	 */
+	public void setSelected(String selected) {
+		this.selected = selected;
+	}
+
+	/**
+	 * @return the btnOk
+	 */
+	public JButton getBtnOk() {
+		return btnOk;
+	}
+
 	/**
 	 * @return the jsp
 	 */
@@ -171,29 +197,64 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 	}
 
 
-	public Boolean[] getChecked() {
+	public String[] getChecked() {
+		ArrayList<String> streamID = new ArrayList<String>();
 		for(int i = 0 ; i<streamTable.getRowCount() ;i++) {
 			checked[i]=Boolean.valueOf((boolean) streamTable.getValueAt(i, 0));
+			if((boolean) streamTable.getValueAt(i, 0)){
+				streamID.add(stm.getDataId()[i]);
+			}
 		}
-		return checked;
+		String[] streamIds = new String[streamID.size()];
+		streamID.toArray(streamIds);
+		return streamIds;
 	}
 	
+	/**
+	 * sets checked table according to live streams
+	 * @param checked the checked to set
+	 */
+	public void setChecked(String[] ids) {
+		System.out.println("in set checked");
+		for(int i = 0 ; i<streamTable.getRowCount() ;i++) {
+			System.out.println("in set checked for");
+			for(int j = 0 ;j<ids.length;j++) {
+				if(stm.getDataId()[i].equals(ids[j]))
+					streamTable.setValueAt(true,i,0);
+				else
+					streamTable.setValueAt(false,i, 0);
+			}
+			System.out.println("bool val at row "+i+ "is "+streamTable.getValueAt(i, 0));
+		}
+	}
+
+	/**
+	 * @return the btnlistener
+	 */
+	public ButtonListener getBtnlistener() {
+		return btnlistener;
+	}
+
 	public void setData(List<LiveStream> data) { 
 		
 		stm.setData(data); 
 		checked = new Boolean[data.size()];
 		if(!data.isEmpty()) {
-			System.out.println("data  not empty");
 			lblThereAreNo.setVisible(false);
+			btnOk.setEnabled(true);
 			return;
 		}
-		System.out.println("data empty");
+		btnOk.setEnabled(false);
 		lblThereAreNo.setVisible(true);
 	}
 	
+	
+	public JLabel getLblThereAreNo() {
+		return lblThereAreNo;
+	}
+
 	public void refresh() {
 		stm.fireTableDataChanged();
-		System.out.println("refreshed");
 	}
 	
 	public String[] getIntervals() {
@@ -209,11 +270,10 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		return selected;
 	}
 
-	@SuppressWarnings("deprecation")
 	public void actionPerformed(ActionEvent ev) {
-		JButton jb = (JButton) ev.getSource();
-		btnlistener.ButtonPressed(jb.getLabel());
+		btnlistener.ButtonPressed(ev.getActionCommand());
 	}
+	
 	
 	public static void setColumnWidths(JTable table, int... widths) {
 	    TableColumnModel columnModel = table.getColumnModel();

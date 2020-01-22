@@ -113,6 +113,7 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 					}
 					String ID = Controller.getInstance().getID(list.getSelectedValue());
 					Constants.StreamDescription.replace(ID, newDescription);
+					//System.out.println("description replaced: "+ Constants.StreamDescription.get(ID));
 					JOptionPane.showMessageDialog(null,
 							list.getSelectedValue() + " Description succssesfully changed.",
 			                "Completed",
@@ -145,6 +146,18 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 		setLocationRelativeTo(null);
 	}
 
+	public void refresh() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IOException {
+		list.setModel(new AbstractListModel<String>() {
+			private static final long serialVersionUID = 1L;
+			String titles[] = Controller.getInstance().getStreamTitles();
+			public int getSize() {
+				return titles.length;
+			}
+			public String getElementAt(int index) {
+				return titles[index];
+			}
+		});
+	}
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
@@ -160,14 +173,16 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 		// TODO Auto-generated method stub
 		try {
 		
-			String ID = Controller.getInstance().getID(list.getSelectedValue());
-
-			String description = Constants.StreamDescription.get(ID);
+			String value = list.getSelectedValue(),description=null,id =null;
+			if(value!=null)
+				id = Controller.getInstance().getID(value);
+			if(id!=null)
+				 description = Constants.StreamDescription.get(id);
 	
 			//set current description to text field
-			if (!arg0.getValueIsAdjusting()) {
+			if (!arg0.getValueIsAdjusting() && description!=null) {
 				   textArea.setText(description);
-				}
+			}
 				
 		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 				| InvalidAlgorithmParameterException | IOException  e) {

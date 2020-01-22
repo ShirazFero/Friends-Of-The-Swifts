@@ -6,14 +6,13 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
@@ -21,9 +20,6 @@ import com.google.api.services.youtube.model.LiveStream;
 import com.youtube.utils.Constants;
 
 import javax.swing.SwingConstants;
-import java.awt.SystemColor;
-import javax.swing.UIManager;
-import java.awt.Color;
 
 public class StreamPanel extends JPanel implements ActionListener {
 
@@ -47,6 +43,15 @@ public class StreamPanel extends JPanel implements ActionListener {
 	
 	private JButton btnSetDescription; 
 	
+	private static StreamPanel instance;
+	
+	public static StreamPanel getInstance() {
+		if(instance==null)
+			instance = new StreamPanel();
+		return instance;
+	}
+
+
 	public StreamPanel() {
 		stm = new StreamTableModel();
 		streamsTbl = new JTable(stm);
@@ -56,9 +61,6 @@ public class StreamPanel extends JPanel implements ActionListener {
 		streamsTbl.setFillsViewportHeight(true);
 		streamsTbl.setEditingColumn(0);
 		streamsTbl.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		Border outerborder = BorderFactory.createTitledBorder("Stream Table");
-		Border innerborder = BorderFactory.createEmptyBorder(5,5,5,5);
-		setBorder(BorderFactory.createCompoundBorder(outerborder, innerborder));
 		setLayout(null);
 		jsp = new JScrollPane(streamsTbl);
 		jsp.setBounds(10, 73, 378, 140);
@@ -76,6 +78,7 @@ public class StreamPanel extends JPanel implements ActionListener {
 		
 		
 		ReomveStreambtn = new JButton(Constants.removeStream);
+		ReomveStreambtn.setToolTipText("Select the streams to and press here to remove them");
 		ReomveStreambtn.addActionListener(this);
 		ReomveStreambtn.setSize(92, 37);
 		ReomveStreambtn.setLocation(200, 22);
@@ -87,11 +90,12 @@ public class StreamPanel extends JPanel implements ActionListener {
 		
 		btnSetDescription = new JButton(Constants.setDescription);
 		btnSetDescription.setHorizontalAlignment(SwingConstants.LEFT);
-		btnSetDescription.setToolTipText("Select the streams to update their description");
+		btnSetDescription.setToolTipText("");
 		btnSetDescription.setBounds(10, 22, 91, 37);
 		btnSetDescription.addActionListener(this);
 		add(btnSetDescription);
 		
+		instance=this;
 		
 	}
 
@@ -112,11 +116,17 @@ public class StreamPanel extends JPanel implements ActionListener {
 	/**
 	 * @return the checked
 	 */
-	public Boolean[] getChecked() {
+	public String[] getChecked() {
+		ArrayList<String> streamID = new ArrayList<String>();
 		for(int i = 0 ; i<streamsTbl.getRowCount() ;i++) {
 			checked[i]=Boolean.valueOf((boolean) streamsTbl.getValueAt(i, 0));
+			if((boolean) streamsTbl.getValueAt(i, 0)){
+				streamID.add(stm.getDataId()[i]);
+			}
 		}
-		return checked;
+		String[] streamIds = new String[streamID.size()];
+		streamID.toArray(streamIds);
+		return streamIds;
 	}
 
 	public void setBtnListener(ButtonListener listener) {

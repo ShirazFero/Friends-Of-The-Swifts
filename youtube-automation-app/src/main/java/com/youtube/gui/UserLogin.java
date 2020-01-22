@@ -39,6 +39,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 import java.awt.event.ActionEvent;
 import javax.swing.JCheckBox;
+import java.awt.SystemColor;
 
 public class UserLogin extends JFrame implements ActionListener {
 
@@ -52,6 +53,9 @@ public class UserLogin extends JFrame implements ActionListener {
 	private JCheckBox chckbxRememberPassword;
 	public UserLogin() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
 		super("Log In");
+		setForeground(SystemColor.inactiveCaption);
+		setBackground(SystemColor.inactiveCaption);
+		getContentPane().setBackground(SystemColor.textHighlightText);
 		getContentPane().setLayout(null);
 		
 		passwordField = new JPasswordField();
@@ -83,9 +87,9 @@ public class UserLogin extends JFrame implements ActionListener {
 		lblNewUser.setBounds(28, 116, 74, 14);
 		getContentPane().add(lblNewUser);
 		
-		JLabel lblWelcomeToYoutube = new JLabel("Welcome to YouTube Automation App ");
+		JLabel lblWelcomeToYoutube = new JLabel("Welcome to YouTube Auto-Broadcast App ");
 		lblWelcomeToYoutube.setFont(new Font("Tahoma", Font.PLAIN, 13));
-		lblWelcomeToYoutube.setBounds(66, 11, 233, 14);
+		lblWelcomeToYoutube.setBounds(66, 11, 277, 14);
 		getContentPane().add(lblWelcomeToYoutube);
 		
 		lblForgotPassword = new JLabel("Forgot my password");
@@ -163,6 +167,7 @@ public class UserLogin extends JFrame implements ActionListener {
 		getContentPane().add(comboBox);
 		
 		chckbxRememberPassword = new JCheckBox("remember password");
+		chckbxRememberPassword.setBackground(SystemColor.textHighlightText);
 		chckbxRememberPassword.setBounds(24, 83, 158, 23);
 		chckbxRememberPassword.setSelected(getRememberPass());
 		if(chckbxRememberPassword.isSelected()) {

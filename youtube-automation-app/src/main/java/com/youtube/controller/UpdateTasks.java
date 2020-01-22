@@ -40,7 +40,7 @@ public class UpdateTasks extends SwingWorker<Void, Void>{
 	@Override
 	public void done() {
 		setProgress(100);
-		System.out.println("done");
+		System.out.println("done updating descriptions");
 		
 	}
 }

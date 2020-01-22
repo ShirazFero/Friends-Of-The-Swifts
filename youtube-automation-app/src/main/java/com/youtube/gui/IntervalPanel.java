@@ -1,16 +1,14 @@
 package com.youtube.gui;
 
 import javax.swing.JPanel;
-import javax.swing.border.Border;
-
 import com.youtube.utils.Constants;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.SystemColor;
+import java.awt.Color;
 
 public class IntervalPanel extends JPanel implements ActionListener{
 	
@@ -22,9 +20,7 @@ public class IntervalPanel extends JPanel implements ActionListener{
 	
 	private JLabel ftime;
 	
-	private JButton settings;
-	
-	private JButton btnLogOut;
+	private JLabel lblHello;
 	
 	private ButtonListener btnListener;
 	
@@ -32,74 +28,66 @@ public class IntervalPanel extends JPanel implements ActionListener{
 	
 	
 	public IntervalPanel() {
+		setBackground(SystemColor.textHighlightText);
 		setLayout(null);
 		
-		btnLogOut = new JButton("Log out");
-		btnLogOut.setBounds(276, 141, 88, 29);
-		btnLogOut.addActionListener(this);
-		add(btnLogOut);
-		
-		JLabel lblHello = new JLabel("Hello "+Constants.Username);
-		lblHello.setFont(new Font("Tahoma", Font.PLAIN, 16));
-		lblHello.setBounds(10, 21, 150, 23);
+		lblHello = new JLabel("Hello "+Constants.Username);
+		lblHello.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		lblHello.setBounds(10, 49, 312, 23);
 		add(lblHello);
 		
 		
 		JLabel lblInterval = new JLabel("Interval:");
-		lblInterval.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		lblInterval.setBounds(10, 55, 77, 14);
+		lblInterval.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		lblInterval.setBounds(10, 83, 87, 28);
 		add(lblInterval);
 		
 		JLabel lblStartTime = new JLabel("Start Time:");
-		lblStartTime.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		lblStartTime.setBounds(10, 80, 77, 14);
+		lblStartTime.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		lblStartTime.setBounds(10, 122, 114, 21);
 		add(lblStartTime);
 		
 		JLabel lblEndTime = new JLabel("End Time:");
-		lblEndTime.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		lblEndTime.setBounds(10, 105, 77, 14);
+		lblEndTime.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		lblEndTime.setBounds(10, 154, 114, 28);
 		add(lblEndTime);
 		
 		lblNotSet = new JLabel("Interval is not set");
-		lblNotSet.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		lblNotSet.setBounds(72, 55, 249, 14);
+		lblNotSet.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		lblNotSet.setBounds(122, 83, 249, 28);
 		add(lblNotSet);
 		
 		lblstime = new JLabel("stime");
-		lblstime.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		lblstime.setBounds(84, 80, 237, 14);
+		lblstime.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		lblstime.setBounds(122, 118, 262, 28);
 		add(lblstime);
 		lblstime.setVisible(false);
 		
 		ftime = new JLabel("ftime");
-		ftime.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		ftime.setBounds(84, 105, 237, 14);
+		ftime.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		ftime.setBounds(122, 154, 262, 28);
 		add(ftime);
 		ftime.setVisible(false);
 		
-		Border outerborder = BorderFactory.createTitledBorder("Interval Panel");
-		Border innerborder = BorderFactory.createEmptyBorder(5,5,5,5);
-		setBorder(BorderFactory.createCompoundBorder(outerborder, innerborder));
+		setSize(394, 258);
 		
-		settings = new JButton("Settings");
-		settings.addActionListener(this);
-		settings.setBounds(97, 141, 169, 29);
-		add(settings);
+		JLabel lblYoutubeAutobroadcastApp = new JLabel("YouTube Auto-Broadcast App");
+		lblYoutubeAutobroadcastApp.setForeground(new Color(100, 149, 237));
+		lblYoutubeAutobroadcastApp.setFont(new Font("Tahoma", Font.PLAIN, 20));
+		lblYoutubeAutobroadcastApp.setBounds(58, 11, 290, 29);
+		add(lblYoutubeAutobroadcastApp);
+		
 	}
 	
+	
 	/**
-	 * @return the btnLogOut
+	 * @return the lblHello
 	 */
-	public JButton getBtnLogOut() {
-		return btnLogOut;
+	public JLabel getLblHello() {
+		return lblHello;
 	}
 
-	/**
-	 * @return the settings
-	 */
-	public JButton getSettings() {
-		return settings;
-	}
+
 
 	public static IntervalPanel getInstance() {
 		if(instance == null)

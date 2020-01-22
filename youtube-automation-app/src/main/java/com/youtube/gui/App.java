@@ -20,7 +20,8 @@ public class App {
 			
 			public void run() {
 				try {
-					Controller controller = Controller.getInstance();
+					Controller controller = new Controller();
+					controller.setInstance(controller);
 					controller.initData(); // set initial data
 					new UserLogin();
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException

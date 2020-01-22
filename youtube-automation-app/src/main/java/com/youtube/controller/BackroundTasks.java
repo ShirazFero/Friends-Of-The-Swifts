@@ -44,7 +44,6 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 	
 	@Override
 	public void done() {
-	    setProgress(100);
 	    Toolkit.getDefaultToolkit().beep();
 	    SwingUtilities.invokeLater(new Runnable() {
 			public void run() {

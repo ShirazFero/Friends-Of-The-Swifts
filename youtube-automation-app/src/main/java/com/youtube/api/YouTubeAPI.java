@@ -166,19 +166,7 @@ public class YouTubeAPI {
 	    
 	    boolean nextPageflag = true;	//flag that checks if there's more pages
 	    while(nextPageflag) {
-	        if(Constants.DEBUG) {
-	            // Print information from the API response.
-	            System.out.println("\n================== Returned Streams ==================\n");
-	            for (LiveStream stream : returnedList) {
-	                System.out.println("  - Id: " + stream.getId());
-	                System.out.println("  - Title: " + stream.getSnippet().getTitle());
-	                System.out.println("  - Description: " + stream.getSnippet().getDescription());
-	                System.out.println("  - Published At: " + stream.getSnippet().getPublishedAt());
-	                System.out.println("  - status: " + stream.getStatus());
-	                System.out.println("  - ingestion Key: " + stream.getCdn().getIngestionInfo().getStreamName());
-	                System.out.println("\n-------------------------------------------------------------\n");
-	            }
-	        }
+	       
 	        //check if there are more pages of streams
 	        if(returnedListResponse.getNextPageToken()!=null) {
 	        	livestreamRequest.setPageToken(returnedListResponse.getNextPageToken());	//set next page token
@@ -241,7 +229,7 @@ public class YouTubeAPI {
 		    // https://developers.google.com/youtube/v3/live/docs/liveStreams#cdn
 		    CdnSettings cdnSettings = new CdnSettings();
 		    cdnSettings.setFormat(Constants.Format);
-		    cdnSettings.setIngestionType(Constants.IngetionType);
+		    cdnSettings.setIngestionType(Constants.IngestionType);
 		   
 		      	LiveStream stream = new LiveStream();
 		        stream.setKind("youtube#liveStream");
@@ -373,21 +361,51 @@ public class YouTubeAPI {
 	 * @return
 	 * @throws IOException
 	 */
- 	public static LiveStream getStreamByName(String name) throws IOException {
-		// Create a request to list liveStream resources.
-	YouTube.LiveStreams.List livestreamRequest = youtube.liveStreams().list("id,snippet,status");
+	  public static LiveStream getStreamByName(String name) throws IOException, ParseException {
+
+	    	LiveStream foundstream=null;			//initite pointer to the stream
+	    	List<LiveStream> returnedList= YouTubeAPI.listStreams(null); //get stream list
+	        for (LiveStream stream : returnedList) {
+	        	//System.out.println(stream.getSnippet().getTitle());
+	        	if(stream.getSnippet().getTitle().equals(name))
+	        		foundstream= stream;
+	        }
+	    	return foundstream;
+	   }
 	
-	// Modify results to only return the user's streams.
-	livestreamRequest.setMine(true);
-	//get relevant stream
-	    LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
-	    List<LiveStream> returnedList = returnedListResponse.getItems();
-	    for (LiveStream stream : returnedList) {
-	    	if(stream.getSnippet().getTitle().equals(name))
-	    		return stream;
-	    }
-		return null;
-	}
-	
-	
+ 	 /**
+ 	 * retrieves a relevant broadcast from server from the broadcast list 
+     * 
+     * @param id - broadcast id that is requested
+     * @return found broadcast, null other wise
+     * @throws IOException
+     */
+ 	public static LiveBroadcast getBroadcastByID(String id) throws IOException {
+    	
+    	YouTube.LiveBroadcasts.List liveBroadcastRequest =
+   			youtube.liveBroadcasts().list("id,snippet,status");
+
+	    // Indicate that the API response should not filter broadcasts
+	    // based on their type or status.
+	    liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus("all");
+	    liveBroadcastRequest.setMaxResults((long)20);
+	    
+	    // Execute the API request and return the list of broadcasts.
+	    LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();
+	    String nextPage = returnedListResponse.getNextPageToken();
+	    do{
+	    	  List<LiveBroadcast> returnedList = returnedListResponse.getItems();
+	    	  for (LiveBroadcast broadcast : returnedList) {
+	       	  if(broadcast.getId().equals(id))
+	       		 return broadcast;
+	    	  }
+	    	  if(nextPage!=null) {
+	        	liveBroadcastRequest.setPageToken(nextPage);
+	        	returnedListResponse = liveBroadcastRequest.execute();
+	        	nextPage = returnedListResponse.getNextPageToken();
+	    	  }
+	    }while(returnedListResponse.getNextPageToken()!=null) ;
+        
+      return null;
+   }
 }
