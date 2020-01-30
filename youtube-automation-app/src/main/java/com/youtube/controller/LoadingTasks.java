@@ -15,22 +15,18 @@ import com.youtube.utils.Constants;
 
 public class LoadingTasks extends SwingWorker<Void, Void>  {
 
-	private Object lock;
 	@Override
 	protected Void doInBackground() throws Exception {
 		int percentage = Math.round(100/ Constants.isLive) ,progress = 0;
-		lock = new Object();	// obtain a lock
 		int lastIsLiveValue = Constants.isLive, addToProgress=0;
 		while(Constants.isLive>0) {
 			Thread.sleep(1000);
-			synchronized (lock) {	//sync Thread
 				if(lastIsLiveValue>Constants.isLive) {
 					addToProgress = (lastIsLiveValue-Constants.isLive)*percentage; //calc the percentage to add
 					progress+=addToProgress;	//add percentage
 					setProgress(progress);	//set progress
 					lastIsLiveValue = Constants.isLive;
 				}
-			}
 		}
 		return null;
 	}
@@ -44,11 +40,11 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 			if(Constants.SendEmail && Constants.badResults!=null && !Constants.badResults.isEmpty()) {
 				String allTitles =" ";
 				for(String title:Constants.badResults) {
-					allTitles+=", " + title;
+					allTitles+= title +",\n";
 				}
 				  //send failure message
 					MailUtil.sendMail(Constants.UserEmail,"Server request problem",
-							"Problem starting "+ allTitles +",\n"+
+							"Problem starting Broadcasts:\n"+ allTitles +",\n"+
 			                "please check manually at " +Constants.LiveStreamUrl);
 			}
 			synchronized (Constants.monitorLock) {

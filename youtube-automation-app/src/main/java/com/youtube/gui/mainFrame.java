@@ -1,6 +1,5 @@
 package com.youtube.gui;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -57,36 +56,18 @@ public class mainFrame extends JFrame{
 	
 		//init new interval panel
 		IntervalPanel intervalPanel =  new IntervalPanel();
-		intervalPanel.setForeground(SystemColor.info);
-		intervalPanel.setBackground(SystemColor.textHighlightText);
-		intervalPanel.setSize(394, 213);
-		intervalPanel.setLocation(257, 0);
 		IntervalPanel.setInstance(intervalPanel);
 		
 	
 		//init new broadcast panel
 		BroadcastPanel boradcastPanel = new BroadcastPanel();
-		boradcastPanel.setBackground(new Color(255, 255, 255));
-		boradcastPanel.getComboBox1().setLocation(181, 327);
-		boradcastPanel.getBtnNextPage().setLocation(281, 327);
-		boradcastPanel.getBtnPreviousPage().setLocation(10, 327);
 		boradcastPanel.setInstance(boradcastPanel);
-		boradcastPanel.getScrollPane().setSize(378, 269);
-		boradcastPanel.getScrollPane().setLocation(10, 51);
-		boradcastPanel.setLocation(255, 441);
 		boradcastPanel.setData(controller.getBroadcasts());
 		boradcastPanel.resizeColumnWidth(boradcastPanel.getBroadcastTbl());
-		boradcastPanel.setSize(394, 252);
 		
 		
 		//init new stream panel
 		StreamPanel streamPanel = new StreamPanel();
-		streamPanel.getJsp().setSize(378, 267);
-		streamPanel.setBackground(new Color(255, 255, 255));
-		streamPanel.getBtnSetDescription().setLocation(10, 22);
-		streamPanel.getJsp().setLocation(10, 68);
-		streamPanel.setLocation(255, 229);
-		streamPanel.setSize(394, 214);
 		streamPanel.setData(controller.getStreams());
 		streamPanel.resizeColumnWidth(streamPanel.getStreamsTbl());
 		
@@ -96,7 +77,7 @@ public class mainFrame extends JFrame{
 		tabbedPane.setFont(new Font("Tahoma", Font.PLAIN, 20));
 		tabbedPane.add("Live Broadcasts",boradcastPanel);
 		tabbedPane.add("Live Streams",streamPanel);
-		tabbedPane.setBounds(257, 216, 400, 390);
+		tabbedPane.setBounds(255, 216, 400, 399);
 		getContentPane().add(tabbedPane);
 		
 		getContentPane().add(intervalPanel);
@@ -107,14 +88,9 @@ public class mainFrame extends JFrame{
 		
 		//init new button panel
 		ButtonPanel btnPnl = new ButtonPanel();
-		btnPnl.getLiveStreamsbtn().setLocation(10, 250);
-		btnPnl.getStopIntbtn().setLocation(10, 130);
-		btnPnl.setSize(258, 650);
 		btnPnl.setInstance(btnPnl);
-		btnPnl.getsetIntervalbtn().setBackground(new Color(255, 255, 255));
 		
-		btnPnl.setLocation(0, 0);
-		getContentPane().add(btnPnl,BorderLayout.WEST);
+		getContentPane().add(btnPnl);
 		
 		//init description frame
 		DescriptionFrame desFrame = new DescriptionFrame();
@@ -278,8 +254,8 @@ public class mainFrame extends JFrame{
 
 					case "<html>Stop Live<br>Broadcast</html>":					//stop interval broadcast
 						System.out.println("---------------------------------------");
-						String message= "Complete Live broadcasts?",
-								title="Complete Live broadcasts";
+						String message= "Stop Live broadcasts?",
+								title="Stop Live broadcasts";
 						int reply = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.OK_OPTION);
 						if(reply!=JOptionPane.YES_OPTION)
 							break;
@@ -297,7 +273,6 @@ public class mainFrame extends JFrame{
 						btnPnl.getStopIntbtn().setVisible(false);
 						btnPnl.getStopIntbtn().setEnabled(false);
 						btnPnl.getStartIntBrdbtn().setEnabled(true);
-						streamPanel.getBtnSetDescription().setEnabled(true); 
 						Constants.State = "Completing";
 						System.out.println("main frame Button Panel: " +name);	
 						break;
@@ -466,7 +441,6 @@ public class mainFrame extends JFrame{
 					btnPnl.getStopIntbtn().setVisible(true);
 					btnPnl.getStartIntBrdbtn().setEnabled(false); 
 					btnPnl.getStopIntbtn().setEnabled(true);
-					streamPanel.getBtnSetDescription().setEnabled(false);
 					Constants.State = "Starting";
 					
 					//close input form and Prompt chosen interval to interval panel
@@ -537,6 +511,7 @@ public class mainFrame extends JFrame{
 	
 	setSize(675, 665);
 	setMinimumSize(new Dimension(675, 660));
+	setMaximumSize(new Dimension(675, 660));
 	setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 	this.addWindowListener(new WindowAdapter(){		//handle App close operation ,if live save corrent status
 		public void windowClosing(WindowEvent e){
@@ -554,7 +529,7 @@ public class mainFrame extends JFrame{
 	setLocationRelativeTo(null);
 	setVisible(true);
 	controller.loadUserState();
-	pack();
+//	pack();
 }		
 		
 	

@@ -61,11 +61,13 @@ public class CreateBroadcast extends Thread{
             LiveStream returnedStream = YouTubeAPI.getStreamByName(args[0]);
             if(returnedStream==null) {
             	System.out.println("stream doesn't exist please try again");
+            	reportError("stream not found");
             	return;
             }
             if(!returnedStream.getStatus().getStreamStatus().equals("active") || 
             		returnedStream.getStatus().getHealthStatus().getStatus().equals("noData")) {
             	System.out.println("stream is not active please start the stream and run this again");
+            	reportError("stream not active , not recieving data ");
             	return ;
             }
             
@@ -87,7 +89,7 @@ public class CreateBroadcast extends Thread{
             broadcastSnippet.setScheduledStartTime(new DateTime(LocalDate.now()+"T"+LocalTime.now()+"Z"));
             
             //set description of stream
-            broadcastSnippet.setDescription(Constants.StreamDescription.get(returnedStream.getId())); 
+            broadcastSnippet.setDescription(returnedStream.getSnippet().getDescription()); 
           
             if(args[1]!=null)	//set scheduled end time if exists
             	broadcastSnippet.setScheduledEndTime(new DateTime(args[1]+"Z"));
@@ -120,7 +122,7 @@ public class CreateBroadcast extends Thread{
            if(!returnedStream.getStatus().getStreamStatus().equals("active")) {
         	   System.out.println("stream is not active please start sending data on the stream");
         	   args[0] +=" Stream not active";
-        	   reportError(); //handle error on GUI
+        	   reportError("stream not active"); //handle error on GUI
            }
            else {
         	   System.out.println("stream is active starting transition to live");
@@ -143,7 +145,7 @@ public class CreateBroadcast extends Thread{
         	   Thread.sleep(1000);
         	   if(seconds>90) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to Testing
 	           		args[0] +=" on Transition to Testing";
-	           		reportError();
+	           		reportError ("90 secs passed no response on testing transiton");
            		}
            		else
            			seconds++;
@@ -168,7 +170,7 @@ public class CreateBroadcast extends Thread{
             	Thread.sleep(1000);
             	if(seconds>90) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to live
             		args[0] +=" on Transition to Live";
-            		reportError();
+            		reportError(" 90 secs passed no response on live transiton\n");
             	}
             	else
             		seconds++;
@@ -187,17 +189,17 @@ public class CreateBroadcast extends Thread{
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
                     + e.getDetails().getMessage());
             e.printStackTrace();
-            reportError();
+            reportError(e.getDetails().getMessage());
             return;
         } catch (IOException e) {
             System.err.println("IOException: " + e.getMessage());
             e.printStackTrace();
-            reportError();
+            reportError(e.getMessage());
             return;
         } catch (Throwable t) {
             System.err.println("Throwable: " + t.getMessage());
             t.printStackTrace();
-            reportError();
+            reportError(t.getMessage());
             return;
         }
        
@@ -207,13 +209,13 @@ public class CreateBroadcast extends Thread{
     /**
      * this method prompts to the GUI about an error occurrence
      */
-    private synchronized void reportError() {
+    private synchronized void reportError(String error) {
 
     	if(halfWayflag)			
     		Constants.isLive--;
     	else
     		Constants.isLive-=2;
-    	Constants.badResults.add(args[0]);
+    	Constants.badResults.add(args[0] + ": "+ error);
     }	
 
 }

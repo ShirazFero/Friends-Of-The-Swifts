@@ -36,8 +36,6 @@ public class StreamTask extends SwingWorker<Void, Void>{
 					Badresults.add(args[0]);		//add stream title to error massage
 				}
 				else { 
-					if(Constants.StreamDescription.containsKey(stream.getId()))
-						Constants.StreamDescription.remove(stream.getId()); 	//remove from  description map
 					progress+=percentage;	//add percentage
 					setProgress(progress);
 				}
@@ -56,9 +54,6 @@ public class StreamTask extends SwingWorker<Void, Void>{
 			String[] args = new String[1];
 			args[0]=Constants.AddingStream;
 			if(args[0]!=null && YouTubeAPI.createStream(args)) {
-						
-					LiveStream stream =YouTubeAPI.getStreamByName(args[0]);
-					Constants.StreamDescription.put(stream.getId(),Constants.Description); //set default description
 					setProgress(100);
 			}
 		}

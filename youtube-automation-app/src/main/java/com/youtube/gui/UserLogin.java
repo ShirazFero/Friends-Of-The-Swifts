@@ -51,8 +51,10 @@ public class UserLogin extends JFrame implements ActionListener {
 	private JButton btnRegister;
 	private JComboBox<?> comboBox;
 	private JCheckBox chckbxRememberPassword;
+	private static UserLogin instantce;
 	public UserLogin() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
 		super("Log In");
+		instantce = this;
 		setForeground(SystemColor.inactiveCaption);
 		setBackground(SystemColor.inactiveCaption);
 		getContentPane().setBackground(SystemColor.textHighlightText);
@@ -211,6 +213,13 @@ public class UserLogin extends JFrame implements ActionListener {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 	
+	/**
+	 * @return the instantce
+	 */
+	public static UserLogin getInstantce() {
+		return instantce;
+	}
+
 	private boolean getRememberPass() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
 		// TODO Auto-generated method stub
 		Controller cont = Controller.getInstance();
@@ -249,6 +258,13 @@ public class UserLogin extends JFrame implements ActionListener {
 		return null;
 	}
 	
+	/**
+	 * @return the comboBox
+	 */
+	public JComboBox<?> getComboBox() {
+		return comboBox;
+	}
+
 	@SuppressWarnings("unchecked")
 	public void setRememberPassword(String username ,Boolean rememberPass) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException { 
 		FileEncrypterDecrypter fileEncDec = new FileEncrypterDecrypter(Constants.SecretKey,"AES/CBC/PKCS5Padding");
@@ -319,5 +335,10 @@ public class UserLogin extends JFrame implements ActionListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void refreshUsers() {
+		if(Constants.SavedUsers!=null)
+			comboBox = new JComboBox<Object>(Constants.SavedUsers);
 	}
 }

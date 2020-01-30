@@ -25,6 +25,12 @@ public class ButtonPanel extends JPanel implements ActionListener {
 	private JButton logOutBtn;
 	private ButtonListener btnListener;
 	
+	/**
+	 * @return the logOutBtn
+	 */
+	public JButton getLogOutBtn() {
+		return logOutBtn;
+	}
 	private static ButtonPanel instance;
 	
 	/**
@@ -80,9 +86,8 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		
 		setBackground(new Color(255, 255, 255));
 		setSize(258, 648);
-		setLocation(0, 45);
+		setLocation(0, 10);
 		getStopIntbtn().setEnabled(false);
-//		getStartIntBrdbtn().setEnabled(false);
 		
 	}
 	public void setBtnListener(ButtonListener listener) {

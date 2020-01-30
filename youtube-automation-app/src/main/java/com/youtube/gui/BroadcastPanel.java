@@ -19,6 +19,7 @@ import com.youtube.utils.Constants;
 import javax.swing.JComboBox;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import java.awt.SystemColor;
 
 public class BroadcastPanel extends JPanel implements ActionListener  {
 
@@ -46,6 +47,7 @@ public class BroadcastPanel extends JPanel implements ActionListener  {
 	private JLabel lblSelectType;
 	
 	public BroadcastPanel(){
+		setBackground(SystemColor.textHighlightText);
 		btm = new BroadcastTableModel();
 		broadcastTbl = new JTable(btm);
 		int widths[]= {50,100,100,200};
@@ -56,7 +58,7 @@ public class BroadcastPanel extends JPanel implements ActionListener  {
 		broadcastTbl.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		setLayout(null);
 		scrollPane = new JScrollPane(broadcastTbl);
-		scrollPane.setBounds(10, 55,382,191);
+		scrollPane.setBounds(10, 55,382,263);
 		add(scrollPane);
 		
 		selected="all";
@@ -76,7 +78,7 @@ public class BroadcastPanel extends JPanel implements ActionListener  {
 		
 		String[] numberOfResulsts = {"15","10","20","30","40","50"};
 		comboBox1 = new JComboBox<Object>(numberOfResulsts);
-		comboBox1.setBounds(184, 258, 45, 23);
+		comboBox1.setBounds(183, 329, 45, 23);
 		comboBox1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Constants.NumberOfResulsts = Integer.parseInt((String) comboBox1.getSelectedItem());
@@ -92,14 +94,16 @@ public class BroadcastPanel extends JPanel implements ActionListener  {
 		add(btnSelect);
 
 		btnNextPage = new JButton("Next Page");
-		btnNextPage.setBounds(285, 257, 107, 23);
+		btnNextPage.setBounds(285, 329, 107, 23);
 		btnNextPage.setEnabled(false);
+		btnNextPage.setVisible(false);
 		btnNextPage.addActionListener(this);
 		add(btnNextPage);
 		
 		btnPreviousPage = new JButton("Previous Page");
-		btnPreviousPage.setBounds(10, 257, 133, 23);
+		btnPreviousPage.setBounds(10, 329, 133, 23);
 		btnPreviousPage.setEnabled(false);
+		btnPreviousPage.setVisible(false);
 		btnPreviousPage.addActionListener(this);
 		add(btnPreviousPage);
 		
@@ -153,6 +157,10 @@ public class BroadcastPanel extends JPanel implements ActionListener  {
 	public void setData(List<LiveBroadcast> data) { 
 		btm.setData(data);   
 		checked = new Boolean[data.size()];
+		if(data.size()<1)
+			comboBox1.setVisible(false);
+		else
+			comboBox1.setVisible(true);
 	}
 	
 	public void refresh() {

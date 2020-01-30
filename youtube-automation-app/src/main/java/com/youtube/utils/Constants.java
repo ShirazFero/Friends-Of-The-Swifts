@@ -1,7 +1,6 @@
 package com.youtube.utils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import javax.crypto.SecretKey;
 import com.google.api.services.youtube.model.LiveBroadcast;
 import com.google.api.services.youtube.model.LiveStream;
@@ -13,7 +12,7 @@ public class Constants {
 	public static boolean IntervalBroadcast = false;	// Interval Broadcast flag
 	public static boolean RegularBroadcast = false;		// Regular Broadcast flag
 	public static boolean SetInterval = false;			// set interval flag
-	public static int isLive;							// flag array
+	public volatile static int isLive;					// flag array
 	public static String State = null;						//starting/completing
 	public static String AddingStream;					
 	
@@ -54,7 +53,6 @@ public class Constants {
 	public static ArrayList<String> badResults;				  //bad response results pointer
 	public static String NextPageToken = null; 				  //next page token
 	public static String PrevPageToken = null;  			  //previous page token
-	public static HashMap<String, String> StreamDescription;  //Descriptions hash map pointer
 	public static ArrayList<LiveBroadcast> BroadcastsToUpdate;//broadcasts pointer 
 	public static ArrayList<LiveStream> StreamToRemove;		  //Streams pointer 
 	public static ArrayList<String> LiveId = null;			  //current Live broadcasts Id's

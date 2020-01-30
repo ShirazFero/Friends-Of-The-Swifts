@@ -18,7 +18,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -487,8 +486,6 @@ public class Controller {
     	UserSettings.put("Ingestion Type", Constants.IngestionType);
     	UserSettings.put("Format", Constants.Format);
     	//save stream descriptions map
-    	JSONObject MapObject = new JSONObject(Constants.StreamDescription);
-    	UserSettings.put("Descriptions Map" ,MapObject);
     	
     	obj.put("User Settings", UserSettings);
     	
@@ -517,7 +514,6 @@ public class Controller {
 	            jsonObject =  (JSONObject) jsonObject.get("User Settings");
 	            //get and set stream description map 
 	            if(jsonObject!=null) {
-		            HashMap<String,String> mapPointer = (HashMap<String,String>) jsonObject.get("Descriptions Map");
 		            Boolean addtimeDate = (boolean) jsonObject.get("Add Time and Date");
 		            Boolean sendEmail = (boolean) jsonObject.get("Send Email");
 		            String privacy = (String) jsonObject.get("Privacy");
@@ -525,8 +521,6 @@ public class Controller {
 		            String format = (String) jsonObject.get("Format");
 		           	
 		            //set user settings to it's global variables
-		            if(mapPointer!=null ) 
-		            	Constants.StreamDescription = mapPointer;
 		            if(addtimeDate!=null)
 		            	Constants.AddDateTime = addtimeDate;
 		            if(sendEmail!=null)
@@ -546,14 +540,8 @@ public class Controller {
 		else {   //else create new user settings file
 	    		//save regular broadcast flag
 			System.out.println("creating new user data file");
-    		Constants.StreamDescription = new HashMap<String,String>();
-    		for(LiveStream stream: streams) {
-    			Constants.StreamDescription.put(stream.getId(), Constants.Description);
-    		}
     		JSONObject obj =new JSONObject();
     		JSONObject UserSettings =new JSONObject();
-    		JSONObject MapObject = new JSONObject(Constants.StreamDescription);
-        	UserSettings.put("Descriptions Map" ,MapObject);
         	
         	obj.put("User Settings", UserSettings);
         	
@@ -770,6 +758,12 @@ public class Controller {
 		//add new user object
 		userArray.add(userObject);
 		
+		Iterator<JSONObject> Iterator = userArray.iterator();
+		Constants.SavedUsers = new String[userArray.size()]; 
+		int i=0;
+		while (Iterator.hasNext()) {
+			Constants.SavedUsers[i++] = (String) ((JSONObject) Iterator.next().get("User")).get("username");
+		}
 		jsonObject.put("User List", userArray);
 		
 		//save new list to file
@@ -780,6 +774,7 @@ public class Controller {
 		file.close();
 		
 		fileEncrypt(jsonObject.toString());
+		
 		JOptionPane.showMessageDialog(null,"User Registerd Successfully","Completed",JOptionPane.INFORMATION_MESSAGE);	
 
 	}
@@ -870,8 +865,6 @@ public class Controller {
 	 */
 	@SuppressWarnings({ "unchecked" })
 	public void initData() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
-		
-		Constants.StreamDescription = new HashMap<String,String>();
 		
 		final Path path = Paths.get(System.getProperty("user.home")+"\\Documents\\info.json");
 		
@@ -990,14 +983,15 @@ public class Controller {
 	 * @param title
 	 * @return
 	 */
-	public String getID(String title){
-		for(LiveStream stream :streams) {
-			if(title.equals(stream.getSnippet().getTitle()))	 
-				return stream.getId();
-			
-		}
-		return null;
-	}
+	public  LiveStream getStreamByName(String title) throws IOException, ParseException {
+    	LiveStream foundstream=null;			//initite pointer to the stream
+        for (LiveStream stream : streams) {
+        	if(stream.getSnippet().getTitle().equals(title))
+        		foundstream= stream;
+        }
+    	return foundstream;
+  }
+
 /**
  * returns relevant stream from streams List
  * @param id

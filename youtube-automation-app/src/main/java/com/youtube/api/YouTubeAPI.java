@@ -58,7 +58,7 @@ public class YouTubeAPI {
 		List<String> scopes = Lists.newArrayList("https://www.googleapis.com/auth/youtube");
 	
 		try {
-		    // Authorize the request.//createbroadcast
+		    // Authorize the request.
 		    Credential credential = Auth.authorize(scopes,Constants.Username);
 		    
 		    // This object is used to make YouTube Data API requests.
@@ -86,7 +86,7 @@ public class YouTubeAPI {
      * retrieve a List of broadcasts from the user's channel.
     * according to parameters:
     * @param String args[4] ={ 1st argument is source function :"init/refresh",
-    * 						   2nd argument is filter :"all/upcoming/active/complete"
+    * 						   2nd argument is type :"all/upcoming/active/complete"
     * 						   3rd argument is next page token if exists, null otherwise}
     * 						   4th argument is previous page token if exists, null otherwise}
 	 * @throws ParseException 
@@ -97,7 +97,9 @@ public class YouTubeAPI {
 		        // Create a request to list broadcasts.
 		    YouTube.LiveBroadcasts.List liveBroadcastRequest =
 		    		youtube.liveBroadcasts().list("id,snippet,status");
-		
+		   //
+		    if(args.length!=4)
+		    	return null;
 		    // Indicate that the API response should not filter broadcasts
 		    // based on their type or status.
 		    if(args[0].equals("init"))
@@ -118,11 +120,11 @@ public class YouTubeAPI {
 		    List<LiveBroadcast> fullreturnList= new LinkedList<LiveBroadcast>(returnedList);
 		    
 		    Constants.NextPageToken = returnedListResponse.getNextPageToken();
-		    if(Constants.NextPageToken!=null)
-		    	System.out.println("next page token is: " + Constants.NextPageToken);
+		    /*if(Constants.NextPageToken!=null)
+		    	System.out.println("next page token is: " + Constants.NextPageToken);*/
 		    Constants.PrevPageToken = returnedListResponse.getPrevPageToken();
-		    if(Constants.PrevPageToken!=null)
-		    	System.out.println("prev page token is: " + Constants.PrevPageToken);
+		    /*if(Constants.PrevPageToken!=null)
+		    	System.out.println("prev page token is: " + Constants.PrevPageToken);*/
 		    return fullreturnList;
 	   
 		} catch (GoogleJsonResponseException e) {
@@ -139,8 +141,8 @@ public class YouTubeAPI {
 		    System.err.println("Throwable: " + t.getMessage());
 		    t.printStackTrace();
 		    ErrorHandler.HandleUnknownError(t.getMessage());
-		    }
-			return null;
+	    }
+		return null;
 	}
 	
 	/**
@@ -336,6 +338,56 @@ public class YouTubeAPI {
 		        if(response.getSnippet().getDescription().equals(description))
 		        	return true;
 		        return false;
+		} catch (GoogleJsonResponseException e) {
+		        System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
+		            + e.getDetails().getMessage());
+		        Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage()};
+		        Constants.ErrorArgs = errorArgs.clone();
+			    e.printStackTrace();
+			    return false;
+			} catch (IOException e) {
+			    System.err.println("IOException: " + e.getMessage());
+			    e.printStackTrace();
+			    return false;
+			} catch (Throwable t) {
+			    System.err.println("Throwable: " + t.getMessage());
+			    t.printStackTrace();
+			    ErrorHandler.HandleUnknownError(t.getMessage());
+			    return false;
+		    }    
+	}
+	
+	/**
+	 * this method sends an update Stream description request , returns true if server handles it ,false if not
+	 * @param description
+	 * @param liveBroadcast
+	 * @throws IOException
+	 */
+	public static boolean updateStreamDescription(String description , LiveStream stream)  {
+	
+		try {	
+			
+			// Define the LiveStream object, which will be uploaded as the request body.
+	        LiveStream LiveStreamupdate = new LiveStream();
+	        
+	        // Add the id string property to the LiveStream object.
+	        LiveStreamupdate.setId(stream.getId());
+	        
+	        // Add the snippet object property to the LiveStream object.
+	        LiveStreamSnippet streamSnippet = new LiveStreamSnippet();
+	        streamSnippet.setDescription(description);
+	        streamSnippet.setTitle(stream.getSnippet().getTitle());
+	        LiveStreamupdate.setSnippet(streamSnippet);
+			
+			YouTube.LiveStreams.Update request = youtube.liveStreams()
+		            .update("snippet",LiveStreamupdate);
+			LiveStream response = request.execute();
+		    
+	        if(response.getSnippet().getDescription().equals(description)) {
+	        	System.out.println("new description :" +response.getSnippet().getDescription());
+	        	return true;
+	        }
+	        return false;
 		} catch (GoogleJsonResponseException e) {
 		        System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
 		            + e.getDetails().getMessage());

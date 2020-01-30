@@ -69,12 +69,12 @@ public class IntervalPanel extends JPanel implements ActionListener{
 		add(ftime);
 		ftime.setVisible(false);
 		
-		setSize(394, 258);
-		
+		setSize(394, 205);
+		setLocation(257, 10);
 		JLabel lblYoutubeAutobroadcastApp = new JLabel("YouTube Auto-Broadcast App");
 		lblYoutubeAutobroadcastApp.setForeground(new Color(100, 149, 237));
-		lblYoutubeAutobroadcastApp.setFont(new Font("Tahoma", Font.PLAIN, 20));
-		lblYoutubeAutobroadcastApp.setBounds(58, 11, 290, 29);
+		lblYoutubeAutobroadcastApp.setFont(new Font("Tahoma", Font.BOLD, 20));
+		lblYoutubeAutobroadcastApp.setBounds(58, 11, 313, 29);
 		add(lblYoutubeAutobroadcastApp);
 		
 	}

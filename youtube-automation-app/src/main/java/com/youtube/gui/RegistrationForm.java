@@ -113,7 +113,7 @@ public class RegistrationForm extends JFrame implements ActionListener{
 		JTextPane txtpnpasswordMustHave = new JTextPane();
 		txtpnpasswordMustHave.setEditable(false);
 		txtpnpasswordMustHave.setFont(new Font("Tahoma", Font.PLAIN, 11));
-		txtpnpasswordMustHave.setText("Password  Rules: \r\n- at least 8 characters long\r\n- one digit 1-9\r\n- one lower case letter\r\n- one 1 upper case letter\r\n- one  special character @,#,$,%,^,&,+,= \r\n- no spaces allowed\r\n");
+		txtpnpasswordMustHave.setText("Password  Rules: \r\n- at least 8 characters long\r\n- one digit 1-9\r\n- one lower case letter\r\n- one Uupper case letter\r\n- one  special character @,#,$,%,^,&,+,= \r\n- no spaces allowed\r\n");
 		txtpnpasswordMustHave.setBounds(356, 65, 178, 141);
 		getContentPane().add(txtpnpasswordMustHave);
 		lblBadInputMsg.setVisible(false);

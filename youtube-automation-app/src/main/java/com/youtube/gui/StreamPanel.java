@@ -20,6 +20,7 @@ import com.google.api.services.youtube.model.LiveStream;
 import com.youtube.utils.Constants;
 
 import javax.swing.SwingConstants;
+import java.awt.SystemColor;
 
 public class StreamPanel extends JPanel implements ActionListener {
 
@@ -53,6 +54,7 @@ public class StreamPanel extends JPanel implements ActionListener {
 
 
 	public StreamPanel() {
+		setBackground(SystemColor.textHighlightText);
 		stm = new StreamTableModel();
 		streamsTbl = new JTable(stm);
 		int widths[]= {50,100,100,200};
@@ -63,7 +65,7 @@ public class StreamPanel extends JPanel implements ActionListener {
 		streamsTbl.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		setLayout(null);
 		jsp = new JScrollPane(streamsTbl);
-		jsp.setBounds(10, 73, 378, 140);
+		jsp.setBounds(10, 73, 378, 279);
 		add(jsp,BorderLayout.CENTER);
 		
 		
