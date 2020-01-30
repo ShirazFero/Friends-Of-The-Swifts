@@ -20,9 +20,9 @@ package com.youtube.api;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.*;
-import java.io.IOException;
-import java.util.List;
+import com.youtube.utils.Constants;
 
+import java.io.IOException;
 import javax.swing.JOptionPane;
 
 
@@ -30,7 +30,7 @@ import javax.swing.JOptionPane;
  * Use the YouTube Live Streaming API to retrieve a live broadcast
  * and complete the broadcast. Use OAuth 2.0 to authorize the API requests.
  * Thread safe implementation
- * @param args[0] = broadcast title to be completed
+ * @param args[0] = broadcast Id to be completed
  * @author Evgeny Geyfman
  */
 public class CompleteBroadcast extends Thread {
@@ -48,7 +48,7 @@ public class CompleteBroadcast extends Thread {
 
         try {
         	
-            LiveBroadcast returnedBroadcast = getBroadcastByName(args[0]);
+            LiveBroadcast returnedBroadcast = YouTubeAPI.getBroadcastByID(args[0]);
             
             if(returnedBroadcast==null) {
             	System.out.println("no broadcast with this title was found");
@@ -66,15 +66,19 @@ public class CompleteBroadcast extends Thread {
                     .transition("complete", returnedBroadcast.getId(), "snippet,status");
              returnedBroadcast = requestTransition.execute();
              
-             returnedBroadcast = getBroadcastByName(args[0]);
-             System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus() + " " + args[0]);
+             returnedBroadcast = YouTubeAPI.getBroadcastByID(args[0]);
+             System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus() + "title "+returnedBroadcast.getId()
+            		 + "ID: " + args[0]);
              //poll while test starting
              while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("live")) {
-          	   returnedBroadcast = getBroadcastByName(args[0]);
+          	   returnedBroadcast = YouTubeAPI.getBroadcastByID(args[0]);
           	   System.out.println("polling live");
           	   Thread.sleep(1000);
              }
-             
+             Object lock = new Object();
+             synchronized (lock) {
+             	Constants.isLive--;
+ 			}
              System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
             
         } catch (GoogleJsonResponseException e) {
@@ -93,25 +97,6 @@ public class CompleteBroadcast extends Thread {
         }
     
     } 
-    
-    private static LiveBroadcast getBroadcastByName(String name) throws IOException {
-    	
-   	 YouTube.LiveBroadcasts.List liveBroadcastRequest =
-   			YouTubeAPI.youtube.liveBroadcasts().list("id,snippet,status");
-
-        // Indicate that the API response should not filter broadcasts
-        // based on their type or status.
-        liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus("all");
-        
-        // Execute the API request and return the list of broadcasts.
-        LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();
-        List<LiveBroadcast> returnedList = returnedListResponse.getItems();
-        for (LiveBroadcast broadcast : returnedList) {
-       	 if(broadcast.getSnippet().getTitle().equals(name))
-       		 return broadcast;
-        }
-        return null;
-   }
     
 	/**
 	 * this method prompts to the GUI about an error occurrence

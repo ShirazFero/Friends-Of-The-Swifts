@@ -1,5 +1,6 @@
 package com.youtube.controller;
 
+import java.awt.HeadlessException;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -17,7 +18,6 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -58,7 +58,7 @@ public class Controller {
 	
 	private TimerRunner timerRunner;			//holds current timer runner
 	
-	private  Boolean[] checkedStreams;			//holds checked streams from inputform
+	private  String[] checkedStreams;			//holds checked streams from inputform
 
 	private  Boolean[] checkedBroadcasts;		//holds checked broadcasts from inputform
 	
@@ -68,7 +68,7 @@ public class Controller {
 	 * Gets checked stream
 	 * @return
 	 */
-	public Boolean[] getCheckedStreams() {
+	public String[] getCheckedStreams() {
 		return checkedStreams;
 	}
 
@@ -76,7 +76,7 @@ public class Controller {
 	 * Sets checked streams from Interval input form
 	 * @param checkedStreams
 	 */
-	public void setCheckedStreams(Boolean[] checkedStreams) {
+	public void setCheckedStreams(String[] checkedStreams) {
 		this.checkedStreams = checkedStreams;
 	}
 	
@@ -89,7 +89,7 @@ public class Controller {
 	}
 	
 	/**
-	 * Check witch broadcast was chosen to update description and request an update
+	 * Check which broadcast was chosen to update description and request an update
 	 * @param decription
 	 * @throws IOException
 	 */
@@ -113,7 +113,6 @@ public class Controller {
 					new ProgressFrame().updateTask();
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 						| InvalidAlgorithmParameterException | IOException | ParseException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -133,7 +132,7 @@ public class Controller {
 		now = now.plusHours(interval.getHours());		//calculate added interval hours
 		now = now.plusMinutes(interval.getMinutes());	//calculate added interval minutes
 		
-		//convert to Date Object applicable with Timer.schedule(Task,Date)
+		//convert to Date Object to be applicable with Timer.schedule(Task,Date)
 		Date finishDatetime = Date.from( now.atZone( ZoneId.systemDefault()).toInstant());
 		
 		//System.out.println("interval finish time: " + now.toString());
@@ -160,41 +159,50 @@ public class Controller {
 	
 	/**
 	 * Retrieves  new list of streams , delete old one if exists
+	 * @throws ParseException 
 	 */
-	public void refreshStreams() {
+	public boolean refreshStreams()  {
 		if(streams!=null)
 			streams.clear();
 		streams = YouTubeAPI.listStreams(null);
 		if(streams==null) {
-			System.out.println("streams wasn't set correctly");
-			JOptionPane.showMessageDialog(null,"Error Fetching Streams","Server request ERROR",JOptionPane.ERROR_MESSAGE);
+			return false;
 		}
-			
+		return true;
 	}
 	
 	/**
 	 * Retrieves  new list of broadcasts and filter it depending on args , delete old one if exists ,
 	 * @param args
+	 * @throws ParseException 
 	 */
-	public void refreshBroadcasts(String[] args) {
+	public boolean refreshBroadcasts(String[] args)  {
 		if(broadcasts!=null)
 			broadcasts.clear();
 		broadcasts = YouTubeAPI.listBroadcasts(args);
 		if(broadcasts==null) {
-			System.out.println("broadcasts wasn't set correctly");
-			JOptionPane.showMessageDialog(null,"Error Fetching broadcasts","Server request ERROR",JOptionPane.ERROR_MESSAGE);
-
+			return false;
 		}
 		
+		//handle page tokens
 		BroadcastPanel bpanel = BroadcastPanel.getInstance();
-		if(Constants.NextPageToken!=null)
+		if(Constants.NextPageToken!=null) {
 			bpanel.getBtnNextPage().setEnabled(true);
-		else
+			bpanel.getBtnNextPage().setVisible(true);
+		}
+		else {
 			bpanel.getBtnNextPage().setEnabled(false);
-		if(Constants.PrevPageToken!=null)
+			bpanel.getBtnNextPage().setVisible(false);
+		}
+		if(Constants.PrevPageToken!=null) {
 			bpanel.getBtnPreviousPage().setEnabled(true);
-		else
+			bpanel.getBtnPreviousPage().setVisible(true);
+		}
+		else {
 			bpanel.getBtnPreviousPage().setEnabled(false);
+			bpanel.getBtnPreviousPage().setVisible(false);
+		}
+		return true;
 		
 	}
 	
@@ -202,109 +210,86 @@ public class Controller {
 	 * This method inserts a new live stream to the database
 	 * @param checked array indicates whether a stream was chosen or not
 	 * @throws IOException 
+	 * @throws ParseException 
+	 * @throws HeadlessException 
 	 */
-	public void addStream() throws IOException {
-		String[] args = new String[1];
-		args[0]=JOptionPane.showInputDialog("please enter stream name");
-		if(args[0] == null) {
+	public void addStream() throws IOException, HeadlessException, ParseException {
+
+		Constants.AddingStream = JOptionPane.showInputDialog("please enter stream name");
+		if(Constants.AddingStream == null) {
 			System.out.println("requset cancelled");
-			return;
+			return ;
 		}
-		if("".equals(args[0])) {
-			//bad input
-			JOptionPane.showMessageDialog(null,"No stream name entered","Not Completed",
-					JOptionPane.ERROR_MESSAGE);
-			return;
+		try {
+			new ProgressFrame().StreamTask();
+		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+				| InvalidAlgorithmParameterException | IOException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-			
-		int desLen = args[0].getBytes("UTF-8").length;
-		System.out.println("deslen: "+ desLen);
-		if(desLen>128 || desLen < 1) {
-			//bad input
-			JOptionPane.showMessageDialog(null,"Stream name is too long or too short try again","Not Completed",
-	                JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		if(args[0]!=null && YouTubeAPI.createStream(args)) {
-				refreshStreams();
-				JOptionPane.showMessageDialog(null,args[0] + " Stream Added Successfully","Completed",JOptionPane.INFORMATION_MESSAGE);	
-				LiveStream stream =YouTubeAPI.getStreamByName(args[0]);
-				Constants.StreamDescription.put(stream.getId(),Constants.Description); //set default description
-				return;
-			}
-		else {
-			//show error massage
-			System.out.println("stream wasn't added");
-			JOptionPane.showMessageDialog(null,"stream wasn't added please try again","Server request problem",
-	                JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+		
 	}
 	
 	/**
 	 * This method removes a live stream from database
 	 * @param checked array indicates whether a stream was chosen or not
 	 * @throws IOException 
+	 * @throws ParseException 
 	 */
-	public void removeStream(Boolean[] checked) throws IOException {
-		String[] args = new String[1];
-		ArrayList<String> Badresults = new ArrayList<String>();
-		for(int i=0;i<streams.size();i++) {
-			if(checked[i]) {
-				args[0]=streams.get(i).getSnippet().getTitle();
-				if(!YouTubeAPI.deleteStream(args)) { //if didn't succeed
-					Badresults.add(args[0]);		//add stream title to error massage
-				}
-				else { //remove from  description map
-					Constants.StreamDescription.remove(streams.get(i).getId()); 
-				}
-					
-			}
+	public void removeStream(String[] streamid) throws IOException, ParseException {
+		Constants.StreamToRemove = new ArrayList<LiveStream>();
+		for(String id : streamid) {
+				Constants.StreamToRemove.add(getStreamById(id));
 		}
-		if(!Badresults.isEmpty()) {
-			String massage  = "Following Streams weren't deleted:  ";
-			for(String title : Badresults) {
-				massage += title + ",\r\n ";
-			}
-			massage += "please check internet connection"; 
-				JOptionPane.showMessageDialog(null,massage,"Server request ERROR",JOptionPane.ERROR_MESSAGE);
+		try {
+			new ProgressFrame().StreamTask();
+		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+				| InvalidAlgorithmParameterException | IOException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		refreshStreams();
-		JOptionPane.showMessageDialog(null,"Finished Deleting Streams","Completed",JOptionPane.INFORMATION_MESSAGE);	
-
 	}
+	
 	
 	/**
 	 * This method starts new live broadcast to every stream that was chosen on the GUI
 	 * @param checked array indicates whether a stream was chosen or not
 	 * Constants.isLive array delivers data to loading tasks regarding the progress of starting broadcast.
 	 * @throws InterruptedException
+	 * @throws ParseException 
 	 */
-	public void startBroadcast(Boolean[] checked) throws InterruptedException {
+	public void startBroadcast() throws InterruptedException {
 		
 		Constants.badResults =  new ArrayList<String>();
-		List<LiveStream> streams = filterStreams("active");		
+		CreateBroadcast brd = null; //Pointer to currently created broadcast
+		
+		if(Constants.LiveId!= null && !Constants.LiveId.isEmpty())
+			Constants.LiveId.clear();
+		Constants.LiveId = new ArrayList<String>();
+		
+		/*List<LiveStream> streams = filterStreams("active");		
 		if(streams==null) {
 			System.out.println("error retrieving streams");
 			System.exit(1);
 		}
-		CreateBroadcast brd =null;					//Pointer to currently created broadcast
-		int checkedStreamsCount = 0;				//checked stream counter
-		for(int i = 0;i<checked.length;i++) {		//count checked streams
+							
+		//int checkedStreamsCount = 0;				//checked stream counter
+		/*for(int i = 0;i<checked.length;i++) {		//count checked streams
 			if(checked[i])
 				checkedStreamsCount++;
-		}
-		if(checkedStreamsCount>100) {				//100> num of broadcasts
-			JOptionPane.showMessageDialog(null,"Please select less then 100 broadcasts","Server request ERROR",JOptionPane.ERROR_MESSAGE);
+		}*/
+		
+		if(checkedStreams.length>10) {				//100> num of broadcasts
+			JOptionPane.showMessageDialog(null,"Please select less then 10 broadcasts","Server request ERROR",JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		Constants.isLive = new Boolean[checkedStreamsCount*2];	//init flag array to mark starting progress of broadcast
-		for(int i=0;i<Constants.isLive.length;i++)				
-			Constants.isLive[i]=false;						
-
-		SwingUtilities.invokeLater(new Runnable() {
+		
+		Constants.isLive = checkedStreams.length*2;	//init flag array to mark starting progress of broadcast
+		System.out.println("here starts load frame");
+		SwingUtilities.invokeLater(new Runnable() { //start loading frame
 			public void run() {
 				try {
+					System.out.println("satrting loading task frame");
 					new ProgressFrame().loadTask();
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 						| InvalidAlgorithmParameterException | IOException | ParseException e) {
@@ -313,75 +298,68 @@ public class Controller {
 				}
 			}
 		});
-		int j=0; // index for setting queue numbers for Constants.isLive 
-		for(int i = checked.length-1 ; i>=0 ; i--) {
-			if(checked[i])	{
-				String[] args = new String[2];		// args[0] = title , args[1] = end time
-				args[0]= streams.get(i).getSnippet().getTitle();
-				if(Constants.IntervalBroadcast) {	//calculate interval end time and set it as args 
+		
+		for(String streamId : checkedStreams) {
+				System.out.println("inside for :starting " + streamId);
+				String[] args = new String[2];			// args[0] = title , args[1] = end time
+				args[0]= getStreamTitle(streamId);		//set stream title arg
+				if(Constants.IntervalBroadcast) {		//calculate interval end time and set it as args 
 					LocalDateTime finTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(calcStopTime().getTime())
 							, ZoneId.systemDefault());
 					args[1]= finTime.toString()	;
-				}
-				else { 								//if it's indefinite Broadcast no end time is set
-					args[1]=null;
-				}
-				if(args[1]!=null)
 					System.out.println("starting "+ args[0]+" end time: "+args[1]);
-				else
+				}
+				else {  								//if it's indefinite Broadcast no end time is set
+					args[1]=null;
 					System.out.println("starting "+ args[0]);
-				brd =  new CreateBroadcast(args);				// initiate new CreateBroadcast object
-				brd.setQueueNum(j);   			// set broadcasts queue index for Constants.isLive array
-				brd.start();									// start new thread
-				Thread.sleep(1000);								// wait 1 second, better handles server requests
-				j+=2;
-			}
+				}
+				brd =  new CreateBroadcast(args);			// initiate new CreateBroadcast Thread
+				brd.start();								// start new thread
+				Thread.sleep(1000);							// wait 1 second, better handles server requests
 		}
-		
 	}
 	
 	/**
-	 * This method stops all active live broadcasts if they were chosen
-	 * @param checked
-	 * @throws InterruptedException 
+	 * helper method retrieve stream title 
+	 * @param 
 	 */
-	public void stopBroadcast(Boolean[] checked) throws InterruptedException {
-		String[] args = {"refresh","active"};
-		List<LiveBroadcast> returnedList =YouTubeAPI.listBroadcasts(args);
-		if(returnedList==null) {
-			System.out.println("error fetching broadcasts");
-			return;
+	public String getStreamTitle(String id) {
+		for(LiveStream stream : streams) {
+			if(stream.getId().equals(id))
+				return stream.getSnippet().getTitle();
 		}
-		for(int i=returnedList.size()-1 ; i>=0 ;i--) {
-			if(checked[i]) {
-				args[0]=broadcasts.get(i).getSnippet().getTitle();
-				CompleteBroadcast cmpBrd = new CompleteBroadcast(args);
-				cmpBrd.start();
-				System.out.println("stopped "+ args[0]);
-				Thread.sleep(1000);								// wait 1 second, better handles server requests
-			}
-		}
+		return null;
 	}
+	
 	
 	/**
 	 * This method stops all active live broadcasts
 	 * @throws InterruptedException 
+	 * @throws ParseException 
 	 */
-	public void stopBroadcasts() throws InterruptedException {
-		CompleteBroadcast cmpBrd= null;
-		String[] args = {"refresh","active"};
-		refreshBroadcasts(args);
-		List<LiveBroadcast> returnedList = broadcasts;
-		if(returnedList==null) {
-			System.out.println("error fetching broadcasts");
-			return;
-		}
-		for(int i=returnedList.size()-1 ; i>=0 ;i--) {
-			args[0]=broadcasts.get(i).getSnippet().getTitle();
-			cmpBrd = new CompleteBroadcast(args);
-			cmpBrd.start();
-			System.out.println("stopped "+ args[0]);
-			Thread.sleep(1000);								// wait 1 second, better handles server requests
+	public void stopBroadcasts(String[] broadcastIDs) throws InterruptedException {
+		CompleteBroadcast cmpBrd = null;
+		String[] args = new String[1];
+		if(broadcastIDs!=null) {
+			Constants.isLive = broadcastIDs.length;	//init flag array to mark starting progress of broadcast
+			SwingUtilities.invokeLater(new Runnable() { //start loading frame
+				public void run() {
+					try {
+						new ProgressFrame().completeTask();
+					} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+							| InvalidAlgorithmParameterException | IOException | ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			});
+			for(String ID : broadcastIDs) {
+				args[0] =  ID;
+				cmpBrd = new CompleteBroadcast(args);
+				cmpBrd.start();
+				System.out.println("stopped "+ args[0]);
+				Thread.sleep(1000);	// wait 1 second, better handles server requests
+			}
 		}
 	}
 
@@ -404,7 +382,7 @@ public class Controller {
 	 * @throws InvalidKeyException 
 	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public void cancelTimerRunner() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
+	public void cancelTimerRunner() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException {
 		timerRunner.stopIntervalBroadcast();
 	}
 
@@ -425,8 +403,9 @@ public class Controller {
 	 * This method filters streams by there status={active,ready,inactive}
 	 * @param filter
 	 * @return filterdList
+	 * @throws ParseException 
 	 */
-	public List<LiveStream> filterStreams(String filter){
+	public List<LiveStream> filterStreams(String filter) {
 		refreshStreams();											// get latest list of streams from server
 		List<LiveStream> filterdList = new ArrayList<LiveStream>();	//init return list
 		for(LiveStream stream : streams) {
@@ -443,163 +422,271 @@ public class Controller {
 	public void saveData() {
 		JSONObject obj = new JSONObject();
     	
+		JSONObject userState = new JSONObject();
+		
     	if(Constants.RegularBroadcast) {
     		System.out.println("closing regular broadcast");
     		
     		//save regular broadcast flag
-    		obj.put("Regular Broadcast", "ON");
-    		obj.put("Interval Broadcast", "OFF");
+    		userState.put("Regular Broadcast", "ON");
+    		userState.put("Interval Broadcast", "OFF");
     		
     		//save checked streams
     		JSONArray checkedStreamList = new JSONArray();
-    		for(Boolean checked: checkedStreams)
-    			checkedStreamList.add(checked);
-    		obj.put("Stream List", checkedStreamList);
+    		for(String id: checkedStreams)
+    			checkedStreamList.add(id);
+    		userState.put("Stream List", checkedStreamList);
+    		
+    		//save Live broadcasts id's
+    		JSONArray LiveIdList = new JSONArray();
+    		for(String ID: Constants.LiveId)
+    			LiveIdList.add(ID);
+    		userState.put("Live ID List", LiveIdList);
     		
     	}
     	else if(Constants.IntervalBroadcast) {
     		System.out.println("closing inteval broadcast");
     	
     		//save interval broadcast flag
-    		obj.put("Regular Broadcast", "OFF");
-    		obj.put("Interval Broadcast", "ON");
+    		userState.put("Regular Broadcast", "OFF");
+    		userState.put("Interval Broadcast", "ON");
     		
     		//save current interval stop and start time
-    		obj.put("Stop Time", Interval.getInstance().getCorrentInterval().toString());
-    		obj.put("Start Time", IntervalPanel.getInstance().getLblstime().getText());
+    		userState.put("Stop Time", Interval.getInstance().getCorrentInterval().toString());
+    		userState.put("Start Time", IntervalPanel.getInstance().getLblstime().getText());
     		
     		//save interval
-    		obj.put("Interval", Interval.getInstance().getInterval());
+    		userState.put("Interval", Interval.getInstance().getInterval());
     		
     		//save checked streams
     		JSONArray checkedStreamList = new JSONArray();
-    		for(Boolean checked: checkedStreams)
-    			checkedStreamList.add(checked);
-    		obj.put("Stream List", checkedStreamList);
+    		for(String id: checkedStreams)
+    			checkedStreamList.add(id);
+    		userState.put("Stream List", checkedStreamList);
     		System.out.println("stream list size: "+ checkedStreamList.size());
     		
+    		//save Live broadcasts id's
+    		JSONArray LiveIdList = new JSONArray();
+    		for(String ID: Constants.LiveId)
+    			LiveIdList.add(ID);
+    		userState.put("Live ID List", LiveIdList);
     	}
     	else {
-    		obj.put("Regular Broadcast", "OFF");
-    		obj.put("Interval Broadcast", "OFF");
+    		userState.put("Regular Broadcast", "OFF");
+    		userState.put("Interval Broadcast", "OFF");
     	}
     	
-    	JSONObject MapObject = new JSONObject(Constants.StreamDescription);
-    	obj.put("Map" ,MapObject);
+    	obj.put("User State", userState);
     	
-    	obj.put("Description", Constants.Description);
+    	JSONObject UserSettings = new JSONObject();
+    	//save user settings
+    	UserSettings.put("Add Time and Date", Constants.AddDateTime);
+    	UserSettings.put("Send Email", Constants.SendEmail);
+    	UserSettings.put("Privacy", Constants.Privacy);
+    	UserSettings.put("Ingestion Type", Constants.IngestionType);
+    	UserSettings.put("Format", Constants.Format);
+    	//save stream descriptions map
+    	
+    	obj.put("User Settings", UserSettings);
     	
     	try (FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json")) {
 			file.write(obj.toJSONString());
 			System.out.println("Successfully Saved JSON Object to File...");
 			System.out.println("\nJSON Object: " + obj);
-			} catch (IOException e1) {
+		} catch (IOException e1) {
 
-				e1.printStackTrace();
-			}
+			e1.printStackTrace();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public boolean loadUserSettings() {
+		
+		final Path path = Paths.get(Constants.UserDataPath+ Constants.Username + ".json");
+		 
+		if(Files.exists(path)) {     	//check if there's a file of saved data
+			JSONParser parser = new JSONParser();
+			 
+	        try {
+	 			
+	            //parse users saved json file to json object	
+	            JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(Constants.UserDataPath + Constants.Username + ".json"));
+	            jsonObject =  (JSONObject) jsonObject.get("User Settings");
+	            //get and set stream description map 
+	            if(jsonObject!=null) {
+		            Boolean addtimeDate = (boolean) jsonObject.get("Add Time and Date");
+		            Boolean sendEmail = (boolean) jsonObject.get("Send Email");
+		            String privacy = (String) jsonObject.get("Privacy");
+		            String ingetionType = (String) jsonObject.get("Ingestion Type");
+		            String format = (String) jsonObject.get("Format");
+		           	
+		            //set user settings to it's global variables
+		            if(addtimeDate!=null)
+		            	Constants.AddDateTime = addtimeDate;
+		            if(sendEmail!=null)
+		            	Constants.SendEmail = sendEmail;
+		            if(privacy!=null)
+		            	Constants.Privacy = privacy;
+		            if(ingetionType!=null)
+		            Constants.IngestionType = ingetionType;
+		            if(format!=null)	
+		            	Constants.Format = format;
+		            return true;
+	            }
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+		}
+		else {   //else create new user settings file
+	    		//save regular broadcast flag
+			System.out.println("creating new user data file");
+    		JSONObject obj =new JSONObject();
+    		JSONObject UserSettings =new JSONObject();
+        	
+        	obj.put("User Settings", UserSettings);
+        	
+        	try (FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json")) {
+	    			file.write(obj.toJSONString());
+	    			System.out.println("Successfully Saved JSON Object to File...");
+	    			System.out.println("\nJSON Object: " + obj);
+    		} catch (IOException e1) {
+
+    			e1.printStackTrace();
+    		}
+		}
+        return false;
 	}
 	
 	/**
 	 * This method loads current broadcast data when window is opening
 	 */
 	@SuppressWarnings({ "unchecked" })
-	public void loadData() {
+	public void loadUserState() {
 		
+		Constants.LoadingState=true;
 		JSONParser parser = new JSONParser();
 		 
         try {
- 				
-            Object obj = parser.parse(new FileReader(Constants.UserDataPath + Constants.Username + ".json"));
-            		
-            JSONObject jsonObject = (JSONObject) obj;
  			
-            Constants.Description = (String) jsonObject.get("Description");
-            
-            Constants.StreamDescription = (HashMap<String,String>) jsonObject.get("Map");
+            //parse users saved json file to json object	
+        	JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(Constants.UserDataPath + Constants.Username + ".json"));
+        	if(jsonObject!=null)
+        		jsonObject = (JSONObject) jsonObject.get("User State");
+           
+            if(jsonObject==null)
+            	return;
             
             String RegularBroadcast = (String) jsonObject.get("Regular Broadcast");
-            if(RegularBroadcast.equals("ON")){
-            	
+            String IntervalBroadcast = (String) jsonObject.get("Interval Broadcast");
+        	
+            if(IntervalBroadcast!=null && RegularBroadcast !=null &&
+        			IntervalBroadcast.equals("OFF") && RegularBroadcast.equals("OFF"))
+        		return; // if all saved live broadcasts were terminated
+            
+            //get and set live broadcast id list
+            JSONArray liveIdList = (JSONArray) jsonObject.get("Live ID List");
+           
+            // get live broadcasts id's
+            if(liveIdList!=null) { 
+	        	String[] liveBroadcastsId = new String[liveIdList.size()];
+	        	liveIdList.toArray(liveBroadcastsId);
+	        	Constants.LiveId =new ArrayList<String>();
+	        	Constants.LiveId.addAll(liveIdList);
+            }
+            else 
+            	return;
+            
+            //check that saved broadcasts are still live 
+			ArrayList<String> livebroadcasts = new ArrayList<String>();
+			for(String id : Constants.LiveId) {
+				String status = YouTubeAPI.getBroadcastByID(id).getStatus().getLifeCycleStatus();
+				if(status.equals("live")) {
+					livebroadcasts.add(id);
+				}
+			}
+            if(livebroadcasts.isEmpty())
+            	return;
+			
+            JSONArray streamList = (JSONArray) jsonObject.get("Stream List"); // get checked stream id's
+            if(streamList!=null) {										     //set checked streams
+	            checkedStreams = new String[streamList.size()];
+	        	streamList.toArray(checkedStreams);
+            }
+        	
+        	IntervalPanel intervalPanel = IntervalPanel.getInstance();
+           
+			if(RegularBroadcast.equals("ON")){
             	//start regular flag
             	Constants.RegularBroadcast = true;
-            	//refresh broadcast to active panel
-            	
-            	//set checked streams
-            	JSONArray streamList = (JSONArray) jsonObject.get("Stream List");
-            	checkedStreams = new Boolean[streamList.size()];
-            	streamList.toArray(checkedStreams);
-            	
-            	//toggle buttons
-                ButtonPanel btnPnl =  ButtonPanel.getInstance();
-                btnPnl.getStartBrdbtn().setEnabled(false);	
-				btnPnl.getStopBrdbtn().setEnabled(true);
-				btnPnl.getStartIntBrdbtn().setEnabled(false);
+            	//set non stop label
+                intervalPanel.getLblNotSet().setText("Non-Stop");
             }
-            String IntervalBroadcast = (String) jsonObject.get("Interval Broadcast");
-            if(IntervalBroadcast.equals("ON")){
-            	System.out.println("load interval broadcast");
-            	//set interval panel
-            	Constants.IntervalBroadcast = true;
-            	
-            	//refresh broadcast to active panel
-            	String[] args = {"refresh","active"};
-    		    refreshBroadcasts(args);
-    		    BroadcastPanel broadcastPanel =BroadcastPanel.getInstance();
-	    		broadcastPanel.setData(broadcasts);			//set new data
-    		    broadcastPanel.refresh();
-    		    //set checked streams
-    		    JSONArray streamList = (JSONArray) jsonObject.get("Stream List");
-            	checkedStreams = new Boolean[streamList.size()];
-            	streamList.toArray(checkedStreams);
-            	for(int i=0 ; i<checkedStreams.length ; i++) {
-            		System.out.println("checked streams at index: " + i  +" is: " +checkedStreams[i]);
-            	}
-            	System.out.println("checked streams ");
-            	
-                Interval interval =Interval.getInstance(); 				//load saved interval
-                interval.setInterval((String) jsonObject.get("Interval"));
-                IntervalPanel intervalPanel = IntervalPanel.getInstance();
-                intervalPanel.getLblNotSet().setText(interval.getHours() +
-						 " Hours and " + interval.getMinutes() +" minutes");
+            else if(IntervalBroadcast !=null && IntervalBroadcast.equals("ON")){
 
-                SimpleDateFormat dateformat = new SimpleDateFormat("E MMM dd HH:mm:ss z yyyy");
-                String stp = (String) jsonObject.get("Stop Time");
+	        	//set interval panel
+	        	Constants.IntervalBroadcast = true;
+	            
+	        	//load and cast stored stop time
+	            SimpleDateFormat dateformat = new SimpleDateFormat("E MMM dd HH:mm:ss z yyyy");
+	            String stp = (String) jsonObject.get("Stop Time");
 				Date stoptime =  dateformat.parse(stp);
 				System.out.println("stoptime on load: "+stoptime.toString());
 				
 				Date now = Date.from(LocalDateTime.now().atZone( ZoneId.systemDefault()).toInstant());
 				
-                if(stoptime.after(now)) {
-                	 //if stop time hasn't passed yet
-            		//set interval panel
-                	System.out.println("setting interval panel");
-                	updateIntervalPanel((String) jsonObject.get("Start Time"),stoptime.toString());
-                	intervalPanel.getFtime().setVisible(true);						
-                	intervalPanel.getLblstime().setVisible(true);
-                	interval.setCorrentInterval(stoptime);										//set it to current interval
-                	//start timer run
-                	timerRunner = new TimerRunner(stoptime);
-                	
-                }
-                else { 
-                	//else stop current broadcasts ,start them again ,
-                	//and start timer runner with new stop time
-                	stopBroadcasts();
-                	startBroadcast(checkedStreams);
-                	timerRunner = new TimerRunner(calcStopTime());
-                	intervalPanel = IntervalPanel.getInstance();
-                	updateIntervalPanel(now.toString(),interval.getCorrentInterval().toString());
-                	intervalPanel.getLblstime().setVisible(true);
-    				intervalPanel.getFtime().setVisible(true);
-                }
-                
-            	//toggle buttons on GUI
-                System.out.println("toggleing buttons");
-            	ButtonPanel btnPnl =  ButtonPanel.getInstance();
-            	btnPnl.getStartIntBrdbtn().setEnabled(false); 
-				btnPnl.getStopIntbtn().setEnabled(true);
-				btnPnl.getStartBrdbtn().setEnabled(false);
-            }
+				Interval interval =Interval.getInstance(); 	  //load saved interval
+                interval.setInterval((String) jsonObject.get("Interval"));
+				
+				if(stoptime.before(now)) {  //if interval time has ended complete broadcasts
+					System.out.println("intervals has ended");
+					  
+					String message= "Iterval time ended ,Current LiveBroadcast will be Completed";
+					String title="Stopping Broadcast";
+					JOptionPane.showMessageDialog(null, message, title, JOptionPane.CANCEL_OPTION);
+					
+					if(!livebroadcasts.isEmpty()) {
+						System.out.println("stopping old broadcasts");
+						String[] brdIds = new String[livebroadcasts.size()]; 
+						livebroadcasts.toArray(brdIds);
+						stopBroadcasts(brdIds);
+					}
+					Constants.IntervalBroadcast = false;
+					return;
+					
+	            }
+				else{ /*else resume broadcasts and
+                		set timer runner again	*/
+					
+	            	//set data to interval panel
+	                intervalPanel.getLblNotSet().setText(interval.getHours() +
+							 " Hours and " + interval.getMinutes() +" minutes");
+	            	//set interval panel
+	            	System.out.println("setting interval panel");
+	            	updateIntervalPanel((String) jsonObject.get("Start Time"),stoptime.toString());
+				
+					intervalPanel.getFtime().setVisible(true);						
+	            	intervalPanel.getLblstime().setVisible(true);
+	            	interval.setCorrentInterval(stoptime);	//set stop tome to current interval
+		            
+	            	timerRunner = new TimerRunner(stoptime);   //start timer run
+				}
+			}
+			
+            //refresh broadcast to active panel
+        	String[] args = {"refresh","active",null,null};
+		    refreshBroadcasts(args);
+		    BroadcastPanel broadcastPanel = BroadcastPanel.getInstance();
+    		broadcastPanel.setData(broadcasts);			//set new data
+		    broadcastPanel.refresh();
+            
+        	//toggle buttons on GUI
+            System.out.println("toggleing buttons");
+        	ButtonPanel btnPnl =  ButtonPanel.getInstance();
+        	btnPnl.getStartIntBrdbtn().setVisible(false);
+			btnPnl.getStopIntbtn().setVisible(true);
+        	btnPnl.getStartIntBrdbtn().setEnabled(false); 
+			btnPnl.getStopIntbtn().setEnabled(true);
+			intervalPanel.getLblHello().setText("Hello "+Constants.Username+", you are live!");
             
         } catch (Exception e) {
             e.printStackTrace();
@@ -617,10 +704,17 @@ public class Controller {
 	 * @throws ParseException 
 	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public static Controller getInstance() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
+	public static Controller getInstance() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException {
 		if(instance==null)
 			instance = new Controller();
 		return instance;
+	}
+
+	/**
+	 * @param instance the instance to set
+	 */
+	public void setInstance(Controller instance) {
+		Controller.instance = instance;
 	}
 
 	/** 
@@ -638,7 +732,6 @@ public class Controller {
 	 */
 	@SuppressWarnings("unchecked")
 	public void registerUser(String username, String password, String email) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
-		// TODO Auto-generated method stub
 		
 		JSONParser parser = new JSONParser();
 		
@@ -655,6 +748,7 @@ public class Controller {
 		
 		userDetailsObject.put("password",password);
 		userDetailsObject.put("email",email);
+		userDetailsObject.put("rememberpass","false");
 		
 		userObject.put("User",userDetailsObject);
 		
@@ -664,6 +758,12 @@ public class Controller {
 		//add new user object
 		userArray.add(userObject);
 		
+		Iterator<JSONObject> Iterator = userArray.iterator();
+		Constants.SavedUsers = new String[userArray.size()]; 
+		int i=0;
+		while (Iterator.hasNext()) {
+			Constants.SavedUsers[i++] = (String) ((JSONObject) Iterator.next().get("User")).get("username");
+		}
 		jsonObject.put("User List", userArray);
 		
 		//save new list to file
@@ -674,6 +774,7 @@ public class Controller {
 		file.close();
 		
 		fileEncrypt(jsonObject.toString());
+		
 		JOptionPane.showMessageDialog(null,"User Registerd Successfully","Completed",JOptionPane.INFORMATION_MESSAGE);	
 
 	}
@@ -691,20 +792,20 @@ public class Controller {
 	 * @throws NoSuchPaddingException
 	 */
 	public boolean userExists(String username) throws FileNotFoundException, IOException, ParseException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
-		// TODO Auto-generated method stub
-		
-		String data = fileDecrypt(); //decrypt file
 
-		JSONParser parser = new JSONParser();
-		Object readObject = parser.parse(data);
-		JSONObject jsonObject = (JSONObject) readObject;
-		JSONArray userArray = (JSONArray) jsonObject.get("User List");
-		for(int i=0;i<userArray.size();i++) {
-			JSONObject user = (JSONObject) userArray.get(i);
-			user = (JSONObject) user.get("User");
-			String userInList = (String) user.get("username");
-			if(username.equals(userInList))
-				return true;
+		if(username!=null && !"".equals(username)) {
+			String data = fileDecrypt(); //decrypt file
+			JSONParser parser = new JSONParser();
+			Object readObject = parser.parse(data);
+			JSONObject jsonObject = (JSONObject) readObject;
+			JSONArray userArray = (JSONArray) jsonObject.get("User List");
+			for(int i=0;i<userArray.size();i++) {
+				JSONObject user = (JSONObject) userArray.get(i);
+				user = (JSONObject) user.get("User");
+				String userInList = (String) user.get("username");
+				if(username.equals(userInList))
+					return true;
+			}
 		}
 		return false;
 	}
@@ -765,8 +866,6 @@ public class Controller {
 	@SuppressWarnings({ "unchecked" })
 	public void initData() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
 		
-		Constants.StreamDescription = new HashMap<String,String>();
-		
 		final Path path = Paths.get(System.getProperty("user.home")+"\\Documents\\info.json");
 		
 		if(!Files.exists(path)) {
@@ -789,12 +888,16 @@ public class Controller {
 		else {
 			  JSONParser parser = new JSONParser();
 			  JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(Constants.InfoPath));
-			  String key =(String)jsonObject.get("info");
-			  // decode the base64 encoded string
-			  byte[] decodedKey = Base64.getDecoder().decode(key);
-			  // rebuild key using SecretKeySpec
-			  Constants.SecretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES"); 
-			  
+			 if(jsonObject!=null) {
+				  String key =(String)jsonObject.get("info");
+				  // decode the base64 encoded string
+				  byte[] decodedKey = null;
+				  if(key!=null) {
+					  decodedKey = Base64.getDecoder().decode(key);
+				  // rebuild key using SecretKeySpec
+				  Constants.SecretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES"); 
+				  }
+			  }
 		}
 		
 		final Path path1 = Paths.get(Constants.AppUserPath);
@@ -857,7 +960,6 @@ public class Controller {
 		return fileEncDec.decrypt(Constants.AppUserPath);
 	}
 
-	
 	/**
 	 * 
 	 * @return
@@ -868,22 +970,43 @@ public class Controller {
 		int index = 0;
 		for(LiveStream stream :streams) {
 				titles[index++] = stream.getSnippet().getTitle();
-			
 		}
 		return titles;
 	}
 	
+	public TimerRunner getTimerRunner() {
+		return timerRunner;
+	}
+	
 	/**
-	 * 
+	 * returns relevant stream title from streams List
 	 * @param title
 	 * @return
 	 */
-	public String getID(String title){
-		for(LiveStream stream :streams) {
-			if(title.equals(stream.getSnippet().getTitle()))	 
-				return stream.getId();
-			
-		}
-		return null;
-	}
+	public  LiveStream getStreamByName(String title) throws IOException, ParseException {
+    	LiveStream foundstream=null;			//initite pointer to the stream
+        for (LiveStream stream : streams) {
+        	if(stream.getSnippet().getTitle().equals(title))
+        		foundstream= stream;
+        }
+    	return foundstream;
+  }
+
+/**
+ * returns relevant stream from streams List
+ * @param id
+ * @return
+ * @throws IOException
+ * @throws ParseException
+ */
+	 public  LiveStream getStreamById(String id) throws IOException, ParseException {
+
+	    	LiveStream foundstream=null;			//initite pointer to the stream
+	        for (LiveStream stream : streams) {
+	        	if(stream.getId().equals(id))
+	        		foundstream= stream;
+	        }
+	    	return foundstream;
+	  }
+
 }
