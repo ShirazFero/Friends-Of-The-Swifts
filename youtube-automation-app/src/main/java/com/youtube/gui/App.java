@@ -20,10 +20,10 @@ public class App {
 			
 			public void run() {
 				try {
-					Controller controller = Controller.getInstance();
+					Controller controller = new Controller();
+					controller.setInstance(controller);
 					controller.initData(); // set initial data
 					new UserLogin();
-					//new ProgressFrame();
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 						| InvalidAlgorithmParameterException | IOException | ParseException e) {
 					// TODO Auto-generated catch block

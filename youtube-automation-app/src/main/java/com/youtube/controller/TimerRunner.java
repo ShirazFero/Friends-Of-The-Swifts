@@ -10,8 +10,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.crypto.NoSuchPaddingException;
-import javax.swing.JOptionPane;
-
 import org.json.simple.parser.ParseException;
 
 import com.youtube.utils.Constants;
@@ -35,7 +33,7 @@ public class TimerRunner {
 	public TimerRunner(Date stoptime) {
 		this.stopTime = stoptime;		//set first stop time
 		timer =  new Timer();			//initiate timer
-		scheduleTimer();				//Schedule first interval broadcast
+		rescheduleTimer();				//Schedule first interval broadcast
 	}
 	
 	/***
@@ -50,18 +48,31 @@ public class TimerRunner {
 			public void run() {
 				try {
 					System.out.println("---------------------------------------");
-					System.out.println("running handling itervals");
+					System.out.println("running handling itervals" +Thread.currentThread().getId());
 					
 					Controller controller;
 					controller = Controller.getInstance();
-					controller.stopBroadcasts();   //on scheduled time complete live broadcasts
-					                  
-					if(!Constants.IntervalBroadcast) {             // if resume live broadcasts was chosen
-						System.out.println("cancelling timer after terminating last broadcasts");
-						timer.cancel();                          // cancel timer after completing broadcasts on scheduled time 
-						controller.updateIntervalPanel("","");	//remove start/finish date times from interval panel
-						return;				                   //end timer runner after completing broadcasts on stop time
+					
+					//get all current broadcast ID to be completed
+					String[] brdID = new String[Constants.LiveId.size()]; 
+					Constants.LiveId.toArray(brdID);
+					for(String id : brdID) {
+						System.out.println("id list"+id);
 					}
+					
+					//----------------start new live broadcasts -------------------------
+					System.out.println("creating broadcasts");
+					controller.startBroadcast();
+					
+					synchronized (Constants.monitorLock) {
+						System.out.println("---------------Thread waits-------------------");
+						Constants.monitorLock.wait();		//wait until all new broadcasts go live
+						
+					}
+					System.out.println("---------------Thread continues---------------");
+					
+					//----------------stop previous live broadcasts
+					controller.stopBroadcasts(brdID);   //on scheduled time complete live broadcasts
 					//System.out.println("calc new time and shcdule timer again");
 					//set new start time
 					Date newStartTime = stopTime;						
@@ -70,14 +81,10 @@ public class TimerRunner {
 					
 					controller.updateIntervalPanel(newStartTime.toString(),stopTime.toString());
 					//Reschedule timer for next interval
-					scheduleTimer();									
-					
-					//----------------start live broadcasts again-------------------------
-					System.out.println("creating broadcasts");
-					controller.startBroadcast(controller.getCheckedStreams());
+					rescheduleTimer();									
 					
 				}catch (InterruptedException | InvalidKeyException | NoSuchAlgorithmException
-						| NoSuchPaddingException | IOException | ParseException | InvalidAlgorithmParameterException e1) {
+						| NoSuchPaddingException | IOException | InvalidAlgorithmParameterException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
@@ -89,8 +96,15 @@ public class TimerRunner {
 	/**
 	 * schedule timer with new stop time , and same task
 	 */
-	public void scheduleTimer(){
+	private void rescheduleTimer(){
 		timer.schedule(getTask(), stopTime);
+	}
+	
+	/**
+	 * schedule timer with new stop time , and same task
+	 */
+	public void scheduleTimer(Date time){
+		timer.schedule(getTask(), time);
 	}
 	
 	/**
@@ -105,18 +119,21 @@ public class TimerRunner {
 	 * @throws InvalidKeyException 
 	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public void stopIntervalBroadcast() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
+	public void stopIntervalBroadcast() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException {
 		if(!Constants.IntervalBroadcast) {	// if stop interval broadcast was pressed
-			String message= "Do you want to stop current live broadcasts now?",title="Stop Broadcast option";
-			int reply =JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION); //ask if to stop current Broadcasts
-			if(reply==JOptionPane.YES_OPTION) {						  // if pressed Yes, complete all live broadcasts
 				Controller controller = Controller.getInstance();
-				controller.stopBroadcasts();  					     //stop all live broadcasts
-				timer.cancel();									    //stop timer
+				String[] brdID = new String[Constants.LiveId.size()]; 
+				Constants.LiveId.toArray(brdID);
+				controller.stopBroadcasts(brdID);  					     //stop all live broadcasts
+				cancelTimer();								    //stop timer
 				controller.updateIntervalPanel("","");
-				return;
-			}
 		}
 	}
-
+	
+	public void cancelTimer() {
+		
+		timer.cancel();	
+		timer.purge();
+		System.out.println("cancelled and purged");
+	}
 }

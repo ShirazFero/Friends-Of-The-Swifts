@@ -11,9 +11,9 @@ Usage Instructions:
 
 Initializing:(do it once)
 ----------------------
-1.download and install AHK on your pc at https://www.autohotkey.com/ 
 
-2.download and install OBS studio on your pc at https://obsproject.com/download 
+
+1.download and install OBS studio on your pc at https://obsproject.com/download 
 
 3.set OBS studio and set all camera rtmp streams to OBS and add a scene for each camera and add a Scene to each camera, watch video at __LINK__ 
   
@@ -42,14 +42,18 @@ Initializing:(do it once)
   
 		  click on settings -> click on Video ->in FPS field enter desired FPS -> click apply -> click OK
 			
-4.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
+3.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
 
-5.create a new live event on YouTube and go to ingestion setting and add the amount of cameras needed, watch video at __LINK__ 
+4.create a new live event on YouTube and go to ingestion setting and add the amount of cameras needed, watch video at __LINK__ 
 
-6.make sure to generate 1-6 reusable Streaming key depending on the amount of cameras needed for broadcast, watch video at __LINK__ 
+5.make sure to generate reusable Streaming key depending on the amount of cameras needed for broadcast, watch video at __LINK__ 
+
+6.make sure to set the output resolution same as base resolution:  
+
+			click Settings -> click video -> set Base ressolution equal to Output resolution.
 
 
-Before running script:(before starting broadcast)
+Before running App:(before starting broadcast)
 ----------------------
 1.open OBS studio with number of instances depending on number of cameras needed for broadcast
 
@@ -59,21 +63,13 @@ Before running script:(before starting broadcast)
 
 4.press start streaming at every instance of OBS studio
 
-5.run the script 
+5.run the app
 
 watch video showing how __LINK__
 
-Using the script:
+Using the App:
 ----------------------
-1.first enter the amount of cameras that are streaming (1-6, and can be changed later)
-
-2.then enter the interval length wanted for interval broadcasting in minutes (can be left vacant and can be set later)
-
-3.while APP is running you can choose to start broadcasting Now or Later , change interval length and cameras
-
-4.you can choose between An interval broadcast (starts and ends automatically) or can be done manually
-
-5.to exit app press ctrl+q
+//TODO
 
 watch video showing how __LINK__
 

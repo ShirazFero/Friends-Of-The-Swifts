@@ -9,87 +9,65 @@ import javax.crypto.NoSuchPaddingException;
 import javax.mail.MessagingException;
 import javax.swing.SwingWorker;
 
-import org.json.simple.parser.ParseException;
-
 import com.youtube.gui.BroadcastPanel;
+import com.youtube.gui.IntervalPanel;
 import com.youtube.utils.Constants;
 
 public class LoadingTasks extends SwingWorker<Void, Void>  {
 
 	@Override
 	protected Void doInBackground() throws Exception {
-		// TODO Auto-generated method stub
-		//Controller controller = Controller.getInstance();
-		int percentage = Math.round(100/ Constants.isLive.length) ,progress = 0;
-		//Object lock = new Object();	// obtain a lock
-		
-		//initiate an array of flags one for each broadcast,
-		//to mark that the a live broadcast started and not be checked again
-		Boolean[] marked = new Boolean[Constants.isLive.length];	
-		for(int i=0;i<marked.length;i++) {
-			marked[i]=false;						//set initial values to false
-		}
-		while(true) {
+		int percentage = Math.round(100/ Constants.isLive) ,progress = 0;
+		int lastIsLiveValue = Constants.isLive, addToProgress=0;
+		while(Constants.isLive>0) {
 			Thread.sleep(1000);
-			//synchronized (lock) {					//sync Thread
-				for(int i=0;i<Constants.isLive.length;i++) {
-					if(Constants.isLive[i]) {		//check if broadcast has started
-						if(!marked[i]) {			//check that broadcast hasn't been marked yet 
-							System.out.println("setting progress");
-							progress+=percentage;	//add percentage
-							setProgress(progress);	//set progress
-							marked[i]=true;			//mark as live
-						}
-					}
+				if(lastIsLiveValue>Constants.isLive) {
+					addToProgress = (lastIsLiveValue-Constants.isLive)*percentage; //calc the percentage to add
+					progress+=addToProgress;	//add percentage
+					setProgress(progress);	//set progress
+					lastIsLiveValue = Constants.isLive;
 				}
-			//}
-			if(allMarked(marked)) {	//if all broadcasts have been marked 
-				return null;
-			}
 		}
+		return null;
 	}
+							
 	
-	private boolean allMarked(Boolean[] flags) {
-		for(int i=0;i<flags.length;i++) {
-			if(flags[i]==false)
-				return false;
-		}
-		return true;
-	}
-
 	@Override
 	public void done() {
-			//prompt active broadcasts to broadcast panel
+		//prompt active broadcasts to broadcast panel
 		try {
-				// prepare failure message
-				if(!Constants.badResults.isEmpty()) {
-					String allTitles =" ";
-					for(String title:Constants.badResults) {
-						allTitles+=", " + title;
-					}
-					try {  //send failure message
-						MailUtil.sendMail(Constants.UserEmail,
-								"Server request problem",
-								"Problem starting broadcast\\s "+ allTitles +",\n"+
-				                "please check manually at " +Constants.LiveStreamUrl);
-					} catch (MessagingException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+			// prepare failure message
+			if(Constants.SendEmail && Constants.badResults!=null && !Constants.badResults.isEmpty()) {
+				String allTitles =" ";
+				for(String title:Constants.badResults) {
+					allTitles+= title +",\n";
 				}
-				setProgress(100);
-				System.out.println("done");
-				Controller controller;
-				controller = Controller.getInstance();
-			    String[] args = {"refresh","active"};
-			    controller.refreshBroadcasts(args);
-				BroadcastPanel broadcastPanel =BroadcastPanel.getInstance();
-				broadcastPanel.setData(controller.getBroadcasts());
-				broadcastPanel.refresh();
-			} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IOException
-					| ParseException | InvalidAlgorithmParameterException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				  //send failure message
+					MailUtil.sendMail(Constants.UserEmail,"Server request problem",
+							"Problem starting Broadcasts:\n"+ allTitles +",\n"+
+			                "please check manually at " +Constants.LiveStreamUrl);
+			}
+			synchronized (Constants.monitorLock) {
+				Constants.monitorLock.notify();
+			}
+			IntervalPanel intervalPanel = IntervalPanel.getInstance();
+			if(Constants.State!=null && Constants.State.equals("Starting") ) {
+				intervalPanel.getLblHello().setText("Hello "+Constants.Username+", you are live!");
+			}
+			if(Constants.State!=null && Constants.State.equals("Completing") ) {
+				intervalPanel.getLblHello().setText("Hello "+Constants.Username);
+			}
+			System.out.println("done loading tasks");
+			Controller controller= Controller.getInstance();;
+		    String[] args = {"refresh","active",null,null};
+		    controller.refreshBroadcasts(args);
+			BroadcastPanel broadcastPanel = BroadcastPanel.getInstance();
+			broadcastPanel.setData(controller.getBroadcasts());
+			broadcastPanel.refresh();
+		} catch (MessagingException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IOException
+				 | InvalidAlgorithmParameterException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	

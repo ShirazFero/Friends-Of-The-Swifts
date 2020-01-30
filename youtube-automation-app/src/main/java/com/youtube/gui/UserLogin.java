@@ -31,6 +31,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -38,6 +39,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 import java.awt.event.ActionEvent;
 import javax.swing.JCheckBox;
+import java.awt.SystemColor;
 
 public class UserLogin extends JFrame implements ActionListener {
 
@@ -48,8 +50,14 @@ public class UserLogin extends JFrame implements ActionListener {
 	private JLabel lblForgotPassword;
 	private JButton btnRegister;
 	private JComboBox<?> comboBox;
-	public UserLogin() {
+	private JCheckBox chckbxRememberPassword;
+	private static UserLogin instantce;
+	public UserLogin() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
 		super("Log In");
+		instantce = this;
+		setForeground(SystemColor.inactiveCaption);
+		setBackground(SystemColor.inactiveCaption);
+		getContentPane().setBackground(SystemColor.textHighlightText);
 		getContentPane().setLayout(null);
 		
 		passwordField = new JPasswordField();
@@ -81,9 +89,9 @@ public class UserLogin extends JFrame implements ActionListener {
 		lblNewUser.setBounds(28, 116, 74, 14);
 		getContentPane().add(lblNewUser);
 		
-		JLabel lblWelcomeToYoutube = new JLabel("Welcome to YouTube Automation App ");
+		JLabel lblWelcomeToYoutube = new JLabel("Welcome to YouTube Auto-Broadcast App ");
 		lblWelcomeToYoutube.setFont(new Font("Tahoma", Font.PLAIN, 13));
-		lblWelcomeToYoutube.setBounds(66, 11, 233, 14);
+		lblWelcomeToYoutube.setBounds(66, 11, 277, 14);
 		getContentPane().add(lblWelcomeToYoutube);
 		
 		lblForgotPassword = new JLabel("Forgot my password");
@@ -145,25 +153,57 @@ public class UserLogin extends JFrame implements ActionListener {
 			comboBox = new JComboBox<Object>();
 		comboBox.setBounds(100, 34, 112, 20);
 		comboBox.setEditable(true);
+		comboBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				// TODO Auto-generated method stub
+				try {
+					chckbxRememberPassword.setSelected(getRememberPass());
+				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+						| InvalidAlgorithmParameterException | IOException | ParseException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		});
 		getContentPane().add(comboBox);
 		
-		JCheckBox chckbxRememberPassword = new JCheckBox("remember password");
+		chckbxRememberPassword = new JCheckBox("remember password");
+		chckbxRememberPassword.setBackground(SystemColor.textHighlightText);
 		chckbxRememberPassword.setBounds(24, 83, 158, 23);
+		chckbxRememberPassword.setSelected(getRememberPass());
+		if(chckbxRememberPassword.isSelected()) {
+			 Controller cont = Controller.getInstance();
+        	 String user=(String)comboBox.getSelectedItem();
+        	 if(cont.userExists(user)) {
+        		 passwordField.setText(getUserPasswordEmail(user,true));
+        	 }
+		}
+		
 		chckbxRememberPassword.addItemListener(new ItemListener() {    
-             public void itemStateChanged(ItemEvent e) {                 
-                if(e.getStateChange()==1) { 
-                	 try {
-                		 String user=(String )comboBox.getSelectedItem();
-                		 passwordField.setText(getUserPasswordEmail(user,true));
-                	 } catch (IOException | ParseException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-                }
-                else
-                	passwordField.setText("");
-             }    	
-          });   
+             public void itemStateChanged(ItemEvent e) {    
+            	 try {
+            		 Controller cont = Controller.getInstance();
+	            	 String user=(String)comboBox.getSelectedItem();
+	            	 if(cont.userExists(user)) {
+		            	 if(e.getStateChange()==1) { 
+	                		 passwordField.setText(getUserPasswordEmail(user,true));
+	                		 if(Constants.SavedUsers!=null)
+	                			 setRememberPassword(user,Boolean.parseBoolean("true"));
+		            	 }
+		                 else {
+			                		passwordField.setText("");
+									setRememberPassword(user,Boolean.parseBoolean("false"));
+		                }
+            	 	}    	
+            	 } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+						| InvalidAlgorithmParameterException | IOException | ParseException e2) {
+					// TODO Auto-generated catch block
+					e2.printStackTrace();
+            	 }
+        	 }
+         });   
+        
 		getContentPane().add(chckbxRememberPassword);
 		
 		
@@ -173,12 +213,37 @@ public class UserLogin extends JFrame implements ActionListener {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 	
+	/**
+	 * @return the instantce
+	 */
+	public static UserLogin getInstantce() {
+		return instantce;
+	}
+
+	private boolean getRememberPass() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
+		// TODO Auto-generated method stub
+		Controller cont = Controller.getInstance();
+   	 	String username= (String) comboBox.getSelectedItem();
+   	 	if(cont.userExists(username)) {
+			FileEncrypterDecrypter fileEncDec = new FileEncrypterDecrypter(Constants.SecretKey,"AES/CBC/PKCS5Padding");
+			String data = fileEncDec.decrypt(Constants.AppUserPath);
+			JSONParser parser = new JSONParser();
+			JSONArray userArray = (JSONArray) ((JSONObject) parser.parse(data)).get("User List");
+			@SuppressWarnings("unchecked")
+			Iterator<JSONObject> Iterator = userArray.iterator();
+			for(int i=0 ;i<Constants.SavedUsers.length;i++) {
+				JSONObject user = (JSONObject) Iterator.next().get("User");
+				if(username.equals((String) user.get("username")))
+					return Boolean.parseBoolean((String) user.get("rememberpass"));
+			}
+   	 	}
+		return false;
+	}
+
 	public String getUserPasswordEmail(String username , boolean flag) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
-		String passOrmail = "";
-		if(flag)
-			passOrmail = "password";
-		else
-			passOrmail = "email";
+		
+		String passOrmail = flag ? "password":   "email";
+		
 		FileEncrypterDecrypter fileEncDec = new FileEncrypterDecrypter(Constants.SecretKey,"AES/CBC/PKCS5Padding");
 		String data = fileEncDec.decrypt(Constants.AppUserPath);
 		JSONParser parser = new JSONParser();
@@ -191,6 +256,35 @@ public class UserLogin extends JFrame implements ActionListener {
 				return (String) user.get(passOrmail);
 		}
 		return null;
+	}
+	
+	/**
+	 * @return the comboBox
+	 */
+	public JComboBox<?> getComboBox() {
+		return comboBox;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void setRememberPassword(String username ,Boolean rememberPass) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException { 
+		FileEncrypterDecrypter fileEncDec = new FileEncrypterDecrypter(Constants.SecretKey,"AES/CBC/PKCS5Padding");
+		String data = fileEncDec.decrypt(Constants.AppUserPath);
+		JSONParser parser = new JSONParser();
+		JSONArray userArray = (JSONArray) ((JSONObject) parser.parse(data)).get("User List");
+		Iterator<JSONObject> Iterator = userArray.iterator();
+		for(int i=0 ;i<Constants.SavedUsers.length;i++) {
+			JSONObject user = (JSONObject) Iterator.next().get("User");
+			if(username.equals((String) user.get("username")))
+				user.put("rememberpass",rememberPass.toString());
+		}
+		JSONObject jsonObject =new JSONObject();
+		jsonObject.put("User List", userArray);
+		FileWriter file = new FileWriter(System.getProperty("user.home")+"\\Documents\\AppUsers.json");
+		file.write(jsonObject.toJSONString());
+		System.out.println("Successfully updated remember password New User And Saved JSON Object to File...");
+		//System.out.println("\nJSON Object: " + jsonObject);
+		file.close();
+		fileEncDec.encrypt(jsonObject.toString(), Constants.AppUserPath);
 	}
 	
 	@Override
@@ -219,12 +313,13 @@ public class UserLogin extends JFrame implements ActionListener {
 											});
 										dispose();
 								}
-				else {
-							System.out.println("wrong username/password entered please try again");
-							lblwrongPassword.setVisible(true);
-					}
-				
+								else {
+										System.out.println("wrong username/password entered please try again");
+										lblwrongPassword.setVisible(true);
+								}
+							
 							break;
+			
 			case "Register": System.out.println("register");
 							// open registration page
 							SwingUtilities.invokeLater(new Runnable() {
@@ -240,5 +335,10 @@ public class UserLogin extends JFrame implements ActionListener {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public void refreshUsers() {
+		if(Constants.SavedUsers!=null)
+			comboBox = new JComboBox<Object>(Constants.SavedUsers);
 	}
 }

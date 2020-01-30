@@ -6,6 +6,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
 import com.google.api.services.youtube.model.LiveBroadcast;
+import com.youtube.api.ErrorHandler;
 import com.youtube.api.YouTubeAPI;
 import com.youtube.utils.Constants;
 
@@ -24,23 +25,22 @@ public class UpdateTasks extends SwingWorker<Void, Void>{
 		}
 		
 		if(!Badresults.isEmpty()) {
-			String massage  = "Descriptions of following Broadcasts weren't set correctly to ";
+			String massage  = "Descriptions of following Broadcasts weren't set correctly to:  \r\n";
 			for(String title : Badresults) {
-				massage += title + ",\r\n ";
+				massage += title +" ERROR code: " + Constants.ErrorArgs[0] + ", ERROR message : "+ Constants.ErrorArgs[1]+ ",\r\n ";
 			}
-			massage += "please check internet connection"; 
-				JOptionPane.showMessageDialog(null,massage,"Server request ERROR",JOptionPane.ERROR_MESSAGE);
+			ErrorHandler.HandleMultipleError(massage);
+			return null;
 		}
 		
 		JOptionPane.showMessageDialog(null,"Description updated","Completed",JOptionPane.INFORMATION_MESSAGE);	
 		return null;
 	}
 
-	
 	@Override
 	public void done() {
 		setProgress(100);
-		System.out.println("done");
+		System.out.println("done updating descriptions");
 		
 	}
 }

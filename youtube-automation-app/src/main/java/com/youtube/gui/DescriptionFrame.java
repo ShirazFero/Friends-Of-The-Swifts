@@ -3,9 +3,9 @@ package com.youtube.gui;
 import javax.swing.JFrame;
 import org.json.simple.parser.ParseException;
 
+import com.google.api.services.youtube.model.LiveStream;
+import com.youtube.api.YouTubeAPI;
 import com.youtube.controller.Controller;
-import com.youtube.utils.Constants;
-
 import javax.swing.JLabel;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JButton;
@@ -69,6 +69,8 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 		
 		textArea = new JTextArea();
 		textArea.setLineWrap(true);
+		textArea.setText("Click on Stream's name to edit it's description");
+		
 		
 		scrollPane_1.setViewportView(textArea);
 		
@@ -111,19 +113,25 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 				                JOptionPane.ERROR_MESSAGE);
 						return;
 					}
-					String ID = Controller.getInstance().getID(list.getSelectedValue());
-					Constants.StreamDescription.replace(ID, newDescription);
-					JOptionPane.showMessageDialog(null,
-							list.getSelectedValue() + " Description succssesfully changed.",
-			                "Completed",
-			                JOptionPane.PLAIN_MESSAGE);
-				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-						| InvalidAlgorithmParameterException | IOException | ParseException e1) {
+					String StreamName = list.getSelectedValue();
+					LiveStream stream =null;
+					if(StreamName!=null) {
+						stream  = YouTubeAPI.getStreamByName(StreamName);
+					}
+					if(stream!=null) {
+						YouTubeAPI.updateStreamDescription(newDescription, stream);
+						//Constants.StreamDescription.replace(ID, newDescription);
+						//System.out.println("description replaced: "+ Constants.StreamDescription.get(ID));
+						JOptionPane.showMessageDialog(null,
+								list.getSelectedValue() + " Description succssesfully changed.",
+				                "Completed",
+				                JOptionPane.PLAIN_MESSAGE);
+						Controller.getInstance().refreshStreams();
+					}
+				} catch (IOException | ParseException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException  e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-				
-				
 			}
 		});
 		SetDescription.setBounds(260, 175, 144, 23);
@@ -145,6 +153,18 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 		setLocationRelativeTo(null);
 	}
 
+	public void refresh() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IOException {
+		list.setModel(new AbstractListModel<String>() {
+			private static final long serialVersionUID = 1L;
+			String titles[] = Controller.getInstance().getStreamTitles();
+			public int getSize() {
+				return titles.length;
+			}
+			public String getElementAt(int index) {
+				return titles[index];
+			}
+		});
+	}
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
@@ -160,18 +180,20 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 		// TODO Auto-generated method stub
 		try {
 		
-		String ID = Controller.getInstance().getID(list.getSelectedValue());
-		//System.out.println(ID);
-		
-		//System.out.println(idDes);
-		String description = Constants.StreamDescription.get(ID);
-		//System.out.println(description);
-		if (!arg0.getValueIsAdjusting()) {
-			   textArea.setText(description);
+			String StreamName = list.getSelectedValue(),description=null;
+				LiveStream stream =null;
+			if(StreamName!=null) {
+				stream  = Controller.getInstance().getStreamByName(StreamName);
 			}
-			
-		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-				| InvalidAlgorithmParameterException | IOException | ParseException e) {
+			if(stream!=null)
+				 description = stream.getSnippet().getDescription();
+	
+			//set current description to text field
+			if (!arg0.getValueIsAdjusting() && description!=null) {
+				   textArea.setText(description);
+			}
+				
+		} catch (IOException | ParseException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException  e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

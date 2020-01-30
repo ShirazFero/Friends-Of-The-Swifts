@@ -28,17 +28,22 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 		int progress = 0;
 		new YouTubeAPI(null);			//generate youtube instance authorize it
 		setProgress(progress+=33);
-		controller.refreshStreams();		//get initial streams
+		if(!controller.refreshStreams()) {			//get initial streams
+			System.out.println("failed");
+			System.exit(1);
+		}
 		setProgress(progress+=33);
 		String[] args = {"init","active",null,null};
-		controller.refreshBroadcasts(args);	//get initial broadcasts
+		if(!controller.refreshBroadcasts(args)){	//get initial broadcasts
+			System.out.println("failed");
+			System.exit(1);
+		}
 		setProgress(progress+=34);
 		return null;
 	}
 	
 	@Override
 	public void done() {
-	    setProgress(100);
 	    Toolkit.getDefaultToolkit().beep();
 	    SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
