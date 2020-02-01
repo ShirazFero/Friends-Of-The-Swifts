@@ -57,7 +57,6 @@ public class Constants {
 	public static ArrayList<LiveStream> StreamToRemove;		  //Streams pointer 
 	public static ArrayList<String> LiveId = null;			  //current Live broadcasts Id's
 	public static Object monitorLock = new Object();
-	public static Object loadLock = new Object();
 }
  
 
