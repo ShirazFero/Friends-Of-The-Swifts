@@ -2,18 +2,17 @@ Friends of Swifts
 ------------------------
 this is a test
 ------------------------
-This is a Live broadcast automation Script with Gui.
-Before Using please make sure you have installed your Ip cameras on your local network and you have their IP addresses,
-otherwise see instructions on installing your cameras on your local network here: __LINK__
 
-Usage Instructions:
+
+Usage Instructions1:
 ----------------------
 
-Initializing:(do it once)
+Setting up Local Camera server
 ----------------------
+1.Connect Ip Cameras to your local network, Install HiP2P client and turn all cameras on,make sure you they work and get their IP addresses,
+watch instructions on installing your cameras on your local network here: __LINK__
 
-
-1.download and install OBS studio on your pc at https://obsproject.com/download 
+2.download and install OBS studio on your pc at https://obsproject.com/download 
 
 3.set OBS studio and set all camera rtmp streams to OBS and add a scene for each camera and add a Scene to each camera, watch video at __LINK__ 
   
@@ -32,32 +31,29 @@ Initializing:(do it once)
 		  
   step 5: set up bitrate 
   
-  __Remember:__ Total upload speed is an important factor of broadcast bitrate of each camera.
-  - preform a speed test at https://www.speedtest.net/ and get yor upload speed
-  - calculate the birate: bitrate = uploadSpeed/numberOfcameras
+		  __Remember:__ Total upload speed is an important factor of broadcast bitrate of each camera.
+		  - preform a speed test at https://www.speedtest.net/ and get yor upload speed
+		  - calculate the birate: bitrate = uploadSpeed/numberOfcameras
   
 		  click on settings ->click output -> in bitrate field enter bitrate youv'e caculated -> click apply ->click OK
 		  
   step 6: set Frames per Second 10-30 depending on latency 
   
 		  click on settings -> click on Video ->in FPS field enter desired FPS -> click apply -> click OK
-			
-3.make sure Live streaming on YouTube is enabled on your account if not please enable it, watch video at __LINK__ 
-
-4.create a new live event on YouTube and go to ingestion setting and add the amount of cameras needed, watch video at __LINK__ 
-
-5.make sure to generate reusable Streaming key depending on the amount of cameras needed for broadcast, watch video at __LINK__ 
-
-6.make sure to set the output resolution same as base resolution:  
+		  
+  step 7: make sure to set the output resolution same as base resolution:  
 
 			click Settings -> click video -> set Base ressolution equal to Output resolution.
+			
+4.Enable Live streaming on YouTube is enabled on your account if not please enable it at  https://www.youtube.com/features , watch video at __LINK__ 
+
 
 
 Before running App:(before starting broadcast)
 ----------------------
 1.open OBS studio with number of instances depending on number of cameras needed for broadcast
 
-2.at every instance of OBS studio go to Settings->stream and at the stream key field enter one reusable key that you generated
+2.at every instance of OBS studio go to Settings->stream and at the stream key field enter one reusable key that you generated 
 
 3.set every instance to a scene of a different camera
 
