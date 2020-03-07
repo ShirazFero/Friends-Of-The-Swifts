@@ -63,7 +63,7 @@ public class YouTubeAPI {
 		    
 		    // This object is used to make YouTube Data API requests.
 		    youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
-		            .setApplicationName("youtube-automation-app").build();
+		            .setApplicationName("YABA").build();
 		    
 		    
 		} catch (GoogleJsonResponseException e) {
@@ -448,8 +448,8 @@ public class YouTubeAPI {
 	    do{
 	    	  List<LiveBroadcast> returnedList = returnedListResponse.getItems();
 	    	  for (LiveBroadcast broadcast : returnedList) {
-	       	  if(broadcast.getId().equals(id))
-	       		 return broadcast;
+		       	  if(broadcast.getId().equals(id))
+		       		 return broadcast;
 	    	  }
 	    	  if(nextPage!=null) {
 	        	liveBroadcastRequest.setPageToken(nextPage);
@@ -460,4 +460,15 @@ public class YouTubeAPI {
         
       return null;
    }
+ 	
+ 	
+ 	
+ 	public static LiveBroadcast getBroadcastFromPolledList(String id) throws IOException {
+    	
+ 		for (LiveBroadcast broadcast : Constants.PolledBroadcasts) {
+	       	  if(broadcast.getId().equals(id))
+	       		 return broadcast;
+ 		}
+ 		return null;
+ 	}
 }

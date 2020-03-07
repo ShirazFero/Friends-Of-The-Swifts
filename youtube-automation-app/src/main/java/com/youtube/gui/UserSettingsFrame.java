@@ -12,6 +12,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import java.awt.Font;
 import java.awt.Color;
@@ -36,6 +37,11 @@ public class UserSettingsFrame extends JPanel implements ActionListener{
 		setBackground(SystemColor.textHighlightText);
 		setLayout(null);
 		
+		JLabel lblNewLabel = new JLabel("");
+		lblNewLabel.setBounds(290, 0, 78, 105);
+		lblNewLabel.setIcon(new ImageIcon(getClass().getResource("/YABA2.png")));
+		add(lblNewLabel);
+		
 		JLabel lblStreamSetttings = new JLabel(" Stream Setttings");
 		lblStreamSetttings.setFont(new Font("Tahoma", Font.BOLD, 13));
 		lblStreamSetttings.setBounds(6, 136, 118, 16);
@@ -48,7 +54,7 @@ public class UserSettingsFrame extends JPanel implements ActionListener{
 		
 		JLabel lblUserSettings = new JLabel("User settings");
 		lblUserSettings.setFont(new Font("Tahoma", Font.BOLD, 13));
-		lblUserSettings.setBounds(10, 83, 125, 16);
+		lblUserSettings.setBounds(10, 46, 125, 16);
 		add(lblUserSettings);
 		
 		String formats[]  = {"1080p","1440p_hfr","1440p","1080p_hfr","720p_hfr","720p","480p","360p","240p"};
@@ -132,6 +138,21 @@ public class UserSettingsFrame extends JPanel implements ActionListener{
 		lblSettings.setFont(new Font("Tahoma", Font.BOLD, 17));
 		lblSettings.setBounds(10, 11, 89, 32);
 		add(lblSettings);
+		
+		JCheckBox chckbxSaveloadUserState = new JCheckBox("Save/Load User state");
+		chckbxSaveloadUserState.setBackground(SystemColor.textHighlightText);
+		chckbxSaveloadUserState.setBounds(6, 82, 195, 23);
+		chckbxSaveloadUserState.setSelected(Constants.saveState);
+		chckbxSaveloadUserState.addItemListener( new ItemListener() {    
+            public void itemStateChanged(ItemEvent e) { 
+            	switch(e.getStateChange()) {
+            	case 1:Constants.saveState = true;break;
+            	case 2:Constants.saveState = false; break;
+            	}
+            }
+            
+		});
+		add(chckbxSaveloadUserState);
 	}
 
 	/**

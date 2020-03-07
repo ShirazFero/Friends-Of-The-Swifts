@@ -67,9 +67,9 @@ public class ButtonPanel extends JPanel implements ActionListener {
 		StopIntbtn.setBounds(10, 130, 238, 114);
 		
 		LiveStreamsbtn.setBounds(10, 250, 238, 114);
-		LiveStreamsbtn.setIcon(new ImageIcon(getClass().getResource("/youtubeicon.png")));
+		LiveStreamsbtn.setIcon(new ImageIcon(getClass().getResource("/liveicon6.png")));
 		LiveStreamsbtn.setBackground(Color.WHITE);
-		LiveStreamsbtn.setForeground(new Color(204, 0, 0));
+		LiveStreamsbtn.setForeground(new Color(100, 149, 237));
 		LiveStreamsbtn.setFont(new Font("Tahoma", Font.BOLD, 25));
 		
 		Studiobtn.setIcon(new ImageIcon(getClass().getResource("/studio.png")));

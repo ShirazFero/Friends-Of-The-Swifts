@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-
 import javax.crypto.NoSuchPaddingException;
 import javax.mail.MessagingException;
 import javax.swing.SwingWorker;
 
+import com.youtube.api.ErrorHandler;
 import com.youtube.gui.BroadcastPanel;
 import com.youtube.gui.IntervalPanel;
 import com.youtube.utils.Constants;
@@ -21,12 +21,13 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 		int lastIsLiveValue = Constants.isLive, addToProgress=0;
 		while(Constants.isLive>0) {
 			Thread.sleep(1000);
-				if(lastIsLiveValue>Constants.isLive) {
-					addToProgress = (lastIsLiveValue-Constants.isLive)*percentage; //calc the percentage to add
-					progress+=addToProgress;	//add percentage
-					setProgress(progress);	//set progress
-					lastIsLiveValue = Constants.isLive;
-				}
+			
+			if(lastIsLiveValue>Constants.isLive) {
+				addToProgress = (lastIsLiveValue-Constants.isLive)*percentage; //calc the percentage to add
+				progress+=addToProgress;	//add percentage
+				setProgress(progress);	//set progress
+				lastIsLiveValue = Constants.isLive;
+			}
 		}
 		return null;
 	}
@@ -36,16 +37,20 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 	public void done() {
 		//prompt active broadcasts to broadcast panel
 		try {
+			Constants.pollingState = false;
 			// prepare failure message
-			if(Constants.SendEmail && Constants.badResults!=null && !Constants.badResults.isEmpty()) {
+			if(Constants.badResults!=null && !Constants.badResults.isEmpty()) {
 				String allTitles =" ";
 				for(String title:Constants.badResults) {
-					allTitles+= title +",\n";
+						allTitles+= title +",\n";
+					}
+				if(Constants.SendEmail) {
+					  //send failure message
+						MailUtil.sendMail(Constants.UserEmail,"Server request problem",
+								"Problem starting Broadcasts:\n"+ allTitles +",\n"+
+				                "please check manually at " +Constants.LiveStreamUrl);
 				}
-				  //send failure message
-					MailUtil.sendMail(Constants.UserEmail,"Server request problem",
-							"Problem starting Broadcasts:\n"+ allTitles +",\n"+
-			                "please check manually at " +Constants.LiveStreamUrl);
+				ErrorHandler.HandleMultipleError(allTitles);
 			}
 			synchronized (Constants.monitorLock) {
 				Constants.monitorLock.notify();
@@ -58,7 +63,7 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 				intervalPanel.getLblHello().setText("Hello "+Constants.Username);
 			}
 			System.out.println("done loading tasks");
-			Controller controller= Controller.getInstance();;
+			Controller controller = Controller.getInstance();
 		    String[] args = {"refresh","active",null,null};
 		    controller.refreshBroadcasts(args);
 			BroadcastPanel broadcastPanel = BroadcastPanel.getInstance();

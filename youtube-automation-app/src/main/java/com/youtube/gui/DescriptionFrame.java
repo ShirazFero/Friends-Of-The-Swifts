@@ -10,6 +10,7 @@ import javax.swing.JLabel;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JButton;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -47,7 +48,7 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 	public DescriptionFrame() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
 		setTitle("Set Description");
 		getContentPane().setLayout(null);
-		
+		this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/YABAWB.png")));
 		JButton btnOk = new JButton("OK");
 		btnOk.setBounds(125, 209, 89, 23);
 		btnOk.addActionListener(this);

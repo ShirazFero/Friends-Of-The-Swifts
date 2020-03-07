@@ -3,6 +3,7 @@ package com.youtube.gui;
 import javax.swing.JPanel;
 import com.youtube.utils.Constants;
 
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -33,49 +34,62 @@ public class IntervalPanel extends JPanel implements ActionListener{
 		
 		lblHello = new JLabel("Hello "+Constants.Username);
 		lblHello.setFont(new Font("Tahoma", Font.PLAIN, 20));
-		lblHello.setBounds(10, 49, 312, 23);
+		lblHello.setBounds(0, 50, 312, 49);
 		add(lblHello);
 		
 		
 		JLabel lblInterval = new JLabel("Interval:");
 		lblInterval.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		lblInterval.setBounds(10, 83, 87, 28);
+		lblInterval.setBounds(0, 101, 87, 28);
 		add(lblInterval);
 		
 		JLabel lblStartTime = new JLabel("Start Time:");
 		lblStartTime.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		lblStartTime.setBounds(10, 122, 114, 21);
+		lblStartTime.setBounds(0, 140, 114, 21);
 		add(lblStartTime);
 		
 		JLabel lblEndTime = new JLabel("End Time:");
 		lblEndTime.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		lblEndTime.setBounds(10, 154, 114, 28);
+		lblEndTime.setBounds(0, 172, 114, 28);
 		add(lblEndTime);
 		
 		lblNotSet = new JLabel("Interval is not set");
 		lblNotSet.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		lblNotSet.setBounds(122, 83, 249, 28);
+		lblNotSet.setBounds(100, 101, 249, 28);
 		add(lblNotSet);
 		
 		lblstime = new JLabel("stime");
 		lblstime.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		lblstime.setBounds(122, 118, 262, 28);
+		lblstime.setBounds(100, 136, 262, 28);
 		add(lblstime);
 		lblstime.setVisible(false);
 		
 		ftime = new JLabel("ftime");
 		ftime.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		ftime.setBounds(122, 154, 262, 28);
+		ftime.setBounds(100, 172, 262, 28);
 		add(ftime);
 		ftime.setVisible(false);
-		
-		setSize(394, 205);
+		Color c =  Color.decode("#CF1717");
+		setSize(388, 225);
 		setLocation(257, 10);
-		JLabel lblYoutubeAutobroadcastApp = new JLabel("YouTube Auto-Broadcast App");
-		lblYoutubeAutobroadcastApp.setForeground(new Color(100, 149, 237));
+		JLabel lblYoutubeAutobroadcastApp = new JLabel("<html>YouTube Auto Broadcast App</html>");
+		lblYoutubeAutobroadcastApp.setForeground(c);
 		lblYoutubeAutobroadcastApp.setFont(new Font("Tahoma", Font.BOLD, 20));
-		lblYoutubeAutobroadcastApp.setBounds(58, 11, 313, 29);
+		lblYoutubeAutobroadcastApp.setBounds(0, -5, 312, 68);
 		add(lblYoutubeAutobroadcastApp);
+		
+//		JLabel lblBrdapp = new JLabel("<html>Broadcast App</html>");
+//		lblBrdapp.setEnabled(false);
+//		lblBrdapp.setFont(new Font("Tahoma", Font.BOLD, 20));
+//		
+//		lblBrdapp.setForeground(c);
+//		lblBrdapp.setBounds(115, 18, 187, 68);
+//		add(lblBrdapp);
+		
+		JLabel lblNewLabel = new JLabel("");
+		lblNewLabel.setBounds(300, -5, 78, 105);
+		lblNewLabel.setIcon(new ImageIcon(getClass().getResource("/YABA2.png")));
+		add(lblNewLabel);
 		
 	}
 	
