@@ -21,11 +21,13 @@ import com.youtube.controller.Controller;
 
 import javax.swing.JPasswordField;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import java.awt.Color;
 import java.awt.Dimension;
 import javax.swing.JTextPane;
 import java.awt.SystemColor;
+import java.awt.Toolkit;
 
 public class RegistrationForm extends JFrame implements ActionListener{
 	
@@ -38,6 +40,7 @@ public class RegistrationForm extends JFrame implements ActionListener{
 	private JLabel lblBadInputMsg;
 	
 	public RegistrationForm() {
+		this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/YABAWB.png")));
 		getContentPane().setBackground(SystemColor.textHighlightText);
 		getContentPane().setFont(new Font("Tahoma", Font.PLAIN, 13));
 		getContentPane().setLayout(null);
@@ -61,6 +64,11 @@ public class RegistrationForm extends JFrame implements ActionListener{
 		lblNewLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		lblNewLabel.setBounds(178, 11, 135, 19);
 		getContentPane().add(lblNewLabel);
+		
+		JLabel lblNewLabel1 = new JLabel("");
+		lblNewLabel1.setBounds(367, -11, 78, 105);
+		lblNewLabel1.setIcon(new ImageIcon(getClass().getResource("/YABA2.png")));
+		getContentPane().add(lblNewLabel1);
 		
 		usernameField = new JTextField();
 		usernameField.setBounds(161, 65, 174, 20);
@@ -114,7 +122,7 @@ public class RegistrationForm extends JFrame implements ActionListener{
 		txtpnpasswordMustHave.setEditable(false);
 		txtpnpasswordMustHave.setFont(new Font("Tahoma", Font.PLAIN, 11));
 		txtpnpasswordMustHave.setText("Password  Rules: \r\n- at least 8 characters long\r\n- one digit 1-9\r\n- one lower case letter\r\n- one Uupper case letter\r\n- one  special character @,#,$,%,^,&,+,= \r\n- no spaces allowed\r\n");
-		txtpnpasswordMustHave.setBounds(356, 65, 178, 141);
+		txtpnpasswordMustHave.setBounds(345, 83, 178, 141);
 		getContentPane().add(txtpnpasswordMustHave);
 		lblBadInputMsg.setVisible(false);
 

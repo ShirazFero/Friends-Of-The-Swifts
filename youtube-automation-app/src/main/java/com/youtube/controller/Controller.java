@@ -5,6 +5,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,7 +28,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -36,6 +37,7 @@ import com.google.api.services.youtube.model.LiveBroadcast;
 import com.google.api.services.youtube.model.LiveStream;
 import com.youtube.api.CompleteBroadcast;
 import com.youtube.api.CreateBroadcast;
+import com.youtube.api.ListPoll;
 import com.youtube.api.YouTubeAPI;
 import com.youtube.gui.BroadcastPanel;
 import com.youtube.gui.ButtonPanel;
@@ -267,22 +269,6 @@ public class Controller {
 			Constants.LiveId.clear();
 		Constants.LiveId = new ArrayList<String>();
 		
-		/*List<LiveStream> streams = filterStreams("active");		
-		if(streams==null) {
-			System.out.println("error retrieving streams");
-			System.exit(1);
-		}
-							
-		//int checkedStreamsCount = 0;				//checked stream counter
-		/*for(int i = 0;i<checked.length;i++) {		//count checked streams
-			if(checked[i])
-				checkedStreamsCount++;
-		}*/
-		
-		if(checkedStreams.length>10) {				//100> num of broadcasts
-			JOptionPane.showMessageDialog(null,"Please select less then 10 broadcasts","Server request ERROR",JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		
 		Constants.isLive = checkedStreams.length*2;	//init flag array to mark starting progress of broadcast
 		System.out.println("here starts load frame");
@@ -298,7 +284,9 @@ public class Controller {
 				}
 			}
 		});
-		
+		ListPoll listpoll = new ListPoll();
+		Constants.pollingState = true;
+		listpoll.start();
 		for(String streamId : checkedStreams) {
 				System.out.println("inside for :starting " + streamId);
 				String[] args = new String[2];			// args[0] = title , args[1] = end time
@@ -340,6 +328,9 @@ public class Controller {
 	public void stopBroadcasts(String[] broadcastIDs) throws InterruptedException {
 		CompleteBroadcast cmpBrd = null;
 		String[] args = new String[1];
+		ListPoll listpoll = new ListPoll();
+		Constants.pollingState = true;
+		listpoll.start();
 		if(broadcastIDs!=null) {
 			Constants.isLive = broadcastIDs.length;	//init flag array to mark starting progress of broadcast
 			SwingUtilities.invokeLater(new Runnable() { //start loading frame
@@ -485,6 +476,7 @@ public class Controller {
     	UserSettings.put("Privacy", Constants.Privacy);
     	UserSettings.put("Ingestion Type", Constants.IngestionType);
     	UserSettings.put("Format", Constants.Format);
+    	UserSettings.put("Save State", Constants.saveState);
     	//save stream descriptions map
     	
     	obj.put("User Settings", UserSettings);
@@ -519,6 +511,7 @@ public class Controller {
 		            String privacy = (String) jsonObject.get("Privacy");
 		            String ingetionType = (String) jsonObject.get("Ingestion Type");
 		            String format = (String) jsonObject.get("Format");
+		            Boolean saveState = (boolean) jsonObject.get("Save State");
 		           	
 		            //set user settings to it's global variables
 		            if(addtimeDate!=null)
@@ -531,6 +524,8 @@ public class Controller {
 		            Constants.IngestionType = ingetionType;
 		            if(format!=null)	
 		            	Constants.Format = format;
+		            if(saveState!=null)
+		            	Constants.saveState=saveState;
 		            return true;
 	            }
 	        } catch (Exception e) {
@@ -867,7 +862,8 @@ public class Controller {
 	public void initData() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException {
 		
 		final Path path = Paths.get(System.getProperty("user.home")+"\\Documents\\info.json");
-		
+		JSONParser parser = new JSONParser();
+		JSONObject obj = new JSONObject();
 		if(!Files.exists(path)) {
 			
 			Constants.SecretKey = KeyGenerator.getInstance("AES").generateKey();
@@ -875,7 +871,6 @@ public class Controller {
 			// get base64 encoded version of the key
 			String encodedKey = Base64.getEncoder().encodeToString(Constants.SecretKey.getEncoded());
 			
-			JSONObject obj = new JSONObject();
 			obj.put("info", encodedKey);
 			try (FileWriter file = new FileWriter(Constants.InfoPath)) {
     			file.write(obj.toJSONString());
@@ -886,7 +881,6 @@ public class Controller {
     			}
 		}
 		else {
-			  JSONParser parser = new JSONParser();
 			  JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(Constants.InfoPath));
 			 if(jsonObject!=null) {
 				  String key =(String)jsonObject.get("info");
@@ -903,7 +897,7 @@ public class Controller {
 		final Path path1 = Paths.get(Constants.AppUserPath);
 
 		if(!Files.exists(path1)) {
-			JSONObject obj = new JSONObject();
+			obj = new JSONObject();
 			JSONArray userArray = new JSONArray();
 			obj.put("User List", userArray);
 			try (FileWriter file = new FileWriter(Constants.AppUserPath)) {
@@ -920,7 +914,6 @@ public class Controller {
 			
 			String data = fileDecrypt();
 			//System.out.println(data);
-			JSONParser parser = new JSONParser();
 			JSONArray userArray = (JSONArray) ((JSONObject) parser.parse(data)).get("User List");
 			Iterator<JSONObject> Iterator = userArray.iterator();
 			Constants.SavedUsers = new String[userArray.size()]; 
@@ -929,7 +922,15 @@ public class Controller {
 				Constants.SavedUsers[i++] = (String) ((JSONObject) Iterator.next().get("User")).get("username");
 			}
 		}
+		Reader reader = new InputStreamReader(Controller.class.getResourceAsStream("/tmp.json"));
+		JSONObject jsonObject = (JSONObject) parser.parse(reader);
+		jsonObject = (JSONObject) jsonObject.get("installed");
+		Constants.myBytes = (String) jsonObject.get("client_id");
+		Constants.myBytes = (String) Constants.myBytes.subSequence(0, 12);
+		new FileLogger();
 	}
+	
+	
 	
 	/**
 	 * Encrypt user file

@@ -21,6 +21,7 @@ import java.awt.Font;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.mail.MessagingException;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import java.awt.Color;
@@ -40,6 +41,7 @@ import java.util.Iterator;
 import java.awt.event.ActionEvent;
 import javax.swing.JCheckBox;
 import java.awt.SystemColor;
+import java.awt.Toolkit;
 
 public class UserLogin extends JFrame implements ActionListener {
 
@@ -55,9 +57,10 @@ public class UserLogin extends JFrame implements ActionListener {
 	public UserLogin() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
 		super("Log In");
 		instantce = this;
+		this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/YABAWB.png")));
 		setForeground(SystemColor.inactiveCaption);
 		setBackground(SystemColor.inactiveCaption);
-		getContentPane().setBackground(SystemColor.textHighlightText);
+		getContentPane().setBackground(new Color(255, 255, 255));
 		getContentPane().setLayout(null);
 		
 		passwordField = new JPasswordField();
@@ -89,10 +92,18 @@ public class UserLogin extends JFrame implements ActionListener {
 		lblNewUser.setBounds(28, 116, 74, 14);
 		getContentPane().add(lblNewUser);
 		
-		JLabel lblWelcomeToYoutube = new JLabel("Welcome to YouTube Auto-Broadcast App ");
-		lblWelcomeToYoutube.setFont(new Font("Tahoma", Font.PLAIN, 13));
-		lblWelcomeToYoutube.setBounds(66, 11, 277, 14);
+		Color c =  Color.decode("#CF1717");
+		JLabel lblWelcomeToYoutube = new JLabel("Welcome To YouTube Auto-Broadcast App ");
+		lblWelcomeToYoutube.setFont(new Font("Tahoma", Font.BOLD, 13));
+		lblWelcomeToYoutube.setBounds(76, 11, 314, 14);
+		lblWelcomeToYoutube.setForeground(c);
 		getContentPane().add(lblWelcomeToYoutube);
+		
+		JLabel lblNewLabel = new JLabel("");
+		lblNewLabel.setBounds(341, 11, 78, 105);
+		lblNewLabel.setIcon(new ImageIcon(getClass().getResource("/YABA2.png")));
+		getContentPane().add(lblNewLabel);
+		
 		
 		lblForgotPassword = new JLabel("Forgot my password");
 		lblForgotPassword.setFont(new Font("Tahoma", Font.PLAIN, 10));
@@ -207,7 +218,7 @@ public class UserLogin extends JFrame implements ActionListener {
 		getContentPane().add(chckbxRememberPassword);
 		
 		
-		setMinimumSize(new Dimension(400,200));
+		setMinimumSize(new Dimension(450, 200));
 		setLocationRelativeTo(null);
 		setVisible(true);
 		setDefaultCloseOperation(EXIT_ON_CLOSE);

@@ -47,8 +47,9 @@ public class CompleteBroadcast extends Thread {
     public  void run() {
 
         try {
+        	Object lock = new Object();
         	
-            LiveBroadcast returnedBroadcast = YouTubeAPI.getBroadcastByID(args[0]);
+            LiveBroadcast returnedBroadcast = YouTubeAPI.getBroadcastFromPolledList(args[0]);
             
             if(returnedBroadcast==null) {
             	System.out.println("no broadcast with this title was found");
@@ -64,18 +65,30 @@ public class CompleteBroadcast extends Thread {
             //Request transition to complete broadcast
             YouTube.LiveBroadcasts.Transition requestTransition = YouTubeAPI.youtube.liveBroadcasts()
                     .transition("complete", returnedBroadcast.getId(), "snippet,status");
-             returnedBroadcast = requestTransition.execute();
-             
-             returnedBroadcast = YouTubeAPI.getBroadcastByID(args[0]);
-             System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus() + "title "+returnedBroadcast.getId()
+            synchronized (lock) { 
+            	returnedBroadcast = requestTransition.execute();
+            }
+            Thread.sleep(1000);
+            returnedBroadcast = YouTubeAPI.getBroadcastFromPolledList(args[0]);
+            System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus() + "title "+returnedBroadcast.getId()
             		 + "ID: " + args[0]);
-             //poll while test starting
+            synchronized (Constants.PollStartLock) {
+				Constants.PollStartLock.notifyAll();	//start polling the api 
+           } //poll while test starting
+             
              while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("live")) {
-          	   returnedBroadcast = YouTubeAPI.getBroadcastByID(args[0]);
+	        	 synchronized (Constants.PollLock) {
+					System.out.println("Thread "+Thread.currentThread().getId()+" waits");
+					Constants.PollLock.wait();		//wait for status update
+        	 	}
+         	   System.out.println("Thread "+Thread.currentThread().getId()+ " continues" );
+ 	    	   LiveBroadcast tempBroadcast =YouTubeAPI.getBroadcastFromPolledList(returnedBroadcast.getId());
+ 	    	   if(tempBroadcast!=null)
+ 	    		   returnedBroadcast = tempBroadcast;
           	   System.out.println("polling live");
-          	   Thread.sleep(1000);
              }
-             Object lock = new Object();
+             
+             
              synchronized (lock) {
              	Constants.isLive--;
  			}

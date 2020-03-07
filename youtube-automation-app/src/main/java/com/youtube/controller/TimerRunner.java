@@ -47,8 +47,8 @@ public class TimerRunner {
 			@Override
 			public void run() {
 				try {
-					System.out.println("---------------------------------------");
-					System.out.println("running handling itervals" +Thread.currentThread().getId());
+					FileLogger.logger.info("---------------------------------------");
+					FileLogger.logger.info("running handling itervals" +Thread.currentThread().getId());
 					
 					Controller controller;
 					controller = Controller.getInstance();
@@ -57,20 +57,19 @@ public class TimerRunner {
 					String[] brdID = new String[Constants.LiveId.size()]; 
 					Constants.LiveId.toArray(brdID);
 					for(String id : brdID) {
-						System.out.println("id list"+id);
+						FileLogger.logger.info("id list"+id);
 					}
 					
 					//----------------start new live broadcasts -------------------------
-					System.out.println("creating broadcasts");
+					FileLogger.logger.info("creating broadcasts");
 					controller.startBroadcast();
 					
 					synchronized (Constants.monitorLock) {
-						System.out.println("---------------Thread waits-------------------");
+						FileLogger.logger.info("---------------Timer waits-------------------");
 						Constants.monitorLock.wait();		//wait until all new broadcasts go live
 						
 					}
-					System.out.println("---------------Thread continues---------------");
-					
+					FileLogger.logger.info("---------------Timer continues---------------");
 					//----------------stop previous live broadcasts
 					controller.stopBroadcasts(brdID);   //on scheduled time complete live broadcasts
 					//System.out.println("calc new time and shcdule timer again");
@@ -131,9 +130,8 @@ public class TimerRunner {
 	}
 	
 	public void cancelTimer() {
-		
 		timer.cancel();	
 		timer.purge();
-		System.out.println("cancelled and purged");
+		FileLogger.logger.info("Timer cancelled and purged");
 	}
 }
