@@ -34,7 +34,7 @@ public class IntervalPanel extends JPanel implements ActionListener{
 		
 		lblHello = new JLabel("Hello "+Constants.Username);
 		lblHello.setFont(new Font("Tahoma", Font.PLAIN, 20));
-		lblHello.setBounds(0, 50, 312, 49);
+		lblHello.setBounds(0, 41, 303, 49);
 		add(lblHello);
 		
 		
@@ -75,7 +75,7 @@ public class IntervalPanel extends JPanel implements ActionListener{
 		JLabel lblYoutubeAutobroadcastApp = new JLabel("<html>YouTube Auto Broadcast App</html>");
 		lblYoutubeAutobroadcastApp.setForeground(c);
 		lblYoutubeAutobroadcastApp.setFont(new Font("Tahoma", Font.BOLD, 20));
-		lblYoutubeAutobroadcastApp.setBounds(0, -5, 312, 68);
+		lblYoutubeAutobroadcastApp.setBounds(0, -9, 312, 68);
 		add(lblYoutubeAutobroadcastApp);
 		
 //		JLabel lblBrdapp = new JLabel("<html>Broadcast App</html>");
@@ -87,7 +87,7 @@ public class IntervalPanel extends JPanel implements ActionListener{
 //		add(lblBrdapp);
 		
 		JLabel lblNewLabel = new JLabel("");
-		lblNewLabel.setBounds(300, -5, 78, 105);
+		lblNewLabel.setBounds(300, -9, 78, 105);
 		lblNewLabel.setIcon(new ImageIcon(getClass().getResource("/YABA2.png")));
 		add(lblNewLabel);
 		

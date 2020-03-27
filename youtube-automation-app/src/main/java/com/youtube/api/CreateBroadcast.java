@@ -140,7 +140,7 @@ public class CreateBroadcast extends Thread{
            //Prompt request status
            System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus());
            
-           int seconds = 0; // second counter for  server response to transition
+           //int seconds = 0; // second counter for  server response to transition
            
            //poll while test starting (wait while starting preview)
            while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("testStarting")) {
@@ -153,12 +153,13 @@ public class CreateBroadcast extends Thread{
 	    	   if(tempBroadcast!=null)
 	    		   returnedBroadcast = tempBroadcast;
 	    	   System.out.println("polling testStarting "+args[0]);
-	    	   if(seconds>90) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to Testing
+	    	   if(Constants.pollingCount==10) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to Testing
 	           		args[0] +=" on Transition to Testing";
-	           		reportError ("90 secs passed no response on testing transiton");
+	           		reportError ("100 secs passed no response on testing transiton");
+	           		return;
 	       		}
-	       		else
-	       			seconds++;
+//	       		else
+//	       			seconds++;
            }
            
            //preview started
@@ -173,7 +174,7 @@ public class CreateBroadcast extends Thread{
             returnedBroadcast = requestLive.execute();
            }
             //poll while live starting (wait while starting live)
-           seconds = 0;
+//           seconds = 0;
            while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("liveStarting")) {
             	
         	   synchronized (Constants.PollLock) {
@@ -186,12 +187,13 @@ public class CreateBroadcast extends Thread{
         	   if(tempBroadcast!=null)
         		   returnedBroadcast = tempBroadcast;
         	   System.out.println("polling liveStarting "+args[0]);
-        	   if(seconds>90) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to live
+        	   if(Constants.pollingCount==10) {	// if more then 100 seconds passed and Broadcast wasn't transitioned to live
         			args[0] +=" on Transition to Live";
-        			reportError(" 90 secs passed no response on live transiton\n");
+        			reportError(" 100 secs passed no response on live transiton\n");
+        			return;
         	   }
-        	   else
-        		   seconds++;
+//        	   else
+//        		   seconds++;
            }
            Thread.sleep(1000);
            returnedBroadcast = YouTubeAPI.getBroadcastFromPolledList(returnedBroadcast.getId());

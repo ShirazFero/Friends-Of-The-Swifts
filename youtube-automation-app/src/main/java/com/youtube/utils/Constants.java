@@ -11,6 +11,7 @@ import com.google.api.services.youtube.model.LiveStream;
 public class Constants {
 	
 	//flags
+	public static volatile int pollingCount;   
 	public static boolean pollingState = false;         //polling flag
 	public static boolean LoadingState = false;			//load state
 	public static boolean IntervalBroadcast = false;	// Interval Broadcast flag

@@ -73,6 +73,7 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 				 | InvalidAlgorithmParameterException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			FileLogger.logger.info(e.toString());
 		}
 	}
 	

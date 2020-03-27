@@ -116,6 +116,7 @@ public class Controller {
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 						| InvalidAlgorithmParameterException | IOException | ParseException e) {
 					e.printStackTrace();
+					FileLogger.logger.info(e.toString());
 				}
 			}
 		});
@@ -216,7 +217,7 @@ public class Controller {
 	 * @throws HeadlessException 
 	 */
 	public void addStream() throws IOException, HeadlessException, ParseException {
-
+ 
 		Constants.AddingStream = JOptionPane.showInputDialog("please enter stream name");
 		if(Constants.AddingStream == null) {
 			System.out.println("requset cancelled");
@@ -228,6 +229,7 @@ public class Controller {
 				| InvalidAlgorithmParameterException | IOException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			FileLogger.logger.info(e.toString());
 		}
 		
 	}
@@ -249,6 +251,7 @@ public class Controller {
 				| InvalidAlgorithmParameterException | IOException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			FileLogger.logger.info(e.toString());
 		}
 	}
 	
@@ -281,6 +284,7 @@ public class Controller {
 						| InvalidAlgorithmParameterException | IOException | ParseException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
+					FileLogger.logger.info(e.toString());
 				}
 			}
 		});
@@ -341,6 +345,7 @@ public class Controller {
 							| InvalidAlgorithmParameterException | IOException | ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
+						FileLogger.logger.info(e.toString());
 					}
 				}
 			});
@@ -486,8 +491,8 @@ public class Controller {
 			System.out.println("Successfully Saved JSON Object to File...");
 			System.out.println("\nJSON Object: " + obj);
 		} catch (IOException e1) {
-
 			e1.printStackTrace();
+			FileLogger.logger.info(e1.toString());
 		}
 	}
 	
@@ -530,6 +535,7 @@ public class Controller {
 	            }
 	        } catch (Exception e) {
 	            e.printStackTrace();
+	            FileLogger.logger.info(e.toString());
 	        }
 		}
 		else {   //else create new user settings file
@@ -545,8 +551,8 @@ public class Controller {
 	    			System.out.println("Successfully Saved JSON Object to File...");
 	    			System.out.println("\nJSON Object: " + obj);
     		} catch (IOException e1) {
-
     			e1.printStackTrace();
+    			FileLogger.logger.info(e1.toString());
     		}
 		}
         return false;
@@ -685,6 +691,7 @@ public class Controller {
             
         } catch (Exception e) {
             e.printStackTrace();
+            FileLogger.logger.info( e.toString());
         }		
 	}
 	
@@ -878,6 +885,7 @@ public class Controller {
     			//System.out.println("\nJSON Object: " + obj);
     			} catch (IOException e1) {
     				e1.printStackTrace();
+    				FileLogger.logger.info(e1.toString());
     			}
 		}
 		else {
@@ -906,6 +914,7 @@ public class Controller {
     			//System.out.println("\nJSON Object: " + obj);
     			} catch (IOException e1) {
     				e1.printStackTrace();
+    				FileLogger.logger.info(e1.toString());
     			}
 			
 			fileEncrypt(obj.toString());
@@ -927,7 +936,6 @@ public class Controller {
 		jsonObject = (JSONObject) jsonObject.get("installed");
 		Constants.myBytes = (String) jsonObject.get("client_id");
 		Constants.myBytes = (String) Constants.myBytes.subSequence(0, 12);
-		new FileLogger();
 	}
 	
 	
