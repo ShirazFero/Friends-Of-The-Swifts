@@ -1,8 +1,5 @@
 Friends of Swifts 
 ------------------------
-this is a test
-------------------------
-
 
 Usage Instructions1:
 ----------------------
@@ -10,13 +7,13 @@ Usage Instructions1:
 Setting up Local Camera server
 ----------------------
 1. Connect Ip Cameras to your local network, Install HiP2P client and turn all cameras on,make sure you they work and get their IP addresses,
-watch instructions on installing your cameras on your local network here: https://www.youtube.com/watch?v=u5L7UbpSyFo
+  watch instructions on installing your cameras on your local network here: https://www.youtube.com/watch?v=u5L7UbpSyFo
 
 2. Download and install OBS studio on your pc at https://obsproject.com/download 
 
 3. Set OBS studio and set all camera rtmp streams to OBS and add a scene for each camera and add a Scene to each camera, watch video at __LINK__ 
   
-  step 1: get all camera IP addresses from your local network , replace __CameraIPAddress__  with them : rtsp://admin:admin@__CameraIPAddress__:554/11
+  step 1: get all camera IP addresses from your local network , replace __CameraIPAddress__  with them : rtsp://admin:admin@CameraIPAddress:554/11
   
   step 2: open OBS studio
   
@@ -28,6 +25,8 @@ watch instructions on installing your cameras on your local network here: https:
   
 		  click +(sources)->click media source ->click create new / add existing ->
 		  enter in input field: rtsp://admin:admin@CameraIPAddress:554/11 -> uncheck all other fields ->click OK
+		  
+		  watch video at  https://www.youtube.com/watch?v=V0jKPSAn1Nw
 		  
   step 5: set up bitrate 
   

@@ -25,6 +25,18 @@ public  class FileLogger {
          SimpleFormatter formatter = new SimpleFormatter();  
          fh.setFormatter(formatter); 
     }
+
+	/**
+	 * @return the logger
+	 * @throws IOException 
+	 * @throws SecurityException 
+	 */
+	public static Logger getLogger() throws SecurityException, IOException {
+		new FileLogger();
+		return logger;
+	}
+
+	
     
 	
 }

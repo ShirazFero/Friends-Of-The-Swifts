@@ -47,8 +47,8 @@ public class TimerRunner {
 			@Override
 			public void run() {
 				try {
-					FileLogger.logger.info("---------------------------------------");
-					FileLogger.logger.info("running handling itervals" +Thread.currentThread().getId());
+					System.out.println("---------------------------------------");
+					System.out.println("running handling itervals" +Thread.currentThread().getId());
 					
 					Controller controller;
 					controller = Controller.getInstance();
@@ -57,19 +57,19 @@ public class TimerRunner {
 					String[] brdID = new String[Constants.LiveId.size()]; 
 					Constants.LiveId.toArray(brdID);
 					for(String id : brdID) {
-						FileLogger.logger.info("id list"+id);
+						System.out.println("id list"+id);
 					}
 					
 					//----------------start new live broadcasts -------------------------
-					FileLogger.logger.info("creating broadcasts");
+					System.out.println("creating broadcasts");
 					controller.startBroadcast();
 					
 					synchronized (Constants.monitorLock) {
-						FileLogger.logger.info("---------------Timer waits-------------------");
+						System.out.println("---------------Timer waits-------------------");
 						Constants.monitorLock.wait();		//wait until all new broadcasts go live
 						
 					}
-					FileLogger.logger.info("---------------Timer continues---------------");
+					System.out.println("---------------Timer continues---------------");
 					//----------------stop previous live broadcasts
 					controller.stopBroadcasts(brdID);   //on scheduled time complete live broadcasts
 					//System.out.println("calc new time and shcdule timer again");
@@ -86,6 +86,7 @@ public class TimerRunner {
 						| NoSuchPaddingException | IOException | InvalidAlgorithmParameterException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
+					FileLogger.logger.info(e1.toString());
 				}
 			}
 		};
@@ -132,6 +133,6 @@ public class TimerRunner {
 	public void cancelTimer() {
 		timer.cancel();	
 		timer.purge();
-		FileLogger.logger.info("Timer cancelled and purged");
+		System.out.println("Timer cancelled and purged");
 	}
 }

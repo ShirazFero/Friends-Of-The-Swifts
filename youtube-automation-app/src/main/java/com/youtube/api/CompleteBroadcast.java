@@ -86,6 +86,10 @@ public class CompleteBroadcast extends Thread {
  	    	   if(tempBroadcast!=null)
  	    		   returnedBroadcast = tempBroadcast;
           	   System.out.println("polling live");
+          	   if(Constants.pollingCount==10) {	// if more then 100 seconds passed and Broadcast wasn't transitioned to live
+	     			reportError();
+	     			return;
+      	 		}
              }
              
              

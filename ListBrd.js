@@ -13,7 +13,7 @@
               function(err) { console.error("Error signing in", err); });
   }
   function loadClient() {
-    gapi.client.setApiKey("YOUR_API_KEY");
+    gapi.client.setApiKey("AIzaSyCDa2u04OK1iE7ih1Ur_F9S9PemzPuURRo");
     return gapi.client.load("https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest")
         .then(function() { console.log("GAPI client loaded for API"); },
               function(err) { console.error("Error loading GAPI client for API", err); });
@@ -21,7 +21,7 @@
   // Make sure the client is loaded and sign-in is complete before calling this method.
   function execute() {
     return gapi.client.youtube.liveBroadcasts.list({
-      "part": "status",
+      "part": "status,id",
       "broadcastStatus": "completed",
       "broadcastType": "event",
       "maxResults": 20
@@ -33,7 +33,7 @@
               function(err) { console.error("Execute error", err); });
   }
   gapi.load("client:auth2", function() {
-    gapi.auth2.init({client_id: "YOUR_CLIENT_ID"});
+    gapi.auth2.init({client_id: "113436928387729198898"});
   });
 </script>
 <button onclick="authenticate().then(loadClient)">authorize and load</button>

@@ -49,7 +49,7 @@ public class mainFrame extends JFrame{
 
 	//----------------------INIT PANELS---------------------
 		
-		super("Control Panel");
+		super("YABA");
 	
 		this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/YABAWB.png")));
 		getContentPane().setBackground(new Color(255, 255, 255));
@@ -102,9 +102,9 @@ public class mainFrame extends JFrame{
 		desFrame.setVisible(false);
 		
 		if(controller.loadUserSettings())
-			FileLogger.logger.info("user settings loaded Successfully"); //Successfully
+			System.out.println("user settings loaded Successfully"); //Successfully
 		else
-			FileLogger.logger.info("new user data file created Successfully");
+			System.out.println("new user data file created Successfully");
 		
 		//init user settings frame
 		UserSettingsFrame userSetPanel = new UserSettingsFrame();
