@@ -11,7 +11,10 @@ import com.google.api.services.youtube.model.LiveStream;
 public class Constants {
 	
 	//flags
-	public static volatile int pollingCount;   
+	public static final boolean Debug = true;
+	public static final int MaxPolls = 10;
+	public static final int MaxPollRsults = 20;
+	public static volatile int pollingCount = 0;   
 	public static boolean pollingState = false;         //polling flag
 	public static boolean LoadingState = false;			//load state
 	public static boolean IntervalBroadcast = false;	// Interval Broadcast flag
@@ -41,11 +44,10 @@ public class Constants {
 	public static boolean SendEmail = true;
 	public static boolean saveState= true;
 	public static String myBytes="";
+
 	//Url's
-	public static final String StudioUrl = "https://studio.youtube.com/channel/"
-			+ "UCWZGW9h-Yyjcsws5dBgGAYA/videos/live?filter=%5B%5D&"
-			+ "sort=%7B%22columnType%22%3A%22date%22%2C%22sortOrder%22%3A%22DESCENDING%22%7D";
-	public static final String LiveStreamUrl = "https://studio.youtube.com/channel/UCWZGW9h-Yyjcsws5dBgGAYA/livestreaming/manage";
+	public static final String StudioUrl = "https://studio.youtube.com/channel/UCY9ywM1mQtQ8mTtbnhh-P2w/videos/live";
+	public static final String LiveStreamUrl = "https://studio.youtube.com/channel/UCY9ywM1mQtQ8mTtbnhh-P2w/livestreaming/manage";
 	
 	//paths
 	public static final String UserDataPath = System.getProperty("user.home")+"\\Documents\\saved_status_";

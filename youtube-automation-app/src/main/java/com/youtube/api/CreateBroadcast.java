@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import org.json.simple.parser.ParseException;
+
 /**
  * Use the YouTube Live Streaming API to insert a broadcast and retrieve a stream from the stream list
  * and then bind them together, then start the live broadcast. Use OAuth 2.0 to authorize the API requests.
@@ -33,10 +35,6 @@ import java.time.LocalTime;
  * @author Evgeny Geyfman
  */
 public class CreateBroadcast extends Thread{
-
-	private boolean halfWayflag ;
-
-	private String[] args;
 
 	public CreateBroadcast(String[] args) {
 		this.args = args;
@@ -47,86 +45,43 @@ public class CreateBroadcast extends Thread{
      * bind them together a and insert resource.
      * Finally transition to preview mode,  and transition into live stream
      * 
-     * @param String[] args ={ "broadcast title","scheduled end time" - could be null}
+     * @param String[] args ={ "broadcast title" is identical to livestream name,"scheduled end time" - could be null}
      */
-    public  void run() {	
-    	
-        try {
+    public  void run() 
+    {	
+    	try {
         	
         	Object lock = new Object();
         	LiveBroadcast returnedBroadcast;
         	synchronized (lock) {
-	
-	        	//System.out.println("Thread "+ Thread.currentThread().getId() + " starting "+args[0]);
-	        	//Retrieve  a stream by it's title from args
+        		
 	            LiveStream returnedStream = YouTubeAPI.getStreamByName(args[0]);
-	            if(returnedStream==null) {
-	            	System.out.println("stream doesn't exist please try again");
-	            	reportError("stream not found");
+	            
+	            if(!VerifyStream(returnedStream)) {
 	            	return;
 	            }
-	            if(!returnedStream.getStatus().getStreamStatus().equals("active") || 
-	            		returnedStream.getStatus().getHealthStatus().getStatus().equals("noData")) {
-	            	System.out.println("stream is not active please start the stream and run this again");
-	            	reportError("stream not active , not recieving data ");
-	            	return ;
-	            }
 	            
-	            
-	            String title ;// set title for the broadcast.
-	            if(Constants.AddDateTime)
-	            	 title = args[0]+ " " + LocalTime.now()+" "+LocalDate.now();
-	            else
-	        		 title = args[0];
-	            System.out.println("You chose " + title + " for broadcast title.");
-	
-	            // Create a snippet with the title and scheduled start and end
-	           
-	            // times for the broadcast.
-	            LiveBroadcastSnippet broadcastSnippet = new LiveBroadcastSnippet();
-	            broadcastSnippet.setTitle(title);
-	            
-	            //set start time as current time
-	            broadcastSnippet.setScheduledStartTime(new DateTime(LocalDate.now()+"T"+LocalTime.now()+"Z"));
-	            
-	            //set description of stream
-	            broadcastSnippet.setDescription(returnedStream.getSnippet().getDescription()); 
-	          
-	            if(args[1]!=null)	//set scheduled end time if exists
-	            	broadcastSnippet.setScheduledEndTime(new DateTime(args[1]+"Z"));
-	            else
-	            	broadcastSnippet.setScheduledEndTime(null);			//indefinite broadcast
-	            
-	            // Set the broadcast's privacy status to "public". 
-	            //See: https://developers.google.com/youtube/v3/live/docs/liveBroadcasts#status.privacyStatus
-	            LiveBroadcastStatus status = new LiveBroadcastStatus();
-	            status.setPrivacyStatus(Constants.Privacy);
-	           
-	            LiveBroadcast broadcast = new LiveBroadcast();
-	            broadcast.setKind("youtube#liveBroadcast");
-	            broadcast.setSnippet(broadcastSnippet);
-	            broadcast.setStatus(status);
+	            String BroadcastDescription = returnedStream.getSnippet().getDescription();
+	            LiveBroadcast broadcast = initLiveBroadcast(BroadcastDescription);
 	
 	            // Construct and execute the API request to insert the broadcast.
 	            YouTube.LiveBroadcasts.Insert liveBroadcastInsert =
 	            		YouTubeAPI.youtube.liveBroadcasts().insert("snippet,status", broadcast);
 	            
-            	 returnedBroadcast = liveBroadcastInsert.execute();
+        	    returnedBroadcast = liveBroadcastInsert.execute();
+        	    
 	            // Construct and execute a request to bind the new broadcast
 	            // and stream.
 	            YouTube.LiveBroadcasts.Bind liveBroadcastBind =
 	            		YouTubeAPI.youtube.liveBroadcasts().bind(returnedBroadcast.getId(), "id,contentDetails");
+	            
 	            liveBroadcastBind.setStreamId(returnedStream.getId());
 	        	returnedBroadcast = liveBroadcastBind.execute();
+	        	
 	            //stream status check needed here to make sure it is active
-	            if(!returnedStream.getStatus().getStreamStatus().equals("active")) {
-	            	System.out.println("stream is not active please start sending data on the stream");
-	            	args[0] +=" Stream not active";
-	            	reportError("stream not active"); //handle error on GUI
-	            }
-	            else {
-	            	System.out.println("stream is active starting transition to live");
-	            }
+	        	if(!checkStreamStatus(returnedStream)) {
+	        		return;
+	        	}
 	            //transition to testing mode (preview mode)
 	    	   	YouTube.LiveBroadcasts.Transition requestTesting = YouTubeAPI.youtube.liveBroadcasts()
 	                  .transition("testing", returnedBroadcast.getId(), "snippet,status");
@@ -136,75 +91,45 @@ public class CreateBroadcast extends Thread{
            synchronized (Constants.PollStartLock) {
 				Constants.PollStartLock.notifyAll();	//start polling the api 
            } 
-           Thread.sleep(2000);
-           //Prompt request status
-           System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus());
            
-           //int seconds = 0; // second counter for  server response to transition
+           Thread.sleep(2000);
+           if(Constants.Debug) {
+        	   System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus());
+           }
            
            //poll while test starting (wait while starting preview)
-           while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("testStarting")) {
-        	   synchronized (Constants.PollLock) {
-					System.out.println("Thread "+Thread.currentThread().getId()+" waits");
-					Constants.PollLock.wait();		//wait for status update
-				}
-        	   System.out.println("Thread "+Thread.currentThread().getId()+ " continues" );
-	    	   LiveBroadcast tempBroadcast =YouTubeAPI.getBroadcastFromPolledList(returnedBroadcast.getId());
-	    	   if(tempBroadcast!=null)
-	    		   returnedBroadcast = tempBroadcast;
-	    	   System.out.println("polling testStarting "+args[0]);
-	    	   if(Constants.pollingCount==10) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to Testing
-	           		args[0] +=" on Transition to Testing";
-	           		reportError ("100 secs passed no response on testing transiton");
-	           		return;
-	       		}
-//	       		else
-//	       			seconds++;
+           if(!pollTransition(returnedBroadcast,"testStarting")) {
+        	   return;
+           }
+          
+           if(Constants.Debug) {
+               	System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
            }
            
-           //preview started
-           System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
            synchronized (lock) {
-        	   Constants.isLive--;						// set 50% OF broadcast starting completed
-			
-           halfWayflag = true;							// mark 50 % of starting passed
-           //transition to live  mode
-            YouTube.LiveBroadcasts.Transition requestLive = YouTubeAPI.youtube.liveBroadcasts()
-                    .transition("live", returnedBroadcast.getId(), "snippet,status");
-            returnedBroadcast = requestLive.execute();
+        	   Constants.isLive--;							// set 50% OF broadcast starting completed
+        	   halfWayflag = true;							// mark 50 % of starting passed
+        	   YouTube.LiveBroadcasts.Transition requestLive = YouTubeAPI.youtube.liveBroadcasts()
+                    .transition("live", returnedBroadcast.getId(), "snippet,status"); //request transition to live
+        	   returnedBroadcast = requestLive.execute();
            }
-            //poll while live starting (wait while starting live)
-//           seconds = 0;
-           while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("liveStarting")) {
-            	
-        	   synchronized (Constants.PollLock) {
-        		   System.out.println("Thread "+Thread.currentThread().getId()+" waits");
-        		   Constants.PollLock.wait();		//wait for status update
-        	   }
-        	   System.out.println("Thread "+Thread.currentThread().getId()+ " continues" );
-            	
-        	   LiveBroadcast tempBroadcast =YouTubeAPI.getBroadcastFromPolledList(returnedBroadcast.getId());
-        	   if(tempBroadcast!=null)
-        		   returnedBroadcast = tempBroadcast;
-        	   System.out.println("polling liveStarting "+args[0]);
-        	   if(Constants.pollingCount==10) {	// if more then 100 seconds passed and Broadcast wasn't transitioned to live
-        			args[0] +=" on Transition to Live";
-        			reportError(" 100 secs passed no response on live transiton\n");
-        			return;
-        	   }
-//        	   else
-//        		   seconds++;
+           
+           if(!pollTransition(returnedBroadcast,"liveStarting")) {
+        	   return;
            }
+           
            Thread.sleep(1000);
+           
            returnedBroadcast = YouTubeAPI.getBroadcastFromPolledList(returnedBroadcast.getId());
             
-           //promt status to screen
-           System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus()+" "+ args[0]);
+           if(Constants.Debug) {
+        	   System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus() + " " + args[0]);
+           }
+           
            synchronized (lock) {
         	   Constants.isLive--;
+        	   Constants.LiveId.add(returnedBroadcast.getId());
            }
-           Constants.LiveId.add(returnedBroadcast.getId());
-           
         } catch (GoogleJsonResponseException e) {
             System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
                     + e.getDetails().getMessage());
@@ -225,18 +150,161 @@ public class CreateBroadcast extends Thread{
         return;
     }
     
-    /**
+    private LiveBroadcast initLiveBroadcast(String  description) throws IOException, ParseException 
+    {
+          String title = setTitle();// set title for the broadcast.
+          if(Constants.Debug) {
+        	  System.out.println("You chose " + title + " for broadcast title.");
+          }
+          // Create a snippet with the title and scheduled start and end
+          // times for the broadcast.
+          LiveBroadcastSnippet broadcastSnippet = setBroadcastSnippet(title, description);
+          
+          // Set the broadcast's privacy status to "public". 
+          //See: https://developers.google.com/youtube/v3/live/docs/liveBroadcasts#status.privacyStatus
+          LiveBroadcastStatus status = setBroadcastStatus();
+          
+          return createBroadcast(broadcastSnippet,status);
+    }
+    
+	private boolean VerifyStream(LiveStream fetchedStream) 
+	{
+		 if(fetchedStream==null) {
+         	System.out.println("stream doesn't exist please try again");
+         	reportError("stream not found");
+         	return false;
+         }
+         if(!fetchedStream.getStatus().getStreamStatus().equals("active") || 
+        		 fetchedStream.getStatus().getHealthStatus().getStatus().equals("noData")) {
+         	System.out.println("stream is not active please start the stream and run this again");
+         	reportError("stream not active , not recieving data ");
+         	return false;
+         }
+         return true;
+	}
+	
+	private String setTitle() 
+	{
+		 if(Constants.AddDateTime) {
+			 return args[0] + " " + LocalTime.now() + " " + LocalDate.now();
+		 }
+		 else {
+        	return  args[0];
+		 }
+	}
+	
+    /***
+     *   Create a snippet with the title and scheduled start and end
+     *   times for the broadcast.
+     * @param fetchedStream
+     * @param title
+     * @return
+     */
+	private LiveBroadcastSnippet setBroadcastSnippet(String title, String description) 
+	{
+        LiveBroadcastSnippet broadcastSnippet = new LiveBroadcastSnippet();
+        broadcastSnippet.setTitle(title);
+        broadcastSnippet.setScheduledStartTime(new DateTime(LocalDate.now()+"T"+LocalTime.now()+"Z"));
+        broadcastSnippet.setDescription(description); 
+        if(args[1] != null)	
+        	broadcastSnippet.setScheduledEndTime(new DateTime(args[1]+"Z")); //set scheduled end time if exists
+        else
+        	broadcastSnippet.setScheduledEndTime(null);			            //indefinite broadcast
+        return broadcastSnippet;
+	}
+	
+	private LiveBroadcastStatus setBroadcastStatus() 
+	{
+		 LiveBroadcastStatus status = new LiveBroadcastStatus();
+         status.setPrivacyStatus(Constants.Privacy);
+         return status;
+	}
+	
+	private LiveBroadcast createBroadcast(LiveBroadcastSnippet broadcastSnippet, LiveBroadcastStatus status) 
+	{
+		LiveBroadcast broadcast = new LiveBroadcast();
+        broadcast.setKind("youtube#liveBroadcast");
+        broadcast.setSnippet(broadcastSnippet);
+        broadcast.setStatus(status);
+        return broadcast;
+	}
+	
+	private boolean checkStreamStatus(LiveStream fetchedStream) 
+	{
+		 //stream status check needed here to make sure it is active
+        if(!fetchedStream.getStatus().getStreamStatus().equals("active")) {
+        	if(Constants.Debug) {
+        		System.out.println("stream is not active please start sending data on the stream");
+        	}
+        	args[0] +=" Stream not active";
+        	reportError("stream not active"); //handle error on GUI
+        	return false;
+        }
+        else {
+        	if(Constants.Debug) {
+        		System.out.println("stream is active starting transition to live");
+        	}
+        	return true;
+        }
+	}
+	
+	/***
+	 * poll while broadcast status transitions to it's next phase (ready - > testing -> live)
+	 * @param returnedBroadcast
+	 * @param transition
+	 * @return
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
+	private boolean pollTransition(LiveBroadcast returnedBroadcast, String transition) throws InterruptedException, IOException 
+	{
+		while(returnedBroadcast.getStatus().getLifeCycleStatus().equals(transition)) {
+        	synchronized (Constants.PollLock) {
+     		   	if(Constants.Debug) {
+     		   		System.out.println("Thread "+Thread.currentThread().getId()+" waits");
+     		   	}
+					Constants.PollLock.wait();		//wait for status update
+     	   }
+     	   if(Constants.Debug) {
+     		   System.out.println("Thread "+Thread.currentThread().getId()+ " continues" );
+     	   }
+ 	      
+    	   LiveBroadcast tempBroadcast =YouTubeAPI.getBroadcastFromPolledList(returnedBroadcast.getId());
+    	   if(tempBroadcast!=null) {
+    		   returnedBroadcast = tempBroadcast;
+    	   }
+    		
+    	   if(Constants.Debug) {
+    		   System.out.println("polling " + transition +" " + args[0]);
+    	   }
+    	   
+    	   if(Constants.pollingCount == Constants.MaxPolls) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to Testing
+           		args[0] +=" on" +transition + " Transition";
+           		reportError ("100 secs passed no response on " +transition);
+           		return false;
+		   }
+        }
+        return true;
+	}
+	
+	/**
      * this method prompts to the GUI about an error occurrence
      */
-    private synchronized void reportError(String error) {
-
-    	if(halfWayflag)			
+    private synchronized void reportError(String error) 
+    {
+    	if(halfWayflag)	{
     		Constants.isLive--;
-    	else
+    	}		
+    	else {
     		Constants.isLive-=2;
+    	}
     	Constants.badResults.add(args[0] + ": "+ error);
     }	
+	
+	private boolean halfWayflag ;
 
+	private String[] args;
+	
 }
 
 
