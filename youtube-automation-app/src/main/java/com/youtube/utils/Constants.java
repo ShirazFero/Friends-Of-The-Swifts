@@ -13,7 +13,7 @@ public class Constants {
 	//flags
 	public static final boolean Debug = true;
 	public static final int MaxPolls = 10;
-	public static final int MaxPollRsults = 20;
+	public static final long MaxPollRsults = 20;
 	public static volatile int pollingCount = 0;   
 	public static boolean pollingState = false;         //polling flag
 	public static boolean LoadingState = false;			//load state

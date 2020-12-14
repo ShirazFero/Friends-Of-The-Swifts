@@ -33,7 +33,7 @@ private void WaitUntilPollingIsFinished() {
 			    // Indicate that the API response should not filter broadcasts
 			    // based on their type or status.
 			    liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus("all");
-			    liveBroadcastRequest.setMaxResults((long)20);
+			    liveBroadcastRequest.setMaxResults(Constants.MaxPollRsults);
 			    
 			    // Execute the API request and return the list of broadcasts.
 			    LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();

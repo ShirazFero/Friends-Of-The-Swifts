@@ -263,8 +263,8 @@ public class Controller {
 	 * @throws InterruptedException
 	 * @throws ParseException 
 	 */
-	public void startBroadcast() throws InterruptedException {
-		
+	public void startBroadcast() throws InterruptedException 
+	{
 		Constants.badResults =  new ArrayList<String>();
 		CreateBroadcast brd = null; //Pointer to currently created broadcast
 		
