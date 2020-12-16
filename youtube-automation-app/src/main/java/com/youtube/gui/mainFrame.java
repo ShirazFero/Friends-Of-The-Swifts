@@ -20,9 +20,10 @@ import javax.swing.WindowConstants;
 
 import org.json.simple.parser.ParseException;
 
+import com.youtube.controller.AppBootLoader;
 import com.youtube.controller.Controller;
-import com.youtube.controller.FileLogger;
 import com.youtube.controller.Interval;
+import com.youtube.controller.UserDataHandler;
 import com.youtube.utils.Constants;
 
 import java.awt.Font;
@@ -39,7 +40,7 @@ import javax.swing.JTabbedPane;
  * each button pressed method triggers the designated method that performs the requested option
  * @author Evgeny Geyfman
  */
-public class mainFrame extends JFrame{
+public class mainFrame extends JFrame {
 
 	private static final long serialVersionUID = 6609103195472306740L;
 	
@@ -67,13 +68,13 @@ public class mainFrame extends JFrame{
 		//init new broadcast panel
 		BroadcastPanel boradcastPanel = new BroadcastPanel();
 		boradcastPanel.setInstance(boradcastPanel);
-		boradcastPanel.setData(controller.getBroadcasts());
+		boradcastPanel.setData(controller.getBroadcastsHandler().getBroadcasts());
 		boradcastPanel.resizeColumnWidth(boradcastPanel.getBroadcastTbl());
 		
 		
 		//init new stream panel
 		StreamPanel streamPanel = new StreamPanel();
-		streamPanel.setData(controller.getStreams());
+		streamPanel.setData(controller.getStreamHandler().getStreams());
 		streamPanel.resizeColumnWidth(streamPanel.getStreamsTbl());
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -101,10 +102,7 @@ public class mainFrame extends JFrame{
 		DescriptionFrame desFrame = new DescriptionFrame();
 		desFrame.setVisible(false);
 		
-		if(controller.loadUserSettings())
-			System.out.println("user settings loaded Successfully"); //Successfully
-		else
-			System.out.println("new user data file created Successfully");
+		UserDataHandler.getInstance().loadUserSettings();
 		
 		//init user settings frame
 		UserSettingsFrame userSetPanel = new UserSettingsFrame();
@@ -120,14 +118,14 @@ public class mainFrame extends JFrame{
 					System.out.println("main frame Stream Panel: " +name);
 					switch(name){
 						case "Refresh":	
-							controller.refreshStreams();//request stream refresh 
-							streamPanel.setData(controller.getStreams());	//set new data to table
+							controller.getStreamHandler().refreshStreams();//request stream refresh 
+							streamPanel.setData(controller.getStreamHandler().getStreams());	//set new data to table
 							streamPanel.refresh();							//refresh table
 							break;
 						
 						case Constants.addStream:
-							controller.addStream();
-							streamPanel.setData(controller.getStreams());	//set new data to table
+							controller.getStreamHandler().addStream();
+							streamPanel.setData(controller.getStreamHandler().getStreams());	//set new data to table
 							streamPanel.refresh();							//refresh table
 							desFrame.refresh();
 							
@@ -144,9 +142,9 @@ public class mainFrame extends JFrame{
 							int reply = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.OK_OPTION);
 							if(reply!=JOptionPane.OK_OPTION)
 								break;
-							controller.removeStream(streams);//request add refresh	
-							controller.refreshStreams();
-							streamPanel.setData(controller.getStreams());	//set new data to table
+							controller.getStreamHandler().removeStream(streams);//request add refresh	
+							controller.getStreamHandler().refreshStreams();
+							streamPanel.setData(controller.getStreamHandler().getStreams());	//set new data to table
 							streamPanel.refresh();							//refresh table
 							desFrame.refresh();
 							break;
@@ -170,27 +168,27 @@ public class mainFrame extends JFrame{
 				switch(btnName) {
 					case "Filter":
 						String[] args = {"refresh",boradcastPanel.getSelected(),null,null};	//create args
-						controller.refreshBroadcasts(args); 						//request refresh
-						boradcastPanel.setData(controller.getBroadcasts());			//set new data
+						controller.getBroadcastsHandler().refreshBroadcasts(args); 						//request refresh
+						boradcastPanel.setData(controller.getBroadcastsHandler().getBroadcasts());			//set new data
 						boradcastPanel.refresh();									//refresh table
 						break;
 					case "Next Page":
 						String[] args1 = {"refresh",boradcastPanel.getSelected(),Constants.NextPageToken,null};	//create args
-						controller.refreshBroadcasts(args1);//request refresh
-						boradcastPanel.setData(controller.getBroadcasts());			//set new data
+						controller.getBroadcastsHandler().refreshBroadcasts(args1);//request refresh
+						boradcastPanel.setData(controller.getBroadcastsHandler().getBroadcasts());			//set new data
 						boradcastPanel.refresh();									//refresh table
 						break;
 					
 					case "Previous Page":
 						String[] args2 = {"refresh",boradcastPanel.getSelected(),null,Constants.PrevPageToken};	//create args
-						controller.refreshBroadcasts(args2);
-						boradcastPanel.setData(controller.getBroadcasts());			//set new data
+						controller.getBroadcastsHandler().refreshBroadcasts(args2);
+						boradcastPanel.setData(controller.getBroadcastsHandler().getBroadcasts());			//set new data
 						boradcastPanel.refresh();									//refresh table
 						break;
 					
 					case "Update Description":	//updates description on selected broadcasts
 						checkedBroadcasts=boradcastPanel.getChecked();
-						controller.setCheckedBroadcasts(checkedBroadcasts);
+						controller.getBroadcastsHandler().setCheckedBroadcasts(checkedBroadcasts);
 						int emtpyCounter = 0;
 						for(int i=0;i<checkedBroadcasts.length;i++) {
 							if(!checkedBroadcasts[i])
@@ -208,7 +206,7 @@ public class mainFrame extends JFrame{
 							System.out.println("requset cancelled");
 							return;
 						}
-						controller.updateDescription(decription);
+						controller.getBroadcastsHandler().updateDescription(decription);
 						break;
 				}
 			} catch (  IOException  e1) { //UnsupportedEncodingException
@@ -235,7 +233,7 @@ public class mainFrame extends JFrame{
 						break;
 						
 					case "<html>Start Live<br>Broadcast</html>":	 //start interval broadcast
-						inputForm.setData(controller.filterStreams("active"));  //set active streams to form
+						inputForm.setData(controller.getStreamHandler().filterStreams("active"));  //set active streams to form
 						inputForm.refresh();
 						inputForm.setVisible(true);								//open input form
 						break;
@@ -254,7 +252,7 @@ public class mainFrame extends JFrame{
 							Constants.RegularBroadcast=false;
 							String[] brdID = new String[Constants.LiveId.size()]; 
 							Constants.LiveId.toArray(brdID);
-							controller.stopBroadcasts(brdID);
+							controller.getBroadcastsHandler().stopBroadcasts(brdID);
 						}
 						btnPnl.getStartIntBrdbtn().setVisible(true);
 						btnPnl.getStopIntbtn().setVisible(false);
@@ -282,14 +280,14 @@ public class mainFrame extends JFrame{
 						SwingUtilities.invokeLater(new Runnable() {
 							public void run() {
 								try {
-					            	controller.saveData();   //save status of broadcast 
-					            	if(controller.getTimerRunner()!=null)
+									UserDataHandler.getInstance().saveData();   //save status of broadcast 
+					            	if(controller.getTimerRunner() != null) {
 					            		controller.getTimerRunner().cancelTimer();
+					            	}
 					            	dispose();				
-					            	Controller controller = new Controller();
-									controller.setInstance(controller);
-									controller.initData();
-									new UserLogin();
+					            	AppBootLoader loader = new AppBootLoader();
+									loader.initData(); // set initial data
+									new UserLogin(loader);
 								} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 										| InvalidAlgorithmParameterException | IOException | ParseException e) {
 									e.printStackTrace();
@@ -350,15 +348,21 @@ public class mainFrame extends JFrame{
 					break;
 					
 				case "Refresh":
-					controller.refreshStreams();
-					inputForm.setData(controller.filterStreams("active"));//set active streams to form
-					inputForm.refresh();
-					break;
+					try {
+						controller.getStreamHandler().refreshStreams();
+						inputForm.setData(controller.getStreamHandler().filterStreams("active"));//set active streams to form
+						inputForm.refresh();
+						break;
+					} catch (SecurityException | IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					
 				case "Start": 
 					if(checkSelectedStreams()) {//check that at least one stream is active and less then 10 were chosen
 						inputForm.setSelected((String) inputForm.getBox().getSelectedItem());
 						inputForm.getBox().setSelectedItem(inputForm.getSelected());
-						controller.setCheckedStreams(inputForm.getChecked());	// set input of checked streams to controller
+						controller.getStreamHandler().setCheckedStreams(inputForm.getChecked());	// set input of checked streams to controller
 							// start broadcasting according to pressed button
 						if(inputForm.getSelected().equals("Non-Stop")) {
 							Constants.RegularBroadcast=true;
@@ -399,17 +403,11 @@ public class mainFrame extends JFrame{
 					if(Constants.IntervalBroadcast) {
 						Interval interval = Interval.getInstance();
 						interval.setInterval(inputForm.getSelected());		//set selected interval length
-						FileLogger.logger.info("interval was set: " + interval.getInterval());
-						
-						FileLogger.logger.info("starting first live broadcasts");
-						 
 						controller.startTimerRunner();			//start timer runner instance
-						FileLogger.logger.info("timer runner started");
-						
 						// Prompt interval start stop times to interval panel
 						String startTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()).toString();
 						String stoptime = interval.getCorrentInterval().toString();
-						controller.updateIntervalPanel(startTime, stoptime);
+						intervalPanel.updateIntervalPanel(startTime, stoptime);
 						intervalPanel.getLblstime().setVisible(true);
 						intervalPanel.getFtime().setVisible(true);
 						intervalPanel.getLblNotSet().setText(interval.getHours() + " Hours and "	
@@ -418,7 +416,7 @@ public class mainFrame extends JFrame{
 					else {
 						intervalPanel.getLblNotSet().setText(inputForm.getSelected());
 					}
-					controller.startBroadcast();	//start initial live Broadcasts
+					controller.getBroadcastsHandler().startBroadcast();	//start initial live Broadcasts
 					// toggle GUI buttons 
 					btnPnl.getStartIntBrdbtn().setVisible(false);
 					btnPnl.getStopIntbtn().setVisible(true);
@@ -430,7 +428,7 @@ public class mainFrame extends JFrame{
 					inputForm.setVisible(false);								
 						
 					}
-					catch (InterruptedException e) {
+					catch (InterruptedException | SecurityException e) {
 						e.printStackTrace();
 					}
 			}
@@ -505,7 +503,11 @@ public class mainFrame extends JFrame{
 			String message= "Are you sure you want to Exit?",title="Log out";
 			int reply = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
 			if(reply==JOptionPane.YES_OPTION) {
-				controller.saveData();
+				try {
+					UserDataHandler.getInstance().saveData();   //save status of broadcast 
+				} catch (SecurityException | IOException e1) {
+					e1.printStackTrace();
+				}
 	        	System.exit(0);
 				
 			}
@@ -515,14 +517,13 @@ public class mainFrame extends JFrame{
 	setLocationRelativeTo(null);
 	setVisible(true);
 	if(Constants.saveState) {
-		controller.loadUserState();
+		UserDataHandler.getInstance().loadUserState();
 		System.out.println("loaded user state");
 	}
 	else
 		System.out.println("user state load not enabled");
 }		
 		
-	
 	/**
 	 * set checked Broadcast from broadcast table to main frame
 	 * @param checkedBroadcasts

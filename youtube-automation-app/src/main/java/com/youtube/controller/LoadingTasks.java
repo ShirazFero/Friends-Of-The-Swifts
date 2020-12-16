@@ -32,7 +32,6 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 		return null;
 	}
 							
-	
 	@Override
 	public void done() {
 		//prompt active broadcasts to broadcast panel
@@ -65,15 +64,14 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 			System.out.println("done loading tasks");
 			Controller controller = Controller.getInstance();
 		    String[] args = {"refresh","active",null,null};
-		    controller.refreshBroadcasts(args);
+		    controller.getBroadcastsHandler().refreshBroadcasts(args);
 			BroadcastPanel broadcastPanel = BroadcastPanel.getInstance();
-			broadcastPanel.setData(controller.getBroadcasts());
+			broadcastPanel.setData(controller.getBroadcastsHandler().getBroadcasts());
 			broadcastPanel.refresh();
 		} catch (MessagingException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IOException
 				 | InvalidAlgorithmParameterException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-			FileLogger.logger.info(e.toString());
+			ErrorHandler.HandleLoadError(e.toString());
 		}
 	}
 	

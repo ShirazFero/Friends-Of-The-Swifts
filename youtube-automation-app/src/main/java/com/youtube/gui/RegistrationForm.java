@@ -17,8 +17,7 @@ import javax.swing.JTextField;
 
 import org.json.simple.parser.ParseException;
 
-import com.youtube.controller.Controller;
-
+import com.youtube.controller.AppBootLoader;
 import javax.swing.JPasswordField;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.ImageIcon;
@@ -29,7 +28,7 @@ import javax.swing.JTextPane;
 import java.awt.SystemColor;
 import java.awt.Toolkit;
 
-public class RegistrationForm extends JFrame implements ActionListener{
+public class RegistrationForm extends JFrame implements ActionListener {
 	
 	private static final long serialVersionUID = 8456223525517951378L;
 	private JTextField usernameField;
@@ -38,8 +37,11 @@ public class RegistrationForm extends JFrame implements ActionListener{
 	private JTextField emailField;
 	private JTextField emailConfirmField;
 	private JLabel lblBadInputMsg;
+	private AppBootLoader m_loader;
 	
-	public RegistrationForm() {
+	public RegistrationForm(AppBootLoader a_loader) 
+	{
+		m_loader = a_loader;
 		this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/YABAWB.png")));
 		getContentPane().setBackground(SystemColor.textHighlightText);
 		getContentPane().setFont(new Font("Tahoma", Font.PLAIN, 13));
@@ -134,16 +136,13 @@ public class RegistrationForm extends JFrame implements ActionListener{
 
 	@Override
 	public void actionPerformed(ActionEvent event) {
-		// TODO Auto-generated method stub
-		Controller controller;
 		try {
-			controller = Controller.getInstance();
 			
 			switch(event.getActionCommand()) {
 			
 			case "Submit": 
 				//controller.checkRegisterForm(usernameField.getText(),);
-				if(controller.userExists(usernameField.getText())) {
+				if(m_loader.userExists(usernameField.getText())) {
 					lblBadInputMsg.setText("User Exists already");
 					lblBadInputMsg.setVisible(true);
 					break;
@@ -199,7 +198,7 @@ public class RegistrationForm extends JFrame implements ActionListener{
 					lblBadInputMsg.setVisible(true);
 					break;
 				}
-				controller.registerUser(usernameField.getText(),inputedPassword,emailField.getText());
+				m_loader.registerUser(usernameField.getText(),inputedPassword,emailField.getText());
 				dispose();	
 				break;
 			

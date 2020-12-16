@@ -10,7 +10,8 @@ import com.youtube.utils.Constants;
 
 public  class FileLogger {
 
-	public static Logger logger ;
+	public static FileLogger instance;
+	private static Logger logger ;
     private FileHandler fh; 
      
     public FileLogger() throws SecurityException, IOException{
@@ -19,24 +20,26 @@ public  class FileLogger {
     		 myFile.createNewFile();
     		 System.out.println("created file");
     	 }
-    	 logger = Logger.getLogger("MyLog");  
+    	 logger = Logger.getLogger("Yaba Log");  
     	 fh = new FileHandler(Constants.LogPath, true);  
          logger.addHandler(fh);
          SimpleFormatter formatter = new SimpleFormatter();  
          fh.setFormatter(formatter); 
     }
 
+    public synchronized void Info(String msg) {
+    	logger.info(msg);
+    }
+    
 	/**
 	 * @return the logger
 	 * @throws IOException 
 	 * @throws SecurityException 
 	 */
-	public static Logger getLogger() throws SecurityException, IOException {
-		new FileLogger();
-		return logger;
+	public static FileLogger getInstance() throws SecurityException, IOException {
+		if(instance == null) {
+			instance = new FileLogger();
+		}
+		return instance;
 	}
-
-	
-    
-	
 }

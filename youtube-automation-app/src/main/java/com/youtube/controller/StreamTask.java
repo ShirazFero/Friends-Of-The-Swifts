@@ -65,9 +65,9 @@ public class StreamTask extends SwingWorker<Void, Void>{
 	public void done() {
 		try {
 			Controller cont = Controller.getInstance();
-			cont.refreshStreams();
+			cont.getStreamHandler().refreshStreams();
 			StreamPanel streamPanel = StreamPanel.getInstance();
-			streamPanel.setData(cont.getStreams());	//set new data to table
+			streamPanel.setData(cont.getStreamHandler().getStreams());	//set new data to table
 			streamPanel.refresh();
 			setProgress(100);
 			if(Constants.AddingStream!=null) {

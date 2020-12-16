@@ -51,7 +51,17 @@ public class YouTubeAPI {
 	 * Create and insert a YouTube resource, authorize via OAuth 2.0 resource.
 	     * @throws ParseException 
 	 */
-	public YouTubeAPI(String[] args)  {
+	
+	public static YouTubeAPI instance;
+	
+	public static YouTubeAPI getInstance() throws SecurityException, IOException {
+		if(instance == null) {
+			instance = new YouTubeAPI();
+		}
+		return instance;
+	}
+	
+	public YouTubeAPI() throws SecurityException, IOException  {
 	
 	    // This OAuth 2.0 access scope allows for full read/write access to the
 		// authenticated user's account.
@@ -89,9 +99,11 @@ public class YouTubeAPI {
     * 						   2nd argument is type :"all/upcoming/active/complete"
     * 						   3rd argument is next page token if exists, null otherwise}
     * 						   4th argument is previous page token if exists, null otherwise}
+	 * @throws IOException 
+	 * @throws SecurityException 
 	 * @throws ParseException 
     */
-	public static List<LiveBroadcast> listBroadcasts(String[] args)  {
+	public static List<LiveBroadcast> listBroadcasts(String[] args) throws SecurityException, IOException  {
 	
 	    try {
 		        // Create a request to list broadcasts.
@@ -147,10 +159,12 @@ public class YouTubeAPI {
 	
 	/**
 	 * retrieve a List of Streams from the user's channel.
+	 * @throws IOException 
+	 * @throws SecurityException 
 	 * @throws ParseException 
 	 *
 	 */
-	public static List<LiveStream> listStreams(String[] args)  {
+	public static List<LiveStream> listStreams(String[] args) throws SecurityException, IOException  {
 	
 	    try {
 	    	// Create a request to list liveStream resources.
@@ -267,8 +281,10 @@ public class YouTubeAPI {
 	
 	/**
 	 * retrieve and delete a liveStream resource.
+	 * @throws IOException 
+	 * @throws SecurityException 
 	 */
-	public static boolean deleteStream(String[] args) {
+	public static boolean deleteStream(String[] args) throws SecurityException, IOException {
 	    try {
 	
 	        // Prompt the user to enter a title for the video stream.
@@ -311,9 +327,10 @@ public class YouTubeAPI {
 	 * this method sends an update description request , returns true if server handles it ,false if not
 	 * @param description
 	 * @param liveBroadcast
+	 * @throws SecurityException 
 	 * @throws IOException
 	 */
-	public static boolean updateDescription(String description , LiveBroadcast liveBroadcast)  {
+	public static boolean updateDescription(String description , LiveBroadcast liveBroadcast) throws SecurityException, IOException  {
 	
 		try {	
 			
@@ -361,9 +378,10 @@ public class YouTubeAPI {
 	 * this method sends an update Stream description request , returns true if server handles it ,false if not
 	 * @param description
 	 * @param liveBroadcast
+	 * @throws SecurityException 
 	 * @throws IOException
 	 */
-	public static boolean updateStreamDescription(String description , LiveStream stream)  {
+	public static boolean updateStreamDescription(String description , LiveStream stream) throws SecurityException, IOException  {
 	
 		try {	
 			
@@ -425,7 +443,7 @@ public class YouTubeAPI {
 	    	return foundstream;
 	   }
 	
- 	 /**
+ 	/**
  	 * retrieves a relevant broadcast from server from the broadcast list 
      * 
      * @param id - broadcast id that is requested
@@ -461,10 +479,8 @@ public class YouTubeAPI {
       return null;
    }
  	
- 	
- 	
- 	public static LiveBroadcast getBroadcastFromPolledList(String id) throws IOException {
-    	
+ 	public static LiveBroadcast getBroadcastFromPolledList(String id) throws IOException 
+ 	{
  		for (LiveBroadcast broadcast : Constants.PolledBroadcasts) {
 	       	  if(broadcast.getId().equals(id))
 	       		 return broadcast;

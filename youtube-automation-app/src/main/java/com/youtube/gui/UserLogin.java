@@ -9,7 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import com.youtube.controller.Controller;
+import com.youtube.controller.AppBootLoader;
 import com.youtube.controller.FileEncrypterDecrypter;
 import com.youtube.controller.MailUtil;
 import com.youtube.utils.Constants;
@@ -54,9 +54,11 @@ public class UserLogin extends JFrame implements ActionListener {
 	private JComboBox<?> comboBox;
 	private JCheckBox chckbxRememberPassword;
 	private static UserLogin instantce;
-	public UserLogin() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
+	private AppBootLoader m_loader;
+	public UserLogin(AppBootLoader a_loader) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
 		super("Log In");
 		instantce = this;
+		m_loader = a_loader;
 		this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/YABAWB.png")));
 		setForeground(SystemColor.inactiveCaption);
 		setBackground(SystemColor.inactiveCaption);
@@ -113,7 +115,6 @@ public class UserLogin extends JFrame implements ActionListener {
 		{  
 		    public void mouseClicked(MouseEvent e)  
 		    {  
-		       
 		    	//open resend password frame
 		    	String user = JOptionPane.showInputDialog(null,"Password Recovery","please enter username");
 		    	if(user == null || (user != null && ("".equals(user)))) {
@@ -124,9 +125,7 @@ public class UserLogin extends JFrame implements ActionListener {
 		    		return;
 				}
 		    	try {
-					Controller controller = Controller.getInstance();
-					if(controller.userExists(user)) {
-						
+					if(m_loader.userExists(user)) {
 						MailUtil.sendMail(getUserPasswordEmail(user,false),
 								"Password Recovery",
 								"your password is: " +getUserPasswordEmail(user,true));
@@ -184,9 +183,8 @@ public class UserLogin extends JFrame implements ActionListener {
 		chckbxRememberPassword.setBounds(24, 83, 158, 23);
 		chckbxRememberPassword.setSelected(getRememberPass());
 		if(chckbxRememberPassword.isSelected()) {
-			 Controller cont = Controller.getInstance();
         	 String user=(String)comboBox.getSelectedItem();
-        	 if(cont.userExists(user)) {
+        	 if(m_loader.userExists(user)) {
         		 passwordField.setText(getUserPasswordEmail(user,true));
         	 }
 		}
@@ -194,9 +192,8 @@ public class UserLogin extends JFrame implements ActionListener {
 		chckbxRememberPassword.addItemListener(new ItemListener() {    
              public void itemStateChanged(ItemEvent e) {    
             	 try {
-            		 Controller cont = Controller.getInstance();
 	            	 String user=(String)comboBox.getSelectedItem();
-	            	 if(cont.userExists(user)) {
+	            	 if(m_loader.userExists(user)) {
 		            	 if(e.getStateChange()==1) { 
 	                		 passwordField.setText(getUserPasswordEmail(user,true));
 	                		 if(Constants.SavedUsers!=null)
@@ -233,9 +230,8 @@ public class UserLogin extends JFrame implements ActionListener {
 
 	private boolean getRememberPass() throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
 		// TODO Auto-generated method stub
-		Controller cont = Controller.getInstance();
-   	 	String username= (String) comboBox.getSelectedItem();
-   	 	if(cont.userExists(username)) {
+   	 	String username = (String) comboBox.getSelectedItem();
+   	 	if(m_loader.userExists(username)) {
 			FileEncrypterDecrypter fileEncDec = new FileEncrypterDecrypter(Constants.SecretKey,"AES/CBC/PKCS5Padding");
 			String data = fileEncDec.decrypt(Constants.AppUserPath);
 			JSONParser parser = new JSONParser();
@@ -305,9 +301,8 @@ public class UserLogin extends JFrame implements ActionListener {
 			switch(event.getActionCommand()) {
 			case "Log in": String username = (String) comboBox.getSelectedItem();
 						   String password = String.valueOf(passwordField.getPassword());
-						   Controller controller = Controller.getInstance();
 							 // validate user&password
-								if(controller.validateUser(username,password)){											
+								if(m_loader.validateUser(username,password)){											
 										Constants.Username = username;
 										System.out.println("selected "+ Constants.Username);
 										SwingUtilities.invokeLater(new Runnable() {
@@ -335,7 +330,7 @@ public class UserLogin extends JFrame implements ActionListener {
 							// open registration page
 							SwingUtilities.invokeLater(new Runnable() {
 								public void run() {
-									new RegistrationForm();
+									new RegistrationForm(m_loader);
 								}
 							});
 							break;

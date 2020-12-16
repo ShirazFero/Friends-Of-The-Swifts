@@ -11,7 +11,7 @@ import java.awt.event.ActionListener;
 import java.awt.SystemColor;
 import java.awt.Color;
 
-public class IntervalPanel extends JPanel implements ActionListener{
+public class IntervalPanel extends JPanel implements ActionListener {
 	
 	private static final long serialVersionUID = -4869953988939880062L;
 
@@ -94,9 +94,7 @@ public class IntervalPanel extends JPanel implements ActionListener{
 	}
 	
 	
-	/**
-	 * @return the lblHello
-	 */
+	
 	public JLabel getLblHello() {
 		return lblHello;
 	}
@@ -168,5 +166,14 @@ public class IntervalPanel extends JPanel implements ActionListener{
 	
 	public void setBtnListener(ButtonListener btnListener) {
 		this.btnListener = btnListener;
+	}
+	
+	public  void updateIntervalPanel(String newStartTime, String stopTime) 
+	{
+		IntervalPanel intervalPanel = IntervalPanel.getInstance();
+		//prompt new start time to interval panel
+		intervalPanel.getLblstime().setText(newStartTime);
+		//prompt new end time to interval panel
+		intervalPanel.getFtime().setText(stopTime);
 	}
 }

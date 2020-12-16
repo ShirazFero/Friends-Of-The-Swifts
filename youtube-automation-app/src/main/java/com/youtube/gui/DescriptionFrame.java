@@ -83,7 +83,7 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 		scrollPane.setViewportView(list);
 		list.setModel(new AbstractListModel<String>() {
 			private static final long serialVersionUID = 1L;
-			String titles[] = Controller.getInstance().getStreamTitles();
+			String titles[] = Controller.getInstance().getStreamHandler().getStreamTitles();
 			public int getSize() {
 				return titles.length;
 			}
@@ -101,13 +101,11 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 		SetDescription.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// TODO Auto-generated method stub
 				try {
 					String newDescription = textArea.getText(); 
 					int desLen = newDescription.getBytes("UTF-8").length;
 					System.out.println("deslen: "+ desLen);
 					if(desLen>5000) {
-						//bad input
 						JOptionPane.showMessageDialog(null,
 								" Description is too long",
 				                "Not Completed",
@@ -127,10 +125,9 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 								list.getSelectedValue() + " Description succssesfully changed.",
 				                "Completed",
 				                JOptionPane.PLAIN_MESSAGE);
-						Controller.getInstance().refreshStreams();
+						Controller.getInstance().getStreamHandler().refreshStreams();
 					}
 				} catch (IOException | ParseException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException  e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
@@ -157,7 +154,7 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 	public void refresh() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IOException {
 		list.setModel(new AbstractListModel<String>() {
 			private static final long serialVersionUID = 1L;
-			String titles[] = Controller.getInstance().getStreamTitles();
+			String titles[] = Controller.getInstance().getStreamHandler().getStreamTitles();
 			public int getSize() {
 				return titles.length;
 			}
@@ -184,7 +181,7 @@ public class DescriptionFrame extends JFrame implements ActionListener ,ListSele
 			String StreamName = list.getSelectedValue(),description=null;
 				LiveStream stream =null;
 			if(StreamName!=null) {
-				stream  = Controller.getInstance().getStreamByName(StreamName);
+				stream  = Controller.getInstance().getStreamHandler().getStreamByName(StreamName);
 			}
 			if(stream!=null)
 				 description = stream.getSnippet().getDescription();

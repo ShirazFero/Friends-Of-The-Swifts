@@ -1,4 +1,4 @@
-package com.youtube.gui;
+package com.youtube.controller;
 
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
@@ -10,29 +10,25 @@ import javax.swing.*;
 
 import org.json.simple.parser.ParseException;
 
-import com.youtube.controller.Controller;
-import com.youtube.controller.FileLogger;
+import com.youtube.api.ErrorHandler;
+import com.youtube.gui.UserLogin;
 
-public class App {
-	
-	public static void main(String[] args) throws IOException {
-		
+public class App 
+{
+	public static void main(String[] args) throws IOException
+	{
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					new FileLogger();
-					Controller controller = new Controller();
-					controller.setInstance(controller);
-					controller.initData(); // set initial data
-					new UserLogin();
+					AppBootLoader loader = new AppBootLoader();
+					loader.initData(); // set initial data
+					new UserLogin(loader);
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 						| InvalidAlgorithmParameterException | IOException | ParseException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
-					FileLogger.logger.info(e.toString());
+					ErrorHandler.HandleLoadError(e.toString());
 				}
 			}
 		});
 	}
-
 }

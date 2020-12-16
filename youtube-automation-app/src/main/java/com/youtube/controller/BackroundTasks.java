@@ -12,30 +12,31 @@ import javax.swing.SwingWorker;
 
 import org.json.simple.parser.ParseException;
 
-import com.youtube.api.YouTubeAPI;
+import com.youtube.api.ErrorHandler;
 import com.youtube.gui.mainFrame;
+import com.youtube.utils.Constants;
 
 public class BackroundTasks extends SwingWorker<Void, Void> {
 
-	private Controller controller;
-	
-	public BackroundTasks(Controller controller){
-		this.controller=controller;
-	}
 	@Override
 	protected Void doInBackground() throws Exception {
-		// TODO Auto-generated method stub
+		Controller controller = Controller.getInstance();
 		int progress = 0;
-		new YouTubeAPI(null);			//generate youtube instance authorize it
 		setProgress(progress+=33);
-		if(!controller.refreshStreams()) {			//get initial streams
-			System.out.println("failed");
+		if(!controller.getStreamHandler().refreshStreams()) {			//get initial streams
+			String failmsg = "failed fetching streams on boot load";
+			if(Constants.Debug) {
+				System.out.println(failmsg);
+			}
+			ErrorHandler.HandleLoadError(failmsg);
 			System.exit(1);
 		}
 		setProgress(progress+=33);
 		String[] args = {"init","active",null,null};
-		if(!controller.refreshBroadcasts(args)){	//get initial broadcasts
-			System.out.println("failed");
+		if(!controller.getBroadcastsHandler().refreshBroadcasts(args)){	//get initial broadcasts
+			String failmsg = "failed fetching broadcasts on boot load";
+			System.out.println(failmsg);
+			ErrorHandler.HandleLoadError(failmsg);
 			System.exit(1);
 		}
 		setProgress(progress+=34);
@@ -50,8 +51,8 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 				try {
 						new mainFrame();
 				} catch (IOException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | ParseException | InvalidAlgorithmParameterException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
+					ErrorHandler.HandleLoadError(e.toString());
 				}
 			}
 		});

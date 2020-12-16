@@ -18,7 +18,6 @@ import javax.swing.JProgressBar;
 import org.json.simple.parser.ParseException;
 
 import com.youtube.controller.BackroundTasks;
-import com.youtube.controller.Controller;
 import com.youtube.controller.LoadingTasks;
 import com.youtube.controller.StreamTask;
 import com.youtube.controller.UpdateTasks;
@@ -30,7 +29,6 @@ import java.awt.Toolkit;
 
 
 public class ProgressFrame extends JFrame implements PropertyChangeListener {
-	
 	
 	private static final long serialVersionUID = -4984062073217802768L;
 
@@ -45,7 +43,6 @@ public class ProgressFrame extends JFrame implements PropertyChangeListener {
 	private StreamTask streamTask;
 	
 	private JLabel lblFetch;
-	
 
 	public ProgressFrame() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, ParseException, InvalidAlgorithmParameterException{
 		super("Loading");
@@ -76,9 +73,8 @@ public class ProgressFrame extends JFrame implements PropertyChangeListener {
 	}
 	
 	public void initTask() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
-		Controller controller = Controller.getInstance();
 		lblFetch.setText("Fetching Data from Server...");
-		task = new BackroundTasks(controller);
+		task = new BackroundTasks();
 		task.addPropertyChangeListener(this);
 		task.execute();
 	}
