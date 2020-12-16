@@ -13,7 +13,7 @@ import javax.swing.SwingWorker;
 import org.json.simple.parser.ParseException;
 
 import com.youtube.api.ErrorHandler;
-import com.youtube.gui.mainFrame;
+import com.youtube.gui.MainFrame;
 import com.youtube.utils.Constants;
 
 public class BackroundTasks extends SwingWorker<Void, Void> {
@@ -49,7 +49,7 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 	    SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				try {
-						new mainFrame();
+						new MainFrame();
 				} catch (IOException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | ParseException | InvalidAlgorithmParameterException e) {
 					e.printStackTrace();
 					ErrorHandler.HandleLoadError(e.toString());

@@ -42,17 +42,12 @@ public class UserDataHandler {
 		return instance;
 	}
 	
-	/**
-	 * This method saves current broadcast data on window closing event
-	 * @throws IOException 
-	 * @throws SecurityException 
-	 */
 	public void saveData() throws SecurityException, IOException 
 	{
 		try {
 			JSONObject obj = new JSONObject();
-			SaveUserState(obj);
-			SaveUserSettings(obj);
+			saveUserState(obj);
+			saveUserSettings(obj);
 			FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json");
 			file.write(obj.toJSONString());
 			if(Constants.Debug) {
@@ -77,11 +72,6 @@ public class UserDataHandler {
 		return false;
 	}
 	
-	/**
-	 * This method loads current broadcast data when window is opening
-	 * @throws IOException 
-	 * @throws SecurityException 
-	 */
 	public void loadUserState() 
 	{
 		try {
@@ -116,30 +106,35 @@ public class UserDataHandler {
 	}
 	
 	@SuppressWarnings("unchecked")
+	private JSONArray getLiveIdList() {
+		JSONArray LiveIdList = new JSONArray();
+		for(String ID : Constants.LiveId) {
+			LiveIdList.add(ID);
+		}
+		return LiveIdList;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private JSONArray getCheckedStreamList() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException 
+	{
+		JSONArray checkedStreamList = new JSONArray();
+		String[] checkedStreams = Controller.getInstance().getStreamHandler().getCheckedStreams();
+		for(String id: checkedStreams) {
+			checkedStreamList.add(id);
+		}
+		return checkedStreamList;
+	}
+	
+	@SuppressWarnings("unchecked")
 	private void CloseRegularBroadcast(JSONObject userState) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException 
 	{
 		if(Constants.Debug) {
 			System.out.println("closing regular broadcast");
 		}
-		
-		//save regular broadcast flag
 		userState.put("Broadcast State", "Regular");
-		
-		//save checked streams
-		JSONArray checkedStreamList = new JSONArray();
-		
-		String[] checkedStreams = Controller.getInstance().getStreamHandler().getCheckedStreams();
-		for(String id: checkedStreams) {
-			checkedStreamList.add(id);
-		}
-			
+		JSONArray checkedStreamList = getCheckedStreamList();
 		userState.put("Stream List", checkedStreamList);
-		
-		//save Live broadcasts id's
-		JSONArray LiveIdList = new JSONArray();
-		for(String ID : Constants.LiveId) {
-			LiveIdList.add(ID);
-		}
+		JSONArray LiveIdList = getLiveIdList();
 		userState.put("Live ID List", LiveIdList);
 	}
 	
@@ -149,31 +144,13 @@ public class UserDataHandler {
 		if(Constants.Debug) {
 			System.out.println("closing inteval broadcast");
 		}
-		//save interval broadcast flag
 		userState.put("Broadcast State", "Interval");
-		
-		//save current interval stop and start time
 		userState.put("Stop Time", Interval.getInstance().getCorrentInterval().toString());
 		userState.put("Start Time", IntervalPanel.getInstance().getLblstime().getText());
-		
-		//save interval
 		userState.put("Interval", Interval.getInstance().getInterval());
-		
-		//save checked streams
-		JSONArray checkedStreamList = new JSONArray();
-		
-		String[] checkedStreams =  Controller.getInstance().getStreamHandler().getCheckedStreams();
-		for(String id: checkedStreams) {
-			checkedStreamList.add(id);
-		}
-			
+		JSONArray checkedStreamList = getCheckedStreamList();	
 		userState.put("Stream List", checkedStreamList);
-		System.out.println("stream list size: "+ checkedStreamList.size());
-		
-		//save Live broadcasts id's
-		JSONArray LiveIdList = new JSONArray();
-		for(String ID: Constants.LiveId)
-			LiveIdList.add(ID);
+		JSONArray LiveIdList = getLiveIdList();
 		userState.put("Live ID List", LiveIdList);
 	}
 	
@@ -184,7 +161,7 @@ public class UserDataHandler {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void SaveUserState(JSONObject obj) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException
+	private void saveUserState(JSONObject obj) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException
 	{
 		JSONObject userState = new JSONObject();
 		if(Constants.RegularBroadcast) {
@@ -201,18 +178,15 @@ public class UserDataHandler {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void SaveUserSettings(JSONObject obj) 
+	private void saveUserSettings(JSONObject obj) 
 	{
 		JSONObject UserSettings = new JSONObject();
-		//save user settings
 		UserSettings.put("Add Time and Date", Constants.AddDateTime);
 		UserSettings.put("Send Email", Constants.SendEmail);
 		UserSettings.put("Privacy", Constants.Privacy);
 		UserSettings.put("Ingestion Type", Constants.IngestionType);
 		UserSettings.put("Format", Constants.Format);
 		UserSettings.put("Save State", Constants.saveState);
-		//save stream descriptions map
-		
 		obj.put("User Settings", UserSettings);
 	}
 	
@@ -223,33 +197,17 @@ public class UserDataHandler {
 	
 	private void loadSettingsFromJson()
 	{
-		JSONParser parser = new JSONParser();
         try {
-            //parse users saved json file to json object	
-            JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(Constants.UserDataPath + Constants.Username + ".json"));
-            jsonObject =  (JSONObject) jsonObject.get("User Settings");
-            //get and set stream description map 
-            if(jsonObject!=null) {
-	            Boolean addtimeDate = (boolean) jsonObject.get("Add Time and Date");
-	            Boolean sendEmail = (boolean) jsonObject.get("Send Email");
-	            String privacy = (String) jsonObject.get("Privacy");
-	            String ingetionType = (String) jsonObject.get("Ingestion Type");
-	            String format = (String) jsonObject.get("Format");
-	            Boolean saveState = (boolean) jsonObject.get("Save State");
-	           	
-	            //set user settings to it's global variables
-	            if(addtimeDate!=null)
-	            	Constants.AddDateTime = addtimeDate;
-	            if(sendEmail!=null)
-	            	Constants.SendEmail = sendEmail;
-	            if(privacy!=null)
-	            	Constants.Privacy = privacy;
-	            if(ingetionType!=null)
-	            Constants.IngestionType = ingetionType;
-	            if(format!=null)	
-	            	Constants.Format = format;
-	            if(saveState!=null)
-	            	Constants.saveState=saveState;
+        	if(userFileExists()) {
+        		JSONParser parser = new JSONParser();
+        		JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(Constants.UserDataPath + Constants.Username + ".json"));
+        		jsonObject =  (JSONObject) jsonObject.get("User Settings");
+            	Constants.AddDateTime = (boolean) jsonObject.get("Add Time and Date");
+            	Constants.SendEmail = (boolean) jsonObject.get("Send Email");
+            	Constants.Privacy = (String) jsonObject.get("Privacy");
+	            Constants.IngestionType = (String) jsonObject.get("Ingestion Type");
+            	Constants.Format = (String) jsonObject.get("Format");
+            	Constants.saveState = (boolean) jsonObject.get("Save State");
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -258,12 +216,14 @@ public class UserDataHandler {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private void createNewUserInJson() {
+	private void createNewUserInJson() 
+	{
 		if(Constants.Debug) {
 			System.out.println("creating new user data file");
 		}
 		JSONObject obj = new JSONObject();
 		JSONObject UserSettings = new JSONObject();
+		saveUserSettings(UserSettings);
     	obj.put("User Settings", UserSettings);
     	
     	try (FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json")) {
@@ -281,13 +241,11 @@ public class UserDataHandler {
 	@SuppressWarnings({ "unchecked" })
 	private boolean loadLiveIdList(JSONObject jsonObject) 
 	{
-		//get and set live broadcast id list
         JSONArray liveIdList = (JSONArray) jsonObject.get("Live ID List");
-        // get live broadcasts id's
         if(liveIdList != null) { 
         	String[] liveBroadcastsId = new String[liveIdList.size()];
         	liveIdList.toArray(liveBroadcastsId);
-        	Constants.LiveId =new ArrayList<String>();
+        	Constants.LiveId = new ArrayList<String>();
         	Constants.LiveId.addAll(liveIdList);
         	return true;
         }
@@ -319,7 +277,6 @@ public class UserDataHandler {
 	
 	private Date loadStopTime(JSONObject jsonObject) throws ParseException
 	{
-		//load and cast stored stop time
         SimpleDateFormat dateformat = new SimpleDateFormat("E MMM dd HH:mm:ss z yyyy");
         String stp = (String) jsonObject.get("Stop Time");
 		Date stoptime =  dateformat.parse(stp);
@@ -350,18 +307,15 @@ public class UserDataHandler {
 	{
 		Interval interval = Interval.getInstance(); 	  //load saved interval
 	    IntervalPanel intervalPanel = IntervalPanel.getInstance();
-    	//set data to interval panel
         intervalPanel.getLblNotSet().setText(interval.getHours() +
 				 " Hours and " + interval.getMinutes() +" minutes");
-    	//set interval panel
-    	System.out.println("setting interval panel");
+        if(Constants.Debug) {
+        	System.out.println("setting interval panel");
+        }
     	IntervalPanel.getInstance().updateIntervalPanel((String) jsonObject.get("Start Time"),stoptime.toString());
-	
 		intervalPanel.getFtime().setVisible(true);						
     	intervalPanel.getLblstime().setVisible(true);
-    	
     	interval.setCorrentInterval(stoptime);	//set stop tome to current interval
-        
     	Controller.getInstance().setTimerRunner(stoptime);
 	}
 	
@@ -389,25 +343,20 @@ public class UserDataHandler {
 	{
     	Date stoptime = loadStopTime(jsonObject);
 		Date now = Date.from(LocalDateTime.now().atZone( ZoneId.systemDefault()).toInstant());
-		Interval interval = Interval.getInstance(); 	  //load saved interval
+		Interval interval = Interval.getInstance(); 	 
         interval.setInterval((String) jsonObject.get("Interval"));
-	
-		if(stoptime.before(now)) {   //if interval time has ended complete broadcasts
+		if(stoptime.before(now)) {   
 			 completeBroadcasts(livebroadcasts);
 			 return;
         }
-		else {
-			resumeBroadcasts(stoptime,jsonObject);
-		}
+		resumeBroadcasts(stoptime,jsonObject);
 		Constants.IntervalBroadcast = true;
 	}
 	
 	private void resumeRegularBroadcast() 
 	{
 		IntervalPanel intervalPanel = IntervalPanel.getInstance();
-    	//start regular flag
     	Constants.RegularBroadcast = true;
-    	//set non stop label
         intervalPanel.getLblNotSet().setText("Non-Stop");
 	}
 	
