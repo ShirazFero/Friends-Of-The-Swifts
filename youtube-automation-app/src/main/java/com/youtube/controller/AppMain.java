@@ -13,7 +13,7 @@ import org.json.simple.parser.ParseException;
 import com.youtube.api.ErrorHandler;
 import com.youtube.gui.UserLogin;
 
-public class App 
+public class AppMain 
 {
 	public static void main(String[] args) throws IOException
 	{
@@ -21,7 +21,7 @@ public class App
 			public void run() {
 				try {
 					AppBootLoader loader = new AppBootLoader();
-					loader.initData(); // set initial data
+					loader.InitData(); // set initial data
 					new UserLogin(loader);
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 						| InvalidAlgorithmParameterException | IOException | ParseException e) {

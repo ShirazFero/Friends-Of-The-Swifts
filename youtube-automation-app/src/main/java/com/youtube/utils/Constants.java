@@ -59,7 +59,7 @@ public class Constants {
 	
 	//Global pointers
 	public static Object[] ErrorArgs; 						    //error arguments pointer
-	public static String[] SavedUsers; 						    //user list pointer
+	public static ArrayList<String> SavedUsers; 						    //user list pointer
 	public static SecretKey SecretKey ;					        //secret key pointer
 	public static ArrayList<String> badResults;				    //bad response results pointer
 	public static String NextPageToken = null; 				    //next page token

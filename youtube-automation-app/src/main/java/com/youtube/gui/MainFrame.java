@@ -16,13 +16,12 @@ import java.util.Date;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
 import org.json.simple.parser.ParseException;
 
 import com.youtube.api.ErrorHandler;
-import com.youtube.controller.AppBootLoader;
+import com.youtube.controller.AppMain;
 import com.youtube.controller.Controller;
 import com.youtube.controller.Interval;
 import com.youtube.controller.UserDataHandler;
@@ -392,7 +391,7 @@ public class MainFrame extends JFrame {
 				Constants.State = "Completing";
 			}
 			
-			private void handleLogOut() {
+			private void handleLogOut() throws IOException {
 				String message = "Are you sure you want to log out?";
 				String title="Log out";
 				int reply = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.OK_OPTION);
@@ -400,26 +399,7 @@ public class MainFrame extends JFrame {
 					return;
 				}
 				dispose();
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						try {
-							Controller controller = Controller.getInstance();
-							UserDataHandler.getInstance().saveData();   //save status of broadcast 
-			            	if(controller.getTimerRunner() != null) {
-			            		controller.getTimerRunner().cancelTimer();
-			            	}
-			            	dispose();				
-			            	AppBootLoader loader = new AppBootLoader();
-							loader.initData(); // set initial data
-							new UserLogin(loader);
-						} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-								| InvalidAlgorithmParameterException | IOException | ParseException e) {
-							e.printStackTrace();
-						} 
-							
-					}
-						
-				});
+				AppMain.main(null);
 			}
 		});
 	}

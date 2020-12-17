@@ -18,6 +18,8 @@ import javax.swing.JTextField;
 import org.json.simple.parser.ParseException;
 
 import com.youtube.controller.AppBootLoader;
+import com.youtube.controller.AppMain;
+
 import javax.swing.JPasswordField;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.ImageIcon;
@@ -38,6 +40,8 @@ public class RegistrationForm extends JFrame implements ActionListener {
 	private JTextField emailConfirmField;
 	private JLabel lblBadInputMsg;
 	private AppBootLoader m_loader;
+	
+	
 	
 	public RegistrationForm(AppBootLoader a_loader) 
 	{
@@ -142,7 +146,7 @@ public class RegistrationForm extends JFrame implements ActionListener {
 			
 			case "Submit": 
 				//controller.checkRegisterForm(usernameField.getText(),);
-				if(m_loader.userExists(usernameField.getText())) {
+				if(m_loader.UserExists(usernameField.getText())) {
 					lblBadInputMsg.setText("User Exists already");
 					lblBadInputMsg.setVisible(true);
 					break;
@@ -198,18 +202,19 @@ public class RegistrationForm extends JFrame implements ActionListener {
 					lblBadInputMsg.setVisible(true);
 					break;
 				}
-				m_loader.registerUser(usernameField.getText(),inputedPassword,emailField.getText());
+				m_loader.RegisterUser(usernameField.getText(),inputedPassword,emailField.getText());
 				dispose();	
+				AppMain.main(null);
 				break;
 			
 			case "Cancel": System.out.println("Cancel");
 				dispose();	
+				AppMain.main(null);
 				break;
 			 
 			}
 		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IOException
 				| ParseException | InvalidAlgorithmParameterException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
