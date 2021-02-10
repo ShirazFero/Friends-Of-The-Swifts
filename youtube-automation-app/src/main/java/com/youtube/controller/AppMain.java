@@ -11,7 +11,7 @@ import javax.swing.*;
 import org.json.simple.parser.ParseException;
 
 import com.youtube.api.ErrorHandler;
-import com.youtube.gui.UserLogin;
+import com.youtube.gui.UserLoginFrame;
 
 public class AppMain 
 {
@@ -22,7 +22,7 @@ public class AppMain
 				try {
 					AppBootLoader loader = new AppBootLoader();
 					loader.InitData(); // set initial data
-					new UserLogin(loader);
+					new UserLoginFrame(loader);
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 						| InvalidAlgorithmParameterException | IOException | ParseException e) {
 					e.printStackTrace();

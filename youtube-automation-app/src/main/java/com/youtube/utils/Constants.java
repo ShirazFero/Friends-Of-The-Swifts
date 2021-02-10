@@ -11,19 +11,19 @@ import com.google.api.services.youtube.model.LiveStream;
 public class Constants {
 	
 	//flags
-	public static final boolean Debug = true;
+	public static final boolean DEBUG = true;
 	public static final int MaxPolls = 10;
-	public static final long MaxPollRsults = 20;
+	public static String MaxPollRsults = "20";
 	public static volatile int pollingCount = 0;   
 	public static boolean pollingState = false;         //polling flag
 	public static boolean LoadingState = false;			//load state
 	public static boolean IntervalBroadcast = false;	// Interval Broadcast flag
 	public static boolean RegularBroadcast = false;		// Regular Broadcast flag
 	public static boolean SetInterval = false;			// set interval flag
-	public volatile static int isLive;					// flag array
 	public static String State = null;					//starting/completing
 	public static String AddingStream;					
-	
+	public static final int MAX_LIVEBROADCASTS = 6;
+	public static final int POLL_SLEEP_MILISEC = 10000;
 	//user details
 	public static String UserEmail = "";
 	public static String Username = "";
@@ -39,7 +39,7 @@ public class Constants {
 	public static String Format = "1080p";
 	public static String IngestionType = "rtmp";
 	public static String Privacy = "public";
-	public static int NumberOfResulsts = 15;
+	public static String NumberOfResulsts = "15";
 	public static boolean AddDateTime = true;
 	public static boolean SendEmail = true;
 	public static boolean saveState= true;
@@ -55,7 +55,7 @@ public class Constants {
 	public static final String InfoPath = System.getProperty("user.home")+"\\Documents\\info.json";
 	public static final String LogPath = System.getProperty("user.home")+"\\Documents\\applog_"+LocalDate.now()+".txt";
 	public static final String tmpPath = "src\\main\\resources\\tmp.json";
-	public final static String appEmail ="yaba.app@gmail.com";
+	public static final  String appEmail ="yaba.app@gmail.com";
 	
 	//Global pointers
 	public static Object[] ErrorArgs; 						    //error arguments pointer
@@ -67,12 +67,16 @@ public class Constants {
 	public static ArrayList<LiveBroadcast> BroadcastsToUpdate;  //broadcasts pointer 
 	public static List<LiveBroadcast> PolledBroadcasts;			//broadcasts pointer 
 	public static ArrayList<LiveStream> StreamToRemove;		    //Streams pointer 
-	public static ArrayList<String> LiveId = null;			    //current Live broadcasts Id's
+	
 	
 	//thread locks
-	public static Object monitorLock = new Object();
+	public static Object timeredRunnerLock = new Object();
 	public static Object PollLock = new Object();			//poll lock
 	public static Object PollStartLock = new Object();			//poll start lock
+	
+	//patterns
+	public static final  String PasswordPattern = "(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}";
+	public static final  String EmailPattern = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$";
 }
  
 

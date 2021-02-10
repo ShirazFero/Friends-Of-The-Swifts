@@ -50,7 +50,7 @@ public class UserDataHandler {
 			saveUserSettings(obj);
 			FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json");
 			file.write(obj.toJSONString());
-			if(Constants.Debug) {
+			if(Constants.DEBUG) {
 				System.out.println("Successfully Saved User data to File...");
 				System.out.println("\nJSON Object: " + obj);
 			}
@@ -106,9 +106,10 @@ public class UserDataHandler {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private JSONArray getLiveIdList() {
+	private JSONArray getLiveIdList() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException {
 		JSONArray LiveIdList = new JSONArray();
-		for(String ID : Constants.LiveId) {
+		ArrayList<String> currLive = Controller.getInstance().getBroadcastsHandler().getCurrentlyLive();
+		for(String ID : currLive) {
 			LiveIdList.add(ID);
 		}
 		return LiveIdList;
@@ -128,7 +129,7 @@ public class UserDataHandler {
 	@SuppressWarnings("unchecked")
 	private void CloseRegularBroadcast(JSONObject userState) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException 
 	{
-		if(Constants.Debug) {
+		if(Constants.DEBUG) {
 			System.out.println("closing regular broadcast");
 		}
 		userState.put("Broadcast State", "Regular");
@@ -141,7 +142,7 @@ public class UserDataHandler {
 	@SuppressWarnings("unchecked")
 	private void CloseIntervalBroadcast(JSONObject userState) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException 
 	{
-		if(Constants.Debug) {
+		if(Constants.DEBUG) {
 			System.out.println("closing inteval broadcast");
 		}
 		userState.put("Broadcast State", "Interval");
@@ -218,7 +219,7 @@ public class UserDataHandler {
 	@SuppressWarnings("unchecked")
 	private void createNewUserInJson() 
 	{
-		if(Constants.Debug) {
+		if(Constants.DEBUG) {
 			System.out.println("creating new user data file");
 		}
 		JSONObject obj = new JSONObject();
@@ -228,7 +229,7 @@ public class UserDataHandler {
     	
     	try (FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json")) {
     			file.write(obj.toJSONString());
-    			if(Constants.Debug) {
+    			if(Constants.DEBUG) {
 	    			System.out.println("Successfully Saved JSON Object to File...");
 	    			System.out.println("\nJSON Object: " + obj);
     			}
@@ -239,14 +240,15 @@ public class UserDataHandler {
 	}
 	
 	@SuppressWarnings({ "unchecked" })
-	private boolean loadLiveIdList(JSONObject jsonObject) 
+	private boolean loadLiveIdList(JSONObject jsonObject) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException 
 	{
         JSONArray liveIdList = (JSONArray) jsonObject.get("Live ID List");
         if(liveIdList != null) { 
         	String[] liveBroadcastsId = new String[liveIdList.size()];
         	liveIdList.toArray(liveBroadcastsId);
-        	Constants.LiveId = new ArrayList<String>();
-        	Constants.LiveId.addAll(liveIdList);
+        	ArrayList<String> currLive = Controller.getInstance().getBroadcastsHandler().getCurrentlyLive();
+        	currLive = new ArrayList<String>();
+        	currLive.addAll(liveIdList);
         	return true;
         }
         return false;
@@ -263,10 +265,11 @@ public class UserDataHandler {
         }
 	}
 	
-	private ArrayList<String> addLiveBroadcastIdsToList() throws IOException
+	private ArrayList<String> addLiveBroadcastIdsToList() throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException
 	{
 		ArrayList<String> livebroadcasts = new ArrayList<String>();
-		for(String id : Constants.LiveId) {
+		ArrayList<String> currLive = Controller.getInstance().getBroadcastsHandler().getCurrentlyLive();
+		for(String id : currLive) {
 			String status = YouTubeAPI.getBroadcastByID(id).getStatus().getLifeCycleStatus();
 			if(status.equals("live")) {
 				livebroadcasts.add(id);
@@ -280,7 +283,7 @@ public class UserDataHandler {
         SimpleDateFormat dateformat = new SimpleDateFormat("E MMM dd HH:mm:ss z yyyy");
         String stp = (String) jsonObject.get("Stop Time");
 		Date stoptime =  dateformat.parse(stp);
-		if(Constants.Debug) {
+		if(Constants.DEBUG) {
 			System.out.println("stoptime on load: "+ stoptime.toString());
 		}
 		return stoptime;
@@ -288,7 +291,7 @@ public class UserDataHandler {
 	
 	private void completeBroadcasts(ArrayList<String> livebroadcasts) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, InterruptedException, IOException 
 	{
-		if(Constants.Debug) {
+		if(Constants.DEBUG) {
 			System.out.println("intervals has ended");
 		}
 		String message= "Iterval time ended ,Current LiveBroadcast will be Completed";
@@ -297,9 +300,7 @@ public class UserDataHandler {
 		
 		if(!livebroadcasts.isEmpty()) {
 			System.out.println("stopping old broadcasts");
-			String[] brdIds = new String[livebroadcasts.size()]; 
-			livebroadcasts.toArray(brdIds);
-			Controller.getInstance().getBroadcastsHandler().stopBroadcasts(brdIds);
+			Controller.getInstance().getBroadcastsHandler().stopBroadcasts(livebroadcasts);
 		}
 	}
 	
@@ -309,21 +310,21 @@ public class UserDataHandler {
 	    IntervalPanel intervalPanel = IntervalPanel.getInstance();
         intervalPanel.getLblNotSet().setText(interval.getHours() +
 				 " Hours and " + interval.getMinutes() +" minutes");
-        if(Constants.Debug) {
+        if(Constants.DEBUG) {
         	System.out.println("setting interval panel");
         }
     	IntervalPanel.getInstance().updateIntervalPanel((String) jsonObject.get("Start Time"),stoptime.toString());
 		intervalPanel.getFtime().setVisible(true);						
     	intervalPanel.getLblstime().setVisible(true);
     	interval.setCorrentInterval(stoptime);	//set stop tome to current interval
-    	Controller.getInstance().setTimerRunner(stoptime);
+    	Controller.getInstance().getBroadcastsHandler().setTimerRunner(stoptime);
 	}
 	
 	private void refreshGuiPanels() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException
 	{
 		 //refresh broadcast to active panel
 		LiveBroadcastHandler broadcastHandler =  Controller.getInstance().getBroadcastsHandler();
-    	String[] args = {"refresh","active",null,null};
+    	String[] args = {"active", Constants.NumberOfResulsts, null};
     	broadcastHandler.refreshBroadcasts(args);
 	    BroadcastPanel broadcastPanel = BroadcastPanel.getInstance();
 		broadcastPanel.setData(broadcastHandler.getBroadcasts());			//set new data

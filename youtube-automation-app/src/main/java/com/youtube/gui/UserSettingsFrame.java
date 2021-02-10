@@ -19,7 +19,7 @@ import java.awt.Color;
 import javax.swing.JCheckBox;
 import java.awt.SystemColor;
 
-public class UserSettingsFrame extends JPanel implements ActionListener{
+public class UserSettingsFrame extends JPanel implements ActionListener {
 	
 	private static final long serialVersionUID = -5171032239961861958L;
 

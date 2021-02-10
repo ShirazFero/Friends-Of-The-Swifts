@@ -19,8 +19,6 @@ import java.util.Iterator;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
-import javax.swing.JOptionPane;
-
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -36,14 +34,10 @@ public class AppBootLoader {
 		try {
 			if(firstBoot()) {
 				initBootData();
+				initUsersFile();
 			}
 			else {
 				loadBootData();
-			}
-			if(firstUserBoot()) {
-				initUsersFile();
-			}
-			else{
 				loadFromUsersFile();
 			}
 			initModuleProperties();
@@ -53,7 +47,7 @@ public class AppBootLoader {
 		}
 	}
 
-	public boolean UserExists(String username) throws FileNotFoundException, IOException, ParseException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException
+	public boolean userExistsInFile(String username) throws FileNotFoundException, IOException, ParseException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException
 	{
 		if(username != null && !"".equals(username)) {
 			JSONArray userArray =  getUsers();
@@ -68,7 +62,7 @@ public class AppBootLoader {
 		return false;
 	}
 
-	public boolean IsValidUser(String username, String password) throws FileNotFoundException, IOException, ParseException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException 
+	public boolean isValidUser(String username, String password) throws FileNotFoundException, IOException, ParseException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException 
 	{
 		if(Files.exists(Paths.get(Constants.AppUserPath))) {     	
 			JSONArray userArray =  getUsers();
@@ -78,6 +72,7 @@ public class AppBootLoader {
 				String decryptedPassword = (String) user.get("password"); 
 				if(username.equals(userInList) && (password.equals(decryptedPassword))) {
 					Constants.UserEmail = (String) user.get("email");
+					Constants.Username = username;
 					return true;
 				}
 			}
@@ -86,7 +81,7 @@ public class AppBootLoader {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void RegisterUser(String username, String password, String email) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException
+	public void registerUser(String username, String password, String email) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException
 	{
 		JSONObject newUser = createUserDetailsObject(username, password, email);
 		JSONArray userArray = getUsers();
@@ -95,9 +90,20 @@ public class AppBootLoader {
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("User List", userArray);
 		fileEncrypt(jsonObject.toString());
-		JOptionPane.showMessageDialog(null,"User Registerd Successfully","Completed",JOptionPane.INFORMATION_MESSAGE);	
 	}
 
+	public JSONArray getUsers() throws InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IOException, ParseException 
+	{
+		String data = fileDecrypt(); 
+		JSONObject jsonObject = (JSONObject) ((Object) new JSONParser().parse(data));
+		return (JSONArray) jsonObject.get("User List");
+	} 
+	
+	public void fileEncrypt(String data) throws InvalidKeyException, FileNotFoundException, IOException, NoSuchAlgorithmException, NoSuchPaddingException {
+		FileEncrypterDecrypter fileEncDec = new FileEncrypterDecrypter(Constants.SecretKey,"AES/CBC/PKCS5Padding");
+		fileEncDec.encrypt(data,Constants.AppUserPath);
+	}
+	
 	@SuppressWarnings("unchecked")
 	private JSONObject createUserDetailsObject(String username, String password, String email) 
 	{
@@ -111,22 +117,11 @@ public class AppBootLoader {
 		return newUser;
 	}
 
-	private JSONArray getUsers() throws InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IOException, ParseException 
-	{
-		String data = fileDecrypt(); 
-		JSONObject jsonObject = (JSONObject) ((Object) new JSONParser().parse(data));
-		return (JSONArray) jsonObject.get("User List");
-	} 
-	
 	private boolean firstBoot() {
 		final Path path = Paths.get(System.getProperty("user.home")+"\\Documents\\info.json");
 		return !Files.exists(path);
 	}	
 	
-	private boolean firstUserBoot() {
-		final Path Userpath1 = Paths.get(Constants.AppUserPath);
-		return !Files.exists(Userpath1);
-	}
 	
 	@SuppressWarnings("unchecked")
 	private void initUsersFile() throws SecurityException, IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException 
@@ -167,7 +162,7 @@ public class AppBootLoader {
 		obj.put("info", encodedKey);
 		try (FileWriter file = new FileWriter(Constants.InfoPath)) {
 			file.write(obj.toJSONString());
-			if(Constants.Debug) {
+			if(Constants.DEBUG) {
 				System.out.println("Successfully created first user list JSON Object File...");
 			}
 		} catch (IOException e) {
@@ -198,11 +193,6 @@ public class AppBootLoader {
 				Constants.SecretKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES"); 
 			}
 		}
-	}
-	
-	private void fileEncrypt(String data) throws InvalidKeyException, FileNotFoundException, IOException, NoSuchAlgorithmException, NoSuchPaddingException {
-		FileEncrypterDecrypter fileEncDec = new FileEncrypterDecrypter(Constants.SecretKey,"AES/CBC/PKCS5Padding");
-		fileEncDec.encrypt(data,Constants.AppUserPath);
 	}
 	
 	private String fileDecrypt() throws InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, NoSuchAlgorithmException, NoSuchPaddingException {

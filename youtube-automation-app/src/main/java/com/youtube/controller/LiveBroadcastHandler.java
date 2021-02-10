@@ -1,5 +1,6 @@
 package com.youtube.controller;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -10,6 +11,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger; 
 
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JOptionPane;
@@ -19,7 +21,7 @@ import org.json.simple.parser.ParseException;
 
 import com.google.api.services.youtube.model.LiveBroadcast;
 import com.youtube.api.CompleteBroadcast;
-import com.youtube.api.CreateBroadcast;
+import com.youtube.api.GoLive;
 import com.youtube.api.ErrorHandler;
 import com.youtube.api.ListPoll;
 import com.youtube.api.YouTubeAPI;
@@ -29,14 +31,23 @@ import com.youtube.utils.Constants;
 
 public class LiveBroadcastHandler {
 
-	private LiveStreamsHandler m_streamHandler;	
-	
 	private List<LiveBroadcast> broadcasts;		//holds currently presented broadcasts
 	
 	private  Boolean[] checkedBroadcasts;		//holds checked broadcasts from inputform
 	
-	public LiveBroadcastHandler(LiveStreamsHandler streamhandler) {
-		m_streamHandler = streamhandler;
+	private ArrayList<String> m_currentlyLive;
+	
+	private AtomicInteger m_percetageCounter;
+	
+	private TimerRunner timerRunner;						//holds current timer runner
+	
+	private static LiveBroadcastHandler instance;
+	
+	public static LiveBroadcastHandler getInstance() {
+		if(instance == null) {
+			instance = new LiveBroadcastHandler();
+		}
+		return instance;
 	}
 	
 	public List<LiveBroadcast> getBroadcasts(){
@@ -96,18 +107,14 @@ public class LiveBroadcastHandler {
 	public void startBroadcast() throws InterruptedException 
 	{
 		Constants.badResults =  new ArrayList<String>();
-		CreateBroadcast brd = null; //Pointer to currently created broadcast
 		
-		if(Constants.LiveId!= null && !Constants.LiveId.isEmpty()) {
-			Constants.LiveId.clear();
-		}
-			
-		Constants.LiveId = new ArrayList<String>();
+		m_currentlyLive =  new ArrayList<String>();
+		LiveStreamsHandler streamsHandler =  LiveStreamsHandler.getInstance();
+		String[] checkedStreams = streamsHandler.getCheckedStreams();
 		
-		String[] checkedStreams = m_streamHandler.getCheckedStreams();
-		
-		Constants.isLive = checkedStreams.length * 2;	//init flag array to mark starting progress of broadcast
-		if(Constants.Debug) {
+		//init flag array to mark starting progress of broadcast
+		m_percetageCounter = new AtomicInteger(checkedStreams.length * 2);
+		if(Constants.DEBUG) {
 			System.out.println("here starts load frame");
 		}
 		
@@ -115,10 +122,10 @@ public class LiveBroadcastHandler {
 		SwingUtilities.invokeLater(new Runnable() { 
 			public void run() {
 				try {
-					if(Constants.Debug) {
+					if(Constants.DEBUG) {
 						System.out.println("satrting loading task frame");
 					}
-					new ProgressFrame().loadTask();
+					new ProgressFrame().loadTask(m_percetageCounter);
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 						| InvalidAlgorithmParameterException | IOException | ParseException e) {
 					e.printStackTrace();
@@ -132,7 +139,7 @@ public class LiveBroadcastHandler {
 		for(String streamId : checkedStreams) {
 				System.out.println("inside for :starting " + streamId);
 				String[] args = new String[2];			// args[0] = title , args[1] = end time
-				args[0]= m_streamHandler.getStreamTitleFromId(streamId);		//set stream title arg
+				args[0]= streamsHandler.getStreamTitleFromId(streamId);		//set stream title arg
 				if(Constants.IntervalBroadcast) {		//calculate interval end time and set it as args 
 					LocalDateTime finTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(calcStopTime().getTime())
 							, ZoneId.systemDefault());
@@ -143,10 +150,11 @@ public class LiveBroadcastHandler {
 					args[1]=null;
 					System.out.println("starting "+ args[0]);
 				}
-				brd =  new CreateBroadcast(args);			// initiate new CreateBroadcast Thread
-				brd.start();								// start new thread
-				Thread.sleep(1000);							// wait 1 second, better handles server requests
+				GoLive brd =  new GoLive(args, m_currentlyLive, m_percetageCounter);	// initiate new CreateBroadcast Thread
+				brd.start();										// start new thread
+				Thread.sleep(1000);									// wait 1 second, better handles server requests
 		}
+		
 	}
 	
 	public  Date calcStopTime() {
@@ -170,35 +178,59 @@ public class LiveBroadcastHandler {
 	 * @throws InterruptedException 
 	 * @throws ParseException 
 	 */
-	public void stopBroadcasts(String[] broadcastIDs) throws InterruptedException 
-{
-	CompleteBroadcast cmpBrd = null;
-	String[] args = new String[1];
-	ListPoll listpoll = new ListPoll();
-	Constants.pollingState = true;
-	listpoll.start();
-	if(broadcastIDs!=null) {
-		Constants.isLive = broadcastIDs.length;	//init flag array to mark starting progress of broadcast
-		SwingUtilities.invokeLater(new Runnable() { //start loading frame
-			public void run() {
-				try {
-					new ProgressFrame().completeTask();
-				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-						| InvalidAlgorithmParameterException | IOException | ParseException e) {
-					e.printStackTrace();
-					ErrorHandler.HandleLoadError(e.toString());
-				}
+	public void stopBroadcasts(ArrayList<String> broadcastIDs) throws InterruptedException 
+	{
+		CompleteBroadcast cmpBrd = null;
+		String[] args = new String[1];
+		ListPoll listpoll = new ListPoll();
+		Constants.pollingState = true;
+		listpoll.start();
+		if(broadcastIDs != null && !broadcastIDs.isEmpty()) {
+			m_percetageCounter = new AtomicInteger(broadcastIDs.size());
+			initCompleteProgressFrame();
+			for(String ID : broadcastIDs) {
+				args[0] =  ID;
+				cmpBrd = new CompleteBroadcast(args, m_percetageCounter);
+				cmpBrd.start();
+				System.out.println("stopped "+ args[0]);
+				Thread.sleep(1000);	// wait 1 second, better handles server requests
 			}
-		});
-		for(String ID : broadcastIDs) {
-			args[0] =  ID;
-			cmpBrd = new CompleteBroadcast(args);
-			cmpBrd.start();
-			System.out.println("stopped "+ args[0]);
-			Thread.sleep(1000);	// wait 1 second, better handles server requests
 		}
-	}
 }
+	
+	/**
+		 * @return the m_currentlyLive
+		 */
+	public ArrayList<String> getCurrentlyLive() {
+		return m_currentlyLive;
+	}
+
+	public void startTimerRunner() throws InterruptedException {
+		timerRunner = new TimerRunner(calcStopTime());
+	}
+
+	public void setTimerRunner(Date stoptime) throws InterruptedException {
+			timerRunner = new TimerRunner(stoptime);
+	}
+
+	/**
+	 * This method stops timer runner object
+	 * @throws InterruptedException 
+	 * @throws ParseException 
+	 * @throws IOException 
+	 * @throws FileNotFoundException 
+	 * @throws NoSuchPaddingException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws InvalidKeyException 
+	 * @throws InvalidAlgorithmParameterException 
+	 */
+	public void cancelTimerRunner() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException {
+		timerRunner.stopIntervalBroadcast();
+	}
+	
+	public TimerRunner getTimerRunner() {
+		return timerRunner;
+	}
 	
 	/**
 	 * Check which broadcast was chosen to update description and request an update
@@ -231,6 +263,21 @@ public class LiveBroadcastHandler {
 			}
 		});
 		
+	}
+	
+	private void initCompleteProgressFrame()
+	{
+		SwingUtilities.invokeLater(new Runnable() { //start loading frame
+			public void run() {
+				try {
+					new ProgressFrame().completeTask(m_percetageCounter);
+				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+						| InvalidAlgorithmParameterException | IOException | ParseException e) {
+					e.printStackTrace();
+					ErrorHandler.HandleLoadError(e.toString());
+				}
+			}
+		});
 	}
 	
 }

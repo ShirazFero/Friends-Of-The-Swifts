@@ -81,7 +81,7 @@ public class BroadcastPanel extends JPanel implements ActionListener  {
 		comboBox1.setBounds(183, 329, 45, 23);
 		comboBox1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				Constants.NumberOfResulsts = Integer.parseInt((String) comboBox1.getSelectedItem());
+				Constants.NumberOfResulsts = (String) comboBox1.getSelectedItem();
 				btnlistener.ButtonPressed("Filter");
 			}
 		} );

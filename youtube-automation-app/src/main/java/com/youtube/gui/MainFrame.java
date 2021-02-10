@@ -12,6 +12,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Date;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.JFrame;
@@ -24,6 +25,7 @@ import com.youtube.api.ErrorHandler;
 import com.youtube.controller.AppMain;
 import com.youtube.controller.Controller;
 import com.youtube.controller.Interval;
+import com.youtube.controller.LiveBroadcastHandler;
 import com.youtube.controller.UserDataHandler;
 import com.youtube.utils.Constants;
 
@@ -180,7 +182,7 @@ public class MainFrame extends JFrame {
 		streamPanel.setBtnListener(new ButtonListener() {		//set button listener for stream panel
 			public void ButtonPressed(String name) {
 				try{
-					if(Constants.Debug) {
+					if(Constants.DEBUG) {
 						System.out.println("main frame Stream Panel: " +name);
 					}
 					switch(name){
@@ -243,7 +245,7 @@ public class MainFrame extends JFrame {
 		boradcastPanel.setBtnlistener(new ButtonListener() {	//set button listener for broadcast panel
 			public void ButtonPressed(String btnName) {
 				try {
-					if(Constants.Debug) {
+					if(Constants.DEBUG) {
 						System.out.println("main frame Broadcast Panel: " +btnName);
 					}
 					switch(btnName) {
@@ -263,10 +265,10 @@ public class MainFrame extends JFrame {
 			
 			private void handleFilterPressed() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException
 			{
-				Controller controller = Controller.getInstance();
-				String[] args = {"refresh",boradcastPanel.getSelected(),null,null};	//create args
-				controller.getBroadcastsHandler().refreshBroadcasts(args); 						//request refresh
-				boradcastPanel.setData(controller.getBroadcastsHandler().getBroadcasts());			//set new data
+				Controller controller = Controller.getInstance(); 
+				String[] args = {boradcastPanel.getSelected(), Constants.NumberOfResulsts, null};	 //create args
+				controller.getBroadcastsHandler().refreshBroadcasts(args); 								//request refresh
+				boradcastPanel.setData(controller.getBroadcastsHandler().getBroadcasts());			   //set new data
 				boradcastPanel.refresh();	
 			}
 			
@@ -274,7 +276,7 @@ public class MainFrame extends JFrame {
 			{
 				String pageToken = isNext ?  Constants.NextPageToken : Constants.PrevPageToken;
 				Controller controller = Controller.getInstance();
-				String[] args = {"refresh",boradcastPanel.getSelected(),null,pageToken};	//create args
+				String[] args = {boradcastPanel.getSelected(), Constants.NumberOfResulsts, pageToken};	//create args
 				controller.getBroadcastsHandler().refreshBroadcasts(args);
 				boradcastPanel.setData(controller.getBroadcastsHandler().getBroadcasts());			//set new data
 				boradcastPanel.refresh();	
@@ -313,7 +315,7 @@ public class MainFrame extends JFrame {
 		btnPnl.setBtnListener(new ButtonListener() {	//set button listener for button panel
 			public void ButtonPressed(String name) {
 				try {
-					if(Constants.Debug) {
+					if(Constants.DEBUG) {
 						System.out.println("main frame Button Panel: " +name);
 					}
 					switch(name) {
@@ -374,21 +376,26 @@ public class MainFrame extends JFrame {
 				if(reply!=JOptionPane.YES_OPTION) {
 					return;
 				}
+				ArrayList<String> currentlyLive = controller.getBroadcastsHandler().getCurrentlyLive();
 				if(Constants.IntervalBroadcast) {
-					Constants.IntervalBroadcast=false;			//toggle flag off
-					controller.cancelTimerRunner();
+					Constants.IntervalBroadcast = false;		
+					controller.getBroadcastsHandler().cancelTimerRunner();
 				}
-				else if(Constants.LiveId!=null && !Constants.LiveId.isEmpty()){
-					Constants.RegularBroadcast=false;
-					String[] brdID = new String[Constants.LiveId.size()]; 
-					Constants.LiveId.toArray(brdID);
-					controller.getBroadcastsHandler().stopBroadcasts(brdID);
+				else if(currentlyLive!= null && !currentlyLive.isEmpty()){
+					Constants.RegularBroadcast = false;
+					controller.getBroadcastsHandler().stopBroadcasts(currentlyLive);
 				}
+				
+				handleButtons();
+				Constants.State = "Completing";
+			}
+			
+			private void handleButtons()
+			{
 				btnPnl.getStartIntBrdbtn().setVisible(true);
 				btnPnl.getStopIntbtn().setVisible(false);
 				btnPnl.getStopIntbtn().setEnabled(false);
 				btnPnl.getStartIntBrdbtn().setEnabled(true);
-				Constants.State = "Completing";
 			}
 			
 			private void handleLogOut() throws IOException {
@@ -409,7 +416,7 @@ public class MainFrame extends JFrame {
 		inputForm.setBtnListener(new ButtonListener() {			//set button listener for input form
 			public void ButtonPressed(String btnName) {
 				try {
-					if(Constants.Debug) {
+					if(Constants.DEBUG) {
 						System.out.println("input form frame: " +btnName);
 					}
 					switch(btnName) {
@@ -497,12 +504,10 @@ public class MainFrame extends JFrame {
 					controller.getStreamHandler().setCheckedStreams(inputForm.getChecked());	// set input of checked streams to controller
 						// start broadcasting according to pressed button
 					if(inputForm.getSelected().equals("Non-Stop")) {
-						Constants.RegularBroadcast=true;
-						//System.out.println("IntervalBroadcast");
+						Constants.RegularBroadcast = true;
 					}
 					else {
-						Constants.IntervalBroadcast =true;
-						//System.out.println("RegularBroadcast");
+						Constants.IntervalBroadcast = true;
 					}
 					startBroadcast();
 				}
@@ -527,37 +532,45 @@ public class MainFrame extends JFrame {
 				 */
 			private void startBroadcast() {
 				try {	
-					Controller controller = Controller.getInstance();
-					if(Constants.IntervalBroadcast) {
-						Interval interval = Interval.getInstance();
-						interval.setInterval(inputForm.getSelected());		//set selected interval length
-						controller.startTimerRunner();			//start timer runner instance
-						// Prompt interval start stop times to interval panel
-						String startTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()).toString();
-						String stoptime = interval.getCorrentInterval().toString();
-						intervalPanel.updateIntervalPanel(startTime, stoptime);
-						intervalPanel.getLblstime().setVisible(true);
-						intervalPanel.getFtime().setVisible(true);
-						intervalPanel.getLblNotSet().setText(interval.getHours() + " Hours and "	
-						+ interval.getMinutes() +" minutes");
-					}
-					else {
-						intervalPanel.getLblNotSet().setText(inputForm.getSelected());
-					}
-					controller.getBroadcastsHandler().startBroadcast();	//start initial live Broadcasts
-					// toggle GUI buttons 
-					btnPnl.getStartIntBrdbtn().setVisible(false);
-					btnPnl.getStopIntbtn().setVisible(true);
-					btnPnl.getStartIntBrdbtn().setEnabled(false); 
-					btnPnl.getStopIntbtn().setEnabled(true);
+					handleIntervalPanelOnStart();
+					LiveBroadcastHandler broadcastHandler = LiveBroadcastHandler.getInstance();
 					Constants.State = "Starting";
-					
-					//close input form and Prompt chosen interval to interval panel
-					inputForm.setVisible(false);								
+					broadcastHandler.startBroadcast();	//start initial live Broadcasts
+					handleButtonPanel() ;
+					inputForm.setVisible(false);		//close input form and Prompt chosen interval to interval panel						
 						
-				} catch (InterruptedException | SecurityException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException | IOException e) {
+				} catch (InterruptedException | SecurityException e) {
 					e.printStackTrace();
 				}
+			}
+			
+			private void handleIntervalPanelOnStart() throws InterruptedException 
+			{
+				if(Constants.IntervalBroadcast) {
+					Interval interval = Interval.getInstance();
+					interval.setInterval(inputForm.getSelected());				//set selected interval length
+					LiveBroadcastHandler.getInstance().startTimerRunner();			//start timer runner instance
+					// Prompt interval start stop times to interval panel
+					String startTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()).toString();
+					String stoptime = interval.getCorrentInterval().toString();
+					intervalPanel.updateIntervalPanel(startTime, stoptime);
+					intervalPanel.getLblstime().setVisible(true);
+					intervalPanel.getFtime().setVisible(true);
+					intervalPanel.getLblNotSet().setText(interval.getHours() + " Hours and "	
+					+ interval.getMinutes() +" minutes");
+				}
+				else {
+					intervalPanel.getLblNotSet().setText(inputForm.getSelected());
+				}
+			}
+			
+			private void handleButtonPanel() 
+			{
+				// toggle GUI buttons 
+				btnPnl.getStartIntBrdbtn().setVisible(false);
+				btnPnl.getStopIntbtn().setVisible(true);
+				btnPnl.getStartIntBrdbtn().setEnabled(false); 
+				btnPnl.getStopIntbtn().setEnabled(true);
 			}
 			
 			/**
@@ -566,14 +579,14 @@ public class MainFrame extends JFrame {
 			 */
 			private boolean checkSelectedStreams() {
 				//if no stream was selected toggle option pane and ask to refresh streams
-				if(inputForm!=null && inputForm.getChecked().length<1) {
+				if(inputForm != null && inputForm.getChecked().length < 1) {
 					String message= "No active streams were chosen for Broadcast, Please choose at least one Stream",
 							title="No Streams Chosen";
 					JOptionPane.showMessageDialog(null, message, title, JOptionPane.OK_OPTION);
 					return false;
 				}
-				if(inputForm!=null && inputForm.getChecked().length>10) {
-					String message= "Please select less then 10 broadcasts",
+				if(inputForm != null && inputForm.getChecked().length > Constants.MAX_LIVEBROADCASTS) {
+					String message= "Please select less then "+ Constants.MAX_LIVEBROADCASTS +" broadcasts",
 							title="Too much Streams Chosen";
 					JOptionPane.showMessageDialog(null,message,title,JOptionPane.ERROR_MESSAGE);
 					return false;
@@ -588,7 +601,7 @@ public class MainFrame extends JFrame {
 		desFrame.setBtnListener(new ButtonListener() {
 			@Override
 			public void ButtonPressed(String btnName) {
-				if(Constants.Debug) {
+				if(Constants.DEBUG) {
 					System.out.println("des  frame : " +btnName);
 				}
 				switch(btnName) {
@@ -608,7 +621,7 @@ public class MainFrame extends JFrame {
 		userSetPanel.setBtnListener(new ButtonListener() {
 			@Override
 			public void ButtonPressed(String btnName) {
-				if(Constants.Debug) {
+				if(Constants.DEBUG) {
 					System.out.println("user Settings frame : " +btnName);
 				}
 				switch(btnName) {
@@ -636,11 +649,11 @@ public class MainFrame extends JFrame {
 		handler.loadUserSettings();
 		if(Constants.saveState) {
 			handler.loadUserState();
-			if(Constants.Debug) {
+			if(Constants.DEBUG) {
 				System.out.println("loaded user state");
 			}
 		}
-		else if(Constants.Debug){
+		else if(Constants.DEBUG){
 			System.out.println("user state load not enabled");
 		}
 	}

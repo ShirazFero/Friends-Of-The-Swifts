@@ -30,6 +30,15 @@ public class LiveStreamsHandler {
 	
 	private  String[] checkedStreams;			//holds checked streams from inputform
 	
+	private static LiveStreamsHandler instance;
+	
+	public static LiveStreamsHandler getInstance() {
+		if(instance == null) {
+			instance = new LiveStreamsHandler();
+		}
+		return instance;
+	}
+		
 	public List<LiveStream> getStreams() {
 		return streams;
 	}
@@ -68,7 +77,7 @@ public class LiveStreamsHandler {
 	{
 		Constants.AddingStream = JOptionPane.showInputDialog("please enter stream name");
 		if(Constants.AddingStream == null) {
-			if(Constants.Debug) {
+			if(Constants.DEBUG) {
 				System.out.println("requset cancelled");
 			}
 			return ;

@@ -23,6 +23,8 @@ import com.google.api.services.youtube.model.*;
 import com.youtube.utils.Constants;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.swing.JOptionPane;
 
 
@@ -36,9 +38,11 @@ import javax.swing.JOptionPane;
 public class CompleteBroadcast extends Thread {
 	
 	private String[] args;
+	private AtomicInteger m_doneFlag;
 	
-	public  CompleteBroadcast(String[] args) {
+	public  CompleteBroadcast(String[] args,AtomicInteger doneFlag) {
 		this.args = args;
+		m_doneFlag = doneFlag;
 	}
 
 	/**
@@ -63,7 +67,7 @@ public class CompleteBroadcast extends Thread {
             }
            
             //Request transition to complete broadcast
-            YouTube.LiveBroadcasts.Transition requestTransition = YouTubeAPI.youtube.liveBroadcasts()
+            YouTube.LiveBroadcasts.Transition requestTransition = YouTubeAPI.youtubeService.liveBroadcasts()
                     .transition("complete", returnedBroadcast.getId(), "snippet,status");
             synchronized (lock) { 
             	returnedBroadcast = requestTransition.execute();
@@ -94,7 +98,7 @@ public class CompleteBroadcast extends Thread {
              
              
              synchronized (lock) {
-             	Constants.isLive--;
+            	 m_doneFlag.decrementAndGet();
  			}
              System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
             

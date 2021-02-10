@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.ImageIcon;
@@ -72,24 +73,25 @@ public class ProgressFrame extends JFrame implements PropertyChangeListener {
 		setVisible(true);
 	}
 	
-	public void initTask() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
+	public void getUserDataFromServer() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException {
 		lblFetch.setText("Fetching Data from Server...");
 		task = new BackroundTasks();
 		task.addPropertyChangeListener(this);
 		task.execute();
 	}
 	
-	public void loadTask() {
+	public void loadTask(AtomicInteger percerntageCounter)
+	{
 		
 		lblFetch.setText("Starting Live Broadcasts...");
-		loadTask = new LoadingTasks();
+		loadTask = new LoadingTasks(percerntageCounter);
 		loadTask.addPropertyChangeListener(this);
 		loadTask.execute();
 	}
 	
-	public void completeTask() {
+	public void completeTask(AtomicInteger percerntageCounter) {
 		lblFetch.setText("Completing Live Broadcasts...");
-		loadTask = new LoadingTasks();
+		loadTask = new LoadingTasks(percerntageCounter);
 		loadTask.addPropertyChangeListener(this);
 		loadTask.execute();
 	}

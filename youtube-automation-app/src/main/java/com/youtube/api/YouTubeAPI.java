@@ -45,7 +45,7 @@ import com.youtube.utils.Constants;
  * */
 public class YouTubeAPI {
 	
-	public static YouTube youtube;	//YouTube resource 
+	public static YouTube youtubeService;	//YouTube resource 
 
 	    /**
 	 * Create and insert a YouTube resource, authorize via OAuth 2.0 resource.
@@ -72,7 +72,7 @@ public class YouTubeAPI {
 		    Credential credential = Auth.authorize(scopes,Constants.Username);
 		    
 		    // This object is used to make YouTube Data API requests.
-		    youtube = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
+		    youtubeService = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
 		            .setApplicationName("YABA").build();
 		    
 		    
@@ -95,10 +95,9 @@ public class YouTubeAPI {
 	/**
      * retrieve a List of broadcasts from the user's channel.
     * according to parameters:
-    * @param String args[4] ={ 1st argument is source function :"init/refresh",
-    * 						   2nd argument is type :"all/upcoming/active/complete"
-    * 						   3rd argument is next page token if exists, null otherwise}
-    * 						   4th argument is previous page token if exists, null otherwise}
+    * @param String args[4] ={ 1st argument is broadcast life status :"all/ upcoming/active/complete"
+    * 						   2nd argument is max number of results requested}
+    * 						   3rd argument is next/previous page token if exists, null otherwise}
 	 * @throws IOException 
 	 * @throws SecurityException 
 	 * @throws ParseException 
@@ -106,38 +105,30 @@ public class YouTubeAPI {
 	public static List<LiveBroadcast> listBroadcasts(String[] args) throws SecurityException, IOException  {
 	
 	    try {
-		        // Create a request to list broadcasts.
+	        // Create a request to list broadcasts.
 		    YouTube.LiveBroadcasts.List liveBroadcastRequest =
-		    		youtube.liveBroadcasts().list("id,snippet,status");
-		   //
-		    if(args.length!=4)
-		    	return null;
+		    		youtubeService.liveBroadcasts().list("id,snippet,status");
+		   
+		    if(args.length != 3) {
+		    	throw new IOException("Bad arguments number on requset");
+		    }
+		    	
 		    // Indicate that the API response should not filter broadcasts
 		    // based on their type or status.
-		    if(args[0].equals("init"))
-		    	liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus(args[1]);
-		    else if(args[0].equals("refresh"))
-		    	liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus(args[1]);
-		    liveBroadcastRequest.setMaxResults((long) Constants.NumberOfResulsts); //show up to 50 broadcasts
+	    	liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus(args[0]);
+		    	
+		    liveBroadcastRequest.setMaxResults((long) Long.parseLong(args[1])); //show up to 50 broadcasts
 		    
-		    //set next page token if exists
-		    if(args[2]!=null)
-		    	liveBroadcastRequest.setPageToken(Constants.NextPageToken);
-		    if(args[3]!=null)
-		    	liveBroadcastRequest.setPageToken(Constants.PrevPageToken);
+		    //set next/prev page token if exists
+		    if(args[2] != null){
+		    	liveBroadcastRequest.setPageToken(args[2]);
+		    }
 		    
 		    // Execute the API request and return the list of broadcasts.
 		    LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();
-		    List<LiveBroadcast> returnedList = returnedListResponse.getItems();
-		    List<LiveBroadcast> fullreturnList= new LinkedList<LiveBroadcast>(returnedList);
-		    
 		    Constants.NextPageToken = returnedListResponse.getNextPageToken();
-		    /*if(Constants.NextPageToken!=null)
-		    	System.out.println("next page token is: " + Constants.NextPageToken);*/
 		    Constants.PrevPageToken = returnedListResponse.getPrevPageToken();
-		    /*if(Constants.PrevPageToken!=null)
-		    	System.out.println("prev page token is: " + Constants.PrevPageToken);*/
-		    return fullreturnList;
+		    return returnedListResponse.getItems();
 	   
 		} catch (GoogleJsonResponseException e) {
 		    System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
@@ -168,7 +159,7 @@ public class YouTubeAPI {
 	
 	    try {
 	    	// Create a request to list liveStream resources.
-	    YouTube.LiveStreams.List livestreamRequest = youtube.
+	    YouTube.LiveStreams.List livestreamRequest = youtubeService.
 	    		liveStreams().list("id,snippet,status,cdn");
 	
 	    // Modify results to only return the user's streams.
@@ -254,7 +245,7 @@ public class YouTubeAPI {
 				
 		    // Construct and execute the API request to insert the stream.
 		    YouTube.LiveStreams.Insert liveStreamInsert =
-		    		youtube.liveStreams().insert("snippet,cdn,status", stream);
+		    		youtubeService.liveStreams().insert("snippet,cdn,status", stream);
 		    liveStreamInsert.execute();
 	
 		    return true;
@@ -298,7 +289,7 @@ public class YouTubeAPI {
 		    System.out.println(stream.getId());
 		    // Construct and execute the API request to insert the stream.
 		    YouTube.LiveStreams.Delete liveStreamDelete =
-		    		youtube.liveStreams().delete(stream.getId());
+		    		youtubeService.liveStreams().delete(stream.getId());
 		    liveStreamDelete.execute();
 		    System.out.println(title +" was deleted");
 		    return true;
@@ -348,7 +339,7 @@ public class YouTubeAPI {
 	        
 	        liveBroadcastupdate.setSnippet(snippet);
 			
-			YouTube.LiveBroadcasts.Update request = youtube.liveBroadcasts()
+			YouTube.LiveBroadcasts.Update request = youtubeService.liveBroadcasts()
 		            .update("snippet",liveBroadcastupdate);
 		        LiveBroadcast response = request.execute();
 		    
@@ -397,7 +388,7 @@ public class YouTubeAPI {
 	        streamSnippet.setTitle(stream.getSnippet().getTitle());
 	        LiveStreamupdate.setSnippet(streamSnippet);
 			
-			YouTube.LiveStreams.Update request = youtube.liveStreams()
+			YouTube.LiveStreams.Update request = youtubeService.liveStreams()
 		            .update("snippet",LiveStreamupdate);
 			LiveStream response = request.execute();
 		    
@@ -433,8 +424,8 @@ public class YouTubeAPI {
 	 */
 	  public static LiveStream getStreamByName(String name) throws IOException, ParseException {
 
-	    	LiveStream foundstream=null;			//initite pointer to the stream
-	    	List<LiveStream> returnedList= YouTubeAPI.listStreams(null); //get stream list
+	    	LiveStream foundstream = null;			//initite pointer to the stream
+	    	List<LiveStream> returnedList = YouTubeAPI.listStreams(null); //get stream list
 	        for (LiveStream stream : returnedList) {
 	        	//System.out.println(stream.getSnippet().getTitle());
 	        	if(stream.getSnippet().getTitle().equals(name))
@@ -453,7 +444,7 @@ public class YouTubeAPI {
  	public static LiveBroadcast getBroadcastByID(String id) throws IOException {
     	
     	YouTube.LiveBroadcasts.List liveBroadcastRequest =
-   			youtube.liveBroadcasts().list("id,snippet,status");
+   			youtubeService.liveBroadcasts().list("id,snippet,status");
 
 	    // Indicate that the API response should not filter broadcasts
 	    // based on their type or status.
@@ -482,8 +473,9 @@ public class YouTubeAPI {
  	public static LiveBroadcast getBroadcastFromPolledList(String id) throws IOException 
  	{
  		for (LiveBroadcast broadcast : Constants.PolledBroadcasts) {
-	       	  if(broadcast.getId().equals(id))
-	       		 return broadcast;
+	       	  if(broadcast.getId().equals(id)) {
+	       		return broadcast;
+	       	  }
  		}
  		return null;
  	}

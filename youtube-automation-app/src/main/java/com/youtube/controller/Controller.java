@@ -5,10 +5,8 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
 import javax.crypto.NoSuchPaddingException;
 
-import org.json.simple.parser.ParseException;
 import com.youtube.api.YouTubeAPI;
 
 /**
@@ -20,10 +18,22 @@ import com.youtube.api.YouTubeAPI;
  */
 public class Controller {
 	
-	public Controller() throws SecurityException, IOException {
-		YouTubeAPI.getInstance();
-		m_streamHandler = new LiveStreamsHandler();
-		m_broadcastsHandler = new LiveBroadcastHandler(m_streamHandler);
+	private YouTubeAPI m_youtubeService;
+
+	private LiveStreamsHandler m_streamHandler;	
+	
+	private LiveBroadcastHandler m_broadcastsHandler;		//holds currently presented broadcasts
+
+	private static Controller instance;	
+	
+	private Controller() throws SecurityException, IOException {
+		m_youtubeService = YouTubeAPI.getInstance();
+		m_streamHandler = LiveStreamsHandler.getInstance();
+		m_broadcastsHandler = LiveBroadcastHandler.getInstance();
+	}
+	
+	public YouTubeAPI getYouTubeService() {
+		return m_youtubeService;
 	}
 
 	public LiveStreamsHandler getStreamHandler() {
@@ -34,62 +44,9 @@ public class Controller {
 		return m_broadcastsHandler;
 	}
 
-	/**
-	 * @return the timerRunner
-	 */
-	public TimerRunner getTimerRunner() {
-		return timerRunner;
-	}
-	
-	/**
-	 * This method creates and start a timer runner object 
-	 * @throws InterruptedException
-	 */
-	public void startTimerRunner() throws InterruptedException {
-			timerRunner = new TimerRunner(m_broadcastsHandler.calcStopTime());
-	}
-	
-	public void setTimerRunner(Date stoptime) throws InterruptedException {
-			timerRunner = new TimerRunner(stoptime);
-	}
-	
-		/**
-	 * This method stops timer runner object
-	 * @throws InterruptedException 
-	 * @throws ParseException 
-	 * @throws IOException 
-	 * @throws FileNotFoundException 
-	 * @throws NoSuchPaddingException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws InvalidKeyException 
-	 * @throws InvalidAlgorithmParameterException 
-	 */
-	public void cancelTimerRunner() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException {
-		timerRunner.stopIntervalBroadcast();
-	}
-
-/**
- 	* Singleton instance retriever
- * @return
- * @throws IOException 
- * @throws FileNotFoundException 
- * @throws NoSuchPaddingException 
- * @throws NoSuchAlgorithmException 
- * @throws InvalidKeyException 
- * @throws ParseException 
- * @throws InvalidAlgorithmParameterException 
- */
 	public static Controller getInstance() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException {
 		if(instance==null)
 			instance = new Controller();
 		return instance;
 	}
-
-	private LiveStreamsHandler m_streamHandler;	
-	
-	private LiveBroadcastHandler m_broadcastsHandler;		//holds currently presented broadcasts
-
-	private TimerRunner timerRunner;						//holds current timer runner
-
-	private static Controller instance;		
 }
