@@ -1,12 +1,8 @@
 package com.youtube.controller;
 
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 
-import javax.crypto.NoSuchPaddingException;
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
 
@@ -25,15 +21,13 @@ public class StreamTask extends SwingWorker<Void, Void>{
 
 	@Override
 	protected Void doInBackground() throws Exception {
-		// TODO Auto-generated method stub
 		if(Constants.AddingStream==null) {
 			int percentage = Math.round(100/ Constants.StreamToRemove.size()) ,progress = 0;
 			ArrayList<String> Badresults = new ArrayList<String>();	
-			String[] args = new String[1];
 			for(LiveStream stream : Constants.StreamToRemove) {
-				args[0] = stream.getSnippet().getTitle();
-				if(!YouTubeAPI.deleteStream(args)) { //if didn't succeed
-					Badresults.add(args[0]);		//add stream title to error massage
+				String title  = stream.getSnippet().getTitle();
+				if(!YouTubeAPI.getInstance().deleteStream(title)) { //if didn't succeed
+					Badresults.add(title);		//add stream title to error massage
 				}
 				else { 
 					progress+=percentage;	//add percentage
@@ -51,10 +45,9 @@ public class StreamTask extends SwingWorker<Void, Void>{
 			JOptionPane.showMessageDialog(null,"Streams removed","Completed",JOptionPane.INFORMATION_MESSAGE);
 		}
 		else {
-			String[] args = new String[1];
-			args[0]=Constants.AddingStream;
-			if(args[0]!=null && YouTubeAPI.createStream(args)) {
-					setProgress(100);
+			String title = Constants.AddingStream;
+			if(YouTubeAPI.getInstance().createStream(title)) {
+				setProgress(100);
 			}
 		}
 		return null;
@@ -70,7 +63,7 @@ public class StreamTask extends SwingWorker<Void, Void>{
 			streamPanel.setData(cont.getStreamHandler().getStreams());	//set new data to table
 			streamPanel.refresh();
 			setProgress(100);
-			if(Constants.AddingStream!=null) {
+			if(Constants.AddingStream != null) {
 				System.out.println("done adding streams");
 				JOptionPane.showMessageDialog(null,Constants.AddingStream +
 						" Stream Added Successfully","Completed",JOptionPane.INFORMATION_MESSAGE);
@@ -80,12 +73,9 @@ public class StreamTask extends SwingWorker<Void, Void>{
 				System.out.println("done removing streams");
 			}
 			
-		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-				| InvalidAlgorithmParameterException | IOException e) {
-			// TODO Auto-generated catch block
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 		
 	}
 }

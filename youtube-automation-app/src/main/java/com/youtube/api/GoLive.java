@@ -114,7 +114,7 @@ public class GoLive extends Thread {
 	{
 		//transition to testing mode (preview mode)
 		assert(mode.equals("testing") || mode.equals("live"));
-	   	YouTube.LiveBroadcasts.Transition requestTesting = YouTubeAPI.youtubeService.liveBroadcasts()
+	   	YouTube.LiveBroadcasts.Transition requestTesting = YouTubeAPI.getInstance().getService().liveBroadcasts()
 	          .transition(mode, returnedBroadcast.getId(), "snippet,status");
 	   	return requestTesting.execute();
 	}
@@ -134,7 +134,8 @@ public class GoLive extends Thread {
 	private synchronized LiveBroadcast initStartSequence() throws SecurityException, IOException, ParseException 
 	{
 	
-		LiveStream returnedStream = YouTubeAPI.getStreamByName(args[0]);
+		YouTubeAPI youtubeApi = YouTubeAPI.getInstance();
+		LiveStream returnedStream =  youtubeApi.getStreamByName(args[0]);
 	    
 		assertLiveStreamReady(returnedStream);
 	    
@@ -143,13 +144,13 @@ public class GoLive extends Thread {
 	
 	    // Construct and execute the API request to insert the broadcast.
 	    YouTube.LiveBroadcasts.Insert liveBroadcastInsert =
-	    		YouTubeAPI.youtubeService.liveBroadcasts().insert("snippet,status", broadcast);
+	    		youtubeApi.getService().liveBroadcasts().insert("snippet,status", broadcast);
 	    
 	    LiveBroadcast response = liveBroadcastInsert.execute();
 	    
 	    // Construct and execute a request to bind the new broadcast and stream.
 	    YouTube.LiveBroadcasts.Bind liveBroadcastBind =
-	    		YouTubeAPI.youtubeService.liveBroadcasts().bind(response.getId(), "id,contentDetails");
+	    		youtubeApi.getService().liveBroadcasts().bind(response.getId(), "id,contentDetails");
 	    
 	    liveBroadcastBind.setStreamId(returnedStream.getId());
 	    return liveBroadcastBind.execute();
@@ -249,6 +250,7 @@ public class GoLive extends Thread {
 	 */
 	private LiveBroadcast waitWhileModeTransitions(LiveBroadcast returnedBroadcast, String mode) throws InterruptedException, IOException 
 	{
+		YouTubeAPI youtubeApi = YouTubeAPI.getInstance();
 		while(!returnedBroadcast.getStatus().getLifeCycleStatus().equals(mode)) {
 			synchronized (Constants.PollLock) {
 	 		   	if(Constants.DEBUG) {
@@ -260,7 +262,7 @@ public class GoLive extends Thread {
 				System.out.println("Thread "+Thread.currentThread().getId()+ " continues" );
 	 	   	}
 	      
-			LiveBroadcast tempBroadcast = YouTubeAPI.getBroadcastFromPolledList(returnedBroadcast.getId());
+			LiveBroadcast tempBroadcast = youtubeApi.getBroadcastFromPolledList(returnedBroadcast.getId());
 			if(tempBroadcast != null) {
 				returnedBroadcast = tempBroadcast;
 			}

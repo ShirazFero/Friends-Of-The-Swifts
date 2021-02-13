@@ -6,6 +6,7 @@ import javax.swing.JTable;
 import javax.swing.table.TableColumnModel;
 
 import com.google.api.services.youtube.model.LiveStream;
+import com.youtube.controller.StreamTableModel;
 
 import javax.swing.JLabel;
 import javax.swing.JButton;
@@ -22,15 +23,14 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.Color;
 import java.awt.SystemColor;
+import java.awt.Toolkit;
 
 /**
  * This class represents an Interval input form , which will appear when setting an interval,
  * or Starting a Live Broadcast
  * @author Evgeny Geyfman
- *
  */
 public class IntervalInputForm extends JFrame implements ActionListener {
-	
 	
 	private static final long serialVersionUID = 424851761694278102L;
 
@@ -64,9 +64,8 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 	
 	private JButton btnCancel;
 	
-	/**
-	 * @return the btnRefresh
-	 */
+	private JPanel jpanel;
+	
 	public JButton getBtnRefresh() {
 		return btnRefresh;
 	}
@@ -81,16 +80,17 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		return instance;
 	}
 
-	public IntervalInputForm() {
-		super("Starting Live Broadcast");
-		getContentPane().setBackground(SystemColor.textHighlightText);
-		setSize(462, 307);
-		getContentPane().setLayout(null);
-		JPanel panel = new JPanel();
-		panel.setBackground(SystemColor.textHighlightText);
-		panel.setBounds(10, 11, 426, 246);
-		getContentPane().add(panel);
-		panel.setLayout(null);
+	private void initPanel()
+	{
+		jpanel = new JPanel();
+		jpanel.setBackground(SystemColor.textHighlightText);
+		jpanel.setBounds(10, 11, 426, 246);
+		getContentPane().add(jpanel);
+		jpanel.setLayout(null);
+	}
+	
+	private void initStreamTable()
+	{
 		stm = new StreamTableModel();
 		streamTable = new JTable(stm);
 		int widths[]= {50,50,50,200};
@@ -98,42 +98,82 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		streamTable.setEditingColumn(0);
 		streamTable.setPreferredScrollableViewportSize(new Dimension(350, 100));
 		streamTable.setFillsViewportHeight(true);
+		
+	}
+	
+	private void initScrollPane()
+	{
 		jsp = new JScrollPane(streamTable);
 		jsp.setBounds(20,51,352,117);
-		panel.add(jsp,BorderLayout.SOUTH);
-		selected = "Non-Stop";	//set default 5 min 
-		
+		jpanel.add(jsp,BorderLayout.SOUTH);
+	}
+	
+	private void initRequestIntervalLbl()
+	{
 		lblPleaseEnterInterval = new JLabel("Please Select Interval time in HH:MM format");
 		lblPleaseEnterInterval.setBounds(10, 11, 262, 29);
-		panel.add(lblPleaseEnterInterval);
-		
+		jpanel.add(lblPleaseEnterInterval);
+	}
+	
+	private void initOkBtn()
+	{
 		btnOk = new JButton("Start");
 		btnOk.setBounds(20, 212, 89, 23);
-		panel.add(btnOk);
 		btnOk.addActionListener(this);
-		
+		jpanel.add(btnOk);
+	}
+	
+	private void initCancelBtn()
+	{
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
 		btnCancel.setBounds(123, 212, 89, 23);
-		panel.add(btnCancel);
-		
-		
+		jpanel.add(btnCancel);
+	}
+	
+	private void initComboBox()
+	{
 		box = new JComboBox<Object>(intervals);
 		box.setBounds(284, 14, 88, 23);
 		box.setSelectedItem(selected);
-		panel.add(box);
-		
+		jpanel.add(box);
+	}
+	
+	private void initRefreshBtn()
+	{
 		btnRefresh = new JButton("Refresh");
 		btnRefresh.setBounds(226, 212, 89, 23);
 		btnRefresh.addActionListener(this);
-		panel.add(btnRefresh);
-		
+		jpanel.add(btnRefresh);
+	}
+	
+	private void initWariningLbl()
+	{
 		lblThereAreNo = new JLabel("<html>There are no active streams available,<br>\r\nPlease start streaming on your Encoder, then press refresh</html>");
 		lblThereAreNo.setForeground(Color.RED);
 		lblThereAreNo.setBounds(20, 175, 382, 29);
 		lblThereAreNo.setVisible(false);
-		panel.add(lblThereAreNo);
+		jpanel.add(lblThereAreNo);
+	}
+	
+	public IntervalInputForm() {
+		super("Starting Live Broadcast");
+		this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/YABAWB.png")));
+		getContentPane().setBackground(SystemColor.textHighlightText);
+		setSize(462, 307);
+		getContentPane().setLayout(null);
 		
+		selected = "Non-Stop";	//set default non - stop
+		
+		initPanel();
+		initStreamTable();
+		initScrollPane();
+		initRequestIntervalLbl();
+		initOkBtn();
+		initCancelBtn();
+		initComboBox();
+		initRefreshBtn();
+		initWariningLbl();
 		
 		this.addWindowListener(new WindowAdapter(){		//on closing act as Cancel was pressed
             public void windowClosing(WindowEvent e){
@@ -144,58 +184,33 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		setLocationRelativeTo(null);
 	}
 	
-	/**
-	 * @return the btnCancel
-	 */
 	public JButton getBtnCancel() {
 		return btnCancel;
 	}
 
-	/**
-	 * @param selected the selected to set
-	 */
 	public void setSelected(String selected) {
 		this.selected = selected;
 	}
 
-	/**
-	 * @return the btnOk
-	 */
 	public JButton getBtnOk() {
 		return btnOk;
 	}
 
-	/**
-	 * @return the jsp
-	 */
 	public JScrollPane getJsp() {
 		return jsp;
 	}
 
-
-	/**
-	 * @param lblPleaseEnterInterval the lblPleaseEnterInterval to set
-	 */
 	public void setLblPleaseEnterInterval(JLabel lblPleaseEnterInterval) {
 		this.lblPleaseEnterInterval = lblPleaseEnterInterval;
 	}
 
-
-	/**
-	 * @return the box
-	 */
 	public JComboBox<Object> getBox() {
 		return box;
 	}
 
-
-	/**
-	 * @return the lblPleaseEnterInterval
-	 */
 	public JLabel getLblPleaseEnterInterval() {
 		return lblPleaseEnterInterval;
 	}
-
 
 	public String[] getChecked() {
 		ArrayList<String> streamID = new ArrayList<String>();
@@ -210,10 +225,6 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		return streamIds;
 	}
 	
-	/**
-	 * sets checked table according to live streams
-	 * @param checked the checked to set
-	 */
 	public void setChecked(String[] ids) {
 		System.out.println("in set checked");
 		for(int i = 0 ; i<streamTable.getRowCount() ;i++) {
@@ -228,9 +239,6 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		}
 	}
 
-	/**
-	 * @return the btnlistener
-	 */
 	public ButtonListener getBtnlistener() {
 		return btnlistener;
 	}
@@ -248,7 +256,6 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		lblThereAreNo.setVisible(true);
 	}
 	
-	
 	public JLabel getLblThereAreNo() {
 		return lblThereAreNo;
 	}
@@ -265,7 +272,6 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 		this.btnlistener=btnlstener;
 	}
 	
-	
 	public String getSelected() {
 		return selected;
 	}
@@ -273,7 +279,6 @@ public class IntervalInputForm extends JFrame implements ActionListener {
 	public void actionPerformed(ActionEvent ev) {
 		btnlistener.ButtonPressed(ev.getActionCommand());
 	}
-	
 	
 	public static void setColumnWidths(JTable table, int... widths) {
 	    TableColumnModel columnModel = table.getColumnModel();

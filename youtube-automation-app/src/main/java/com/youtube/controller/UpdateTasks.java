@@ -14,11 +14,10 @@ public class UpdateTasks extends SwingWorker<Void, Void>{
 
 	@Override
 	protected Void doInBackground() throws Exception {
-		// TODO Auto-generated method stub
 		int percentage = Math.round(100/ Constants.BroadcastsToUpdate.size()) ,progress = 0;
 		ArrayList<String> Badresults = new ArrayList<String>();	
 		for(LiveBroadcast broadcast : Constants.BroadcastsToUpdate) {
-				if(!YouTubeAPI.updateDescription(Constants.Description, broadcast)) //try to update
+				if(!YouTubeAPI.getInstance().updateDescription(Constants.Description, broadcast)) //try to update
 					Badresults.add( broadcast.getSnippet().getTitle());
 				progress+=percentage;	//add percentage
 				setProgress(progress);

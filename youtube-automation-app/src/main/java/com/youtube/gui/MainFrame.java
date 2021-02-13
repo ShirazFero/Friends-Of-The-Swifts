@@ -3,18 +3,14 @@ package com.youtube.gui;
 import java.awt.Dimension;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
-import javax.crypto.NoSuchPaddingException;
+
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.WindowConstants;
@@ -22,11 +18,10 @@ import javax.swing.WindowConstants;
 import org.json.simple.parser.ParseException;
 
 import com.youtube.api.ErrorHandler;
-import com.youtube.controller.AppMain;
 import com.youtube.controller.Controller;
 import com.youtube.controller.Interval;
 import com.youtube.controller.LiveBroadcastHandler;
-import com.youtube.controller.UserDataHandler;
+import com.youtube.controller.LiveStreamsHandler;
 import com.youtube.utils.Constants;
 
 import java.awt.Font;
@@ -47,12 +42,13 @@ public class MainFrame extends JFrame {
 
 	private static final long serialVersionUID = 6609103195472306740L;
 	
-	public MainFrame() throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, ParseException, InvalidAlgorithmParameterException 
+	public MainFrame() throws IOException, ParseException
 	{
 		//----------------------INIT PANELS---------------------
 		super("YABA");
-		
-		loadUserData();
+		Controller controller = Controller.getInstance();
+		ButtonPanel btnPnl = new ButtonPanel();
+		loadUserData(btnPnl);
 		initMainPane();
 		IntervalPanel intervalPanel = initIntervalPanel();
 		BroadcastPanel boradcastPanel = initBroadcastPanel();
@@ -60,8 +56,8 @@ public class MainFrame extends JFrame {
 		UserSettingsFrame userSetPanel = initUserSettingsFrame(); 
 		JTabbedPane tabbedPane = initTabbedPane(streamPanel, boradcastPanel, userSetPanel);
 		IntervalInputForm inputForm = initItervalInputForm();
-		ButtonPanel btnPnl = initButtonPanel();
-		DescriptionFrame desFrame = initDescriptionFrame();
+		
+		DescriptionFrame desFrame = initDescriptionFrame(controller.getStreamHandler());
 		
 		getContentPane().add(tabbedPane);
 		getContentPane().add(intervalPanel);
@@ -75,7 +71,26 @@ public class MainFrame extends JFrame {
 		setDescriptionFrameListener(desFrame);
 		setUserSettingPanelListener(userSetPanel);
 	}		
-		
+	
+	private void refreshGuiPanels(ButtonPanel btnPnl) throws IOException
+	{
+		 //refresh broadcast to active panel
+		LiveBroadcastHandler broadcastHandler =  Controller.getInstance().getBroadcastsHandler();
+    	String[] args = {"active", Constants.NumberOfResulsts, null};
+    	broadcastHandler.refreshBroadcasts(args);
+	    BroadcastPanel broadcastPanel = BroadcastPanel.getInstance();
+		broadcastPanel.setData(broadcastHandler.getBroadcasts());			//set new data
+	    broadcastPanel.refresh();
+        
+    	//toggle buttons on GUI
+        System.out.println("toggleing buttons");
+    	btnPnl.getStartIntBrdbtn().setVisible(false);
+		btnPnl.getStopIntbtn().setVisible(true);
+    	btnPnl.getStartIntBrdbtn().setEnabled(false); 
+		btnPnl.getStopIntbtn().setEnabled(true);
+		IntervalPanel.getInstance().getLblHello().setText("Hello "+ Constants.Username + ", you are live!");
+	}
+	
 	private void initMainPane()
 	{
 		this.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/YABAWB.png")));
@@ -88,23 +103,27 @@ public class MainFrame extends JFrame {
 		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 		addWindowListener(new WindowAdapter(){		//handle App close operation ,if live save corrent status
 			public void windowClosing(WindowEvent e){
-	        	//save status of broadcast
-				String message= "Are you sure you want to Exit?",title="Log out";
-				int reply = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
-				if(reply==JOptionPane.YES_OPTION) {
-					try {
-						UserDataHandler.getInstance().saveData();   //save status of broadcast 
-					} catch (SecurityException | IOException e1) {
-						e1.printStackTrace();
-					}
-		        	System.exit(0);
-					
-				}
-				return;
+				windowClosingEvent();
 	        }
 	    });     
 		setLocationRelativeTo(null);
 		setVisible(true);
+	}
+	
+	private void windowClosingEvent()
+	{
+		//save status of broadcast
+		String message= "Are you sure you want to Exit?",title="Log out";
+		int reply = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.YES_NO_OPTION);
+		if(reply==JOptionPane.YES_OPTION) {
+			try {
+				Controller.getInstance().getUserDataHandler().saveData();   //save status of broadcast 
+			} catch (SecurityException | IOException e1) {
+				e1.printStackTrace();
+			}
+        	System.exit(0);
+			
+		}
 	}
 	
 	private IntervalPanel initIntervalPanel()
@@ -114,7 +133,7 @@ public class MainFrame extends JFrame {
 		return intervalPanel;
 	}
 	
-	private BroadcastPanel initBroadcastPanel() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException
+	private BroadcastPanel initBroadcastPanel() throws IOException 
 	{
 		Controller controller = Controller.getInstance();
 		BroadcastPanel boradcastPanel = new BroadcastPanel();
@@ -124,10 +143,10 @@ public class MainFrame extends JFrame {
 		return boradcastPanel;
 	}
 	
-	private StreamPanel initStreamPanel() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException 
+	private StreamPanel initStreamPanel() throws IOException 
 	{
 		Controller controller = Controller.getInstance();
-		StreamPanel streamPanel = new StreamPanel();
+		StreamPanel streamPanel =	StreamPanel.getInstance();
 		streamPanel.setData(controller.getStreamHandler().getStreams());
 		streamPanel.resizeColumnWidth(streamPanel.getStreamsTbl());
 		return streamPanel;
@@ -154,14 +173,6 @@ public class MainFrame extends JFrame {
 		return inputForm;
 	}
 	
-	private ButtonPanel initButtonPanel()
-	{
-		//init new button panel
-		ButtonPanel btnPnl = new ButtonPanel();
-		btnPnl.setInstance(btnPnl);
-		return btnPnl;
-	}
-	
 	private UserSettingsFrame initUserSettingsFrame() 
 	{
 		//init user settings frame
@@ -170,9 +181,9 @@ public class MainFrame extends JFrame {
 		return userSetPanel;
 	}
 	
-	private DescriptionFrame initDescriptionFrame() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException
+	private DescriptionFrame initDescriptionFrame(LiveStreamsHandler streamsHandler) throws IOException , ParseException
 	{
-		DescriptionFrame desFrame = new DescriptionFrame();
+		DescriptionFrame desFrame = new DescriptionFrame(streamsHandler);
 		desFrame.setVisible(false);
 		return desFrame;
 	}
@@ -194,12 +205,12 @@ public class MainFrame extends JFrame {
 							
 						case Constants.setDescription: desFrame.setVisible(true); break;
 					}
-				} catch (IOException | HeadlessException | ParseException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException  e1) {
+				} catch (IOException | HeadlessException | ParseException  e1) {
 					e1.printStackTrace();
 				}	
 			}
 			
-			private void handleRefreshPressed() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException
+			private void handleRefreshPressed() throws  IOException
 			{
 				Controller controller = Controller.getInstance();
 				controller.getStreamHandler().refreshStreams();//request stream refresh 
@@ -207,7 +218,7 @@ public class MainFrame extends JFrame {
 				streamPanel.refresh();	
 			}
 			
-			private void handleAddStreamPressed() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, HeadlessException, ParseException
+			private void handleAddStreamPressed( )throws  IOException, ParseException
 			{
 				Controller controller = Controller.getInstance();
 				controller.getStreamHandler().addStream();
@@ -216,7 +227,7 @@ public class MainFrame extends JFrame {
 				desFrame.refresh();
 			}
 			
-			private void handleRemoveStreamPressed() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException
+			private void handleRemoveStreamPressed() throws IOException, ParseException
 			{
 				Controller controller = Controller.getInstance();
 				String[] streams = streamPanel.getChecked();		//get input of checked streams
@@ -258,12 +269,12 @@ public class MainFrame extends JFrame {
 						case "Update Description":	handleUpdateDescriptionPressed(); break;
 							
 					}
-				} catch (  IOException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException  e1) { //UnsupportedEncodingException
+				} catch (IOException | ParseException e1) { //UnsupportedEncodingException
 					e1.printStackTrace();
 				}
 			}
 			
-			private void handleFilterPressed() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException
+			private void handleFilterPressed() throws IOException, ParseException
 			{
 				Controller controller = Controller.getInstance(); 
 				String[] args = {boradcastPanel.getSelected(), Constants.NumberOfResulsts, null};	 //create args
@@ -272,7 +283,7 @@ public class MainFrame extends JFrame {
 				boradcastPanel.refresh();	
 			}
 			
-			private void handleNextPrevPressed(boolean isNext) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException
+			private void handleNextPrevPressed(boolean isNext)throws IOException, ParseException
 			{
 				String pageToken = isNext ?  Constants.NextPageToken : Constants.PrevPageToken;
 				Controller controller = Controller.getInstance();
@@ -282,7 +293,7 @@ public class MainFrame extends JFrame {
 				boradcastPanel.refresh();	
 			}
 			
-			private void handleUpdateDescriptionPressed() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException
+			private void handleUpdateDescriptionPressed() throws IOException, ParseException
 			{
 				Controller controller = Controller.getInstance();
 				Boolean[] checkedBroadcasts = boradcastPanel.getChecked();
@@ -313,7 +324,7 @@ public class MainFrame extends JFrame {
 	private void setButtonPanelListener(ButtonPanel btnPnl, IntervalInputForm inputForm)
 	{
 		btnPnl.setBtnListener(new ButtonListener() {	//set button listener for button panel
-			public void ButtonPressed(String name) {
+			public void ButtonPressed(String name){
 				try {
 					if(Constants.DEBUG) {
 						System.out.println("main frame Button Panel: " +name);
@@ -339,10 +350,9 @@ public class MainFrame extends JFrame {
 							java.awt.Desktop.getDesktop().browse(new URI(Constants.StudioUrl));
 							break;
 							
-						case "Log Out": handleLogOut(); break;
+						case "Exit": handleExit(); break;
 					}
-				} catch (InterruptedException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IOException |
-						URISyntaxException | InvalidAlgorithmParameterException e1) {
+				} catch (URISyntaxException | IOException | ParseException | InterruptedException e1) {
 					e1.printStackTrace();
 				}
 			}
@@ -359,7 +369,7 @@ public class MainFrame extends JFrame {
 				inputForm.setSize(462,150);
 			}
 			
-			private void handleStartLiveBroadcast() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException
+			private void handleStartLiveBroadcast() throws IOException, ParseException
 			{
 				Controller controller = Controller.getInstance();
 				inputForm.setData(controller.getStreamHandler().filterStreams("active"));  //set active streams to form
@@ -367,7 +377,7 @@ public class MainFrame extends JFrame {
 				inputForm.setVisible(true);		
 			}
 			
-			private void handleStopLiveBroadcast() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, InterruptedException 
+			private void handleStopLiveBroadcast() throws IOException, ParseException, InterruptedException
 			{
 				Controller controller = Controller.getInstance();
 				String message= "Stop Live broadcasts?",
@@ -398,15 +408,8 @@ public class MainFrame extends JFrame {
 				btnPnl.getStartIntBrdbtn().setEnabled(true);
 			}
 			
-			private void handleLogOut() throws IOException {
-				String message = "Are you sure you want to log out?";
-				String title="Log out";
-				int reply = JOptionPane.showConfirmDialog(null, message, title, JOptionPane.OK_OPTION);
-				if(reply != JOptionPane.OK_OPTION) {
-					return;
-				}
-				dispose();
-				AppMain.main(null);
+			private void handleExit() throws IOException , URISyntaxException , ParseException {
+				windowClosingEvent();
 			}
 		});
 	}
@@ -428,8 +431,7 @@ public class MainFrame extends JFrame {
 							
 						case "Cancel": handleCancelPressed(); break;
 					}
-				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-						| InvalidAlgorithmParameterException | IOException e1) {
+				} catch (IOException e1) {
 					e1.printStackTrace();
 					ErrorHandler.HandleUnknownError(e1.toString());
 				}
@@ -487,7 +489,7 @@ public class MainFrame extends JFrame {
 				refreshIntervalForm();
 			}
 			
-			private void handleRefreshPressed() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException 
+			private void handleRefreshPressed() throws IOException 
 			{
 				Controller controller = Controller.getInstance();
 				controller.getStreamHandler().refreshStreams();
@@ -495,7 +497,7 @@ public class MainFrame extends JFrame {
 				inputForm.refresh();
 			}
 			
-			private void handleStartPressed() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, IOException 
+			private void handleStartPressed() throws IOException 
 			{
 				Controller controller = Controller.getInstance();
 				if(checkSelectedStreams()) {//check that at least one stream is active and less then 10 were chosen
@@ -533,23 +535,23 @@ public class MainFrame extends JFrame {
 			private void startBroadcast() {
 				try {	
 					handleIntervalPanelOnStart();
-					LiveBroadcastHandler broadcastHandler = LiveBroadcastHandler.getInstance();
+					LiveBroadcastHandler broadcastHandler = Controller.getInstance().getBroadcastsHandler();
 					Constants.State = "Starting";
 					broadcastHandler.startBroadcast();	//start initial live Broadcasts
 					handleButtonPanel() ;
 					inputForm.setVisible(false);		//close input form and Prompt chosen interval to interval panel						
 						
-				} catch (InterruptedException | SecurityException e) {
+				} catch (InterruptedException | SecurityException | IOException e) {
 					e.printStackTrace();
 				}
 			}
 			
-			private void handleIntervalPanelOnStart() throws InterruptedException 
+			private void handleIntervalPanelOnStart() throws InterruptedException, IOException 
 			{
 				if(Constants.IntervalBroadcast) {
 					Interval interval = Interval.getInstance();
 					interval.setInterval(inputForm.getSelected());				//set selected interval length
-					LiveBroadcastHandler.getInstance().startTimerRunner();			//start timer runner instance
+					Controller.getInstance().getBroadcastsHandler().startTimerRunner();			//start timer runner instance
 					// Prompt interval start stop times to interval panel
 					String startTime = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant()).toString();
 					String stoptime = interval.getCorrentInterval().toString();
@@ -573,10 +575,6 @@ public class MainFrame extends JFrame {
 				btnPnl.getStopIntbtn().setEnabled(true);
 			}
 			
-			/**
-			 * helper method checks if at least one stream was selected  
-			 * @return
-			 */
 			private boolean checkSelectedStreams() {
 				//if no stream was selected toggle option pane and ask to refresh streams
 				if(inputForm != null && inputForm.getChecked().length < 1) {
@@ -644,14 +642,16 @@ public class MainFrame extends JFrame {
 		});
 	}
 	
-	private void loadUserData() throws SecurityException, IOException {
-		UserDataHandler handler = UserDataHandler.getInstance();
-		handler.loadUserSettings();
+	private void loadUserData(ButtonPanel btnPnl) throws IOException {
+		Controller.getInstance().getUserDataHandler().loadUserSettings();
 		if(Constants.saveState) {
-			handler.loadUserState();
-			if(Constants.DEBUG) {
-				System.out.println("loaded user state");
+			if(Controller.getInstance().getUserDataHandler().loadUserState()) {
+				if(Constants.DEBUG) {
+					System.out.println("loaded user state");
+				}
+				refreshGuiPanels(btnPnl);
 			}
+			
 		}
 		else if(Constants.DEBUG){
 			System.out.println("user state load not enabled");

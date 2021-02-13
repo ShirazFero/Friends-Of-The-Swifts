@@ -52,8 +52,8 @@ public class CompleteBroadcast extends Thread {
 
         try {
         	Object lock = new Object();
-        	
-            LiveBroadcast returnedBroadcast = YouTubeAPI.getBroadcastFromPolledList(args[0]);
+        	YouTubeAPI youtubeApi = YouTubeAPI.getInstance();
+            LiveBroadcast returnedBroadcast = youtubeApi.getBroadcastFromPolledList(args[0]);
             
             if(returnedBroadcast==null) {
             	System.out.println("no broadcast with this title was found");
@@ -67,13 +67,13 @@ public class CompleteBroadcast extends Thread {
             }
            
             //Request transition to complete broadcast
-            YouTube.LiveBroadcasts.Transition requestTransition = YouTubeAPI.youtubeService.liveBroadcasts()
+            YouTube.LiveBroadcasts.Transition requestTransition = youtubeApi.getService().liveBroadcasts()
                     .transition("complete", returnedBroadcast.getId(), "snippet,status");
             synchronized (lock) { 
             	returnedBroadcast = requestTransition.execute();
             }
             Thread.sleep(1000);
-            returnedBroadcast = YouTubeAPI.getBroadcastFromPolledList(args[0]);
+            returnedBroadcast = youtubeApi.getBroadcastFromPolledList(args[0]);
             System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus() + "title "+returnedBroadcast.getId()
             		 + "ID: " + args[0]);
             synchronized (Constants.PollStartLock) {
@@ -86,7 +86,7 @@ public class CompleteBroadcast extends Thread {
 					Constants.PollLock.wait();		//wait for status update
         	 	}
          	   System.out.println("Thread "+Thread.currentThread().getId()+ " continues" );
- 	    	   LiveBroadcast tempBroadcast =YouTubeAPI.getBroadcastFromPolledList(returnedBroadcast.getId());
+ 	    	   LiveBroadcast tempBroadcast = youtubeApi.getBroadcastFromPolledList(returnedBroadcast.getId());
  	    	   if(tempBroadcast!=null)
  	    		   returnedBroadcast = tempBroadcast;
           	   System.out.println("polling live");

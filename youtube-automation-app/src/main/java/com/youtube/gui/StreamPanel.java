@@ -17,6 +17,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 import com.google.api.services.youtube.model.LiveStream;
+import com.youtube.controller.StreamTableModel;
 import com.youtube.utils.Constants;
 
 import javax.swing.SwingConstants;
@@ -51,10 +52,20 @@ public class StreamPanel extends JPanel implements ActionListener {
 			instance = new StreamPanel();
 		return instance;
 	}
-
-
-	public StreamPanel() {
+	
+	private StreamPanel() {
 		setBackground(SystemColor.textHighlightText);
+		setLayout(null);
+		initStreamTable();
+		initScrollPane();
+		initRefreshBtn();
+		initAddStreamBtn();
+		initRemoveStreamBtn(); 
+		initSetDescriptionBtn();
+	}
+	
+	private void initStreamTable()
+	{
 		stm = new StreamTableModel();
 		streamsTbl = new JTable(stm);
 		int widths[]= {50,100,100,200};
@@ -63,44 +74,52 @@ public class StreamPanel extends JPanel implements ActionListener {
 		streamsTbl.setFillsViewportHeight(true);
 		streamsTbl.setEditingColumn(0);
 		streamsTbl.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		setLayout(null);
+	}
+	
+	private void initScrollPane()
+	{
 		jsp = new JScrollPane(streamsTbl);
 		jsp.setBounds(10, 73, 378, 279);
 		add(jsp,BorderLayout.CENTER);
-		
-		
+	}
+	
+	private void initRefreshBtn()
+	{
 		refreshbtn = new JButton("Refresh");
 		refreshbtn.addActionListener(this);
 		refreshbtn.setBounds(296, 22, 91, 37);
-		
+		add(refreshbtn);
+	}
+	
+	private void initAddStreamBtn()
+	{
 		AddStreambtn = new JButton(Constants.addStream);
 		AddStreambtn.addActionListener(this);
 		AddStreambtn.setSize(91, 37);
 		AddStreambtn.setLocation(105, 22);
-		
-		
+		add(AddStreambtn);
+	}
+	
+	private void initRemoveStreamBtn() 
+	{
 		ReomveStreambtn = new JButton(Constants.removeStream);
 		ReomveStreambtn.setToolTipText("Select the streams to and press here to remove them");
 		ReomveStreambtn.addActionListener(this);
 		ReomveStreambtn.setSize(92, 37);
 		ReomveStreambtn.setLocation(200, 22);
 		ReomveStreambtn.setContentAreaFilled(true);
-		
-		add(refreshbtn);
-		add(AddStreambtn);
 		add(ReomveStreambtn);
-		
+	}
+	
+	private void initSetDescriptionBtn()
+	{
 		btnSetDescription = new JButton(Constants.setDescription);
 		btnSetDescription.setHorizontalAlignment(SwingConstants.LEFT);
 		btnSetDescription.setToolTipText("");
 		btnSetDescription.setBounds(10, 22, 91, 37);
 		btnSetDescription.addActionListener(this);
 		add(btnSetDescription);
-		
-		instance=this;
-		
 	}
-
 	
 	/**
 	 * @return the btnSetDescription
@@ -115,9 +134,6 @@ public class StreamPanel extends JPanel implements ActionListener {
 		return jsp;
 	}
 
-	/**
-	 * @return the checked
-	 */
 	public String[] getChecked() {
 		ArrayList<String> streamID = new ArrayList<String>();
 		for(int i = 0 ; i<streamsTbl.getRowCount() ;i++) {
@@ -180,10 +196,6 @@ public class StreamPanel extends JPanel implements ActionListener {
 	    }
 	}
 
-
-	/**
-	 * @return the streamsTbl
-	 */
 	public JTable getStreamsTbl() {
 		return streamsTbl;
 	}

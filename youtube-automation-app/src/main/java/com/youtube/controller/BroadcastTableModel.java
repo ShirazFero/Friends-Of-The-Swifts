@@ -1,4 +1,4 @@
-package com.youtube.gui;
+package com.youtube.controller;
 
 import java.util.List;
 

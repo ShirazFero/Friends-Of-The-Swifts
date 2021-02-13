@@ -1,14 +1,7 @@
 package com.youtube.controller;
 
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.crypto.NoSuchPaddingException;
-import javax.mail.MessagingException;
-import javax.mail.internet.AddressException;
 import javax.swing.SwingWorker;
 
 import com.youtube.api.ErrorHandler;
@@ -38,8 +31,7 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 			}
 			updateBroadcastPanel();
 			
-		} catch (MessagingException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IOException
-				 | InvalidAlgorithmParameterException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 			ErrorHandler.HandleLoadError(e.toString());
 		}
@@ -70,18 +62,12 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 		setProgress(currPrgress);	
 	}
 	
-	private void handleBadResults() throws AddressException, MessagingException
+	private void handleBadResults()
 	{
 		if(Constants.badResults!=null && !Constants.badResults.isEmpty()) {
 			String allTitles =" ";
 			for(String title : Constants.badResults) {
 					allTitles += title +",\n";
-			}
-			if(Constants.SendEmail) {
-				  //send failure message
-					MailUtil.sendMail(Constants.UserEmail,"Server request problem",
-							"Problem starting Broadcasts:\n"+ allTitles +",\n"+
-			                "please check manually at " +Constants.LiveStreamUrl);
 			}
 			ErrorHandler.HandleMultipleError(allTitles);
 		}
@@ -104,7 +90,7 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 		intervalPanel.getLblHello().setText(lbltext);
 	}
 	
-	private void updateBroadcastPanel() throws SecurityException, IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException
+	private void updateBroadcastPanel() throws IOException 
 	{
 		Controller controller = Controller.getInstance();
 	    String[] args = {"active", Constants.NumberOfResulsts, null};

@@ -1,12 +1,6 @@
 package com.youtube.controller;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import javax.crypto.NoSuchPaddingException;
-
 import com.youtube.api.YouTubeAPI;
 
 /**
@@ -24,12 +18,15 @@ public class Controller {
 	
 	private LiveBroadcastHandler m_broadcastsHandler;		//holds currently presented broadcasts
 
+	private UserDataHandler m_userDataHandler;
+	
 	private static Controller instance;	
 	
-	private Controller() throws SecurityException, IOException {
+	private Controller() throws IOException {
 		m_youtubeService = YouTubeAPI.getInstance();
-		m_streamHandler = LiveStreamsHandler.getInstance();
-		m_broadcastsHandler = LiveBroadcastHandler.getInstance();
+		m_streamHandler = new LiveStreamsHandler();
+		m_broadcastsHandler = new LiveBroadcastHandler(m_streamHandler);
+		m_userDataHandler = new UserDataHandler();
 	}
 	
 	public YouTubeAPI getYouTubeService() {
@@ -44,7 +41,11 @@ public class Controller {
 		return m_broadcastsHandler;
 	}
 
-	public static Controller getInstance() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException {
+	public UserDataHandler getUserDataHandler() {
+		return m_userDataHandler;
+	}
+	
+	public static Controller getInstance() throws IOException {
 		if(instance==null)
 			instance = new Controller();
 		return instance;

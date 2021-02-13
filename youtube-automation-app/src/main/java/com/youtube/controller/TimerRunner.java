@@ -1,10 +1,6 @@
 package com.youtube.controller;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Timer;
@@ -49,14 +45,14 @@ public class TimerRunner {
 	 * Stops interval broadcast by canceling the timer and handling remaining live broadcasts corresponding to
 	 * users choice.
 	 * @throws InterruptedException , ParseException , IOException ,FileNotFoundException
+	 * @throws IOException 
 	 * @throws NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException, 
 	 * @throws InvalidAlgorithmParameterException
 	 */
-	public void stopIntervalBroadcast() throws InterruptedException, InvalidKeyException,
-		NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException
+	public void stopIntervalBroadcast() throws InterruptedException, IOException 
 	{
 		if(!Constants.IntervalBroadcast) {	// if stop interval broadcast was pressed
-			LiveBroadcastHandler broadcastHandler = LiveBroadcastHandler.getInstance();	
+			LiveBroadcastHandler broadcastHandler = Controller.getInstance().getBroadcastsHandler();	
 			broadcastHandler.stopBroadcasts(broadcastHandler.getCurrentlyLive());  					     //stop all live broadcasts
 			cancelTimer();								    //stop timer
 			IntervalPanel.getInstance().updateIntervalPanel("","");
@@ -96,7 +92,7 @@ public class TimerRunner {
 						System.out.println("running handling itervals" + Thread.currentThread().getId());
 					}
 					
-					LiveBroadcastHandler broadcastHandler = LiveBroadcastHandler.getInstance();					
+					LiveBroadcastHandler broadcastHandler = Controller.getInstance().getBroadcastsHandler();					
 					
 					//get all current broadcast ID to be completed
 					ArrayList<String> broadcastsToComplete = new ArrayList<String>(broadcastHandler.getCurrentlyLive()); 
@@ -123,7 +119,7 @@ public class TimerRunner {
 					IntervalPanel.getInstance().updateIntervalPanel(newStartTime.toString(),stopTime.toString());
 					rescheduleTimer();									
 					
-				}catch (InterruptedException e1) {
+				}catch (InterruptedException | IOException e1) {
 					e1.printStackTrace();
 					ErrorHandler.HandleLoadError(e1.toString());
 				}

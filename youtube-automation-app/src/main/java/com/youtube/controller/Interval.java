@@ -47,25 +47,17 @@ public class Interval {
 		final String delim =":";	//delimiter string
 		String minutes,hours;
 		StringTokenizer tok = new StringTokenizer(interval);
-		hours=tok.nextToken(delim);
-		minutes=tok.nextToken(delim);
-		setMinutes(Integer.parseInt(minutes));
-		setHours(Integer.parseInt(hours));
+		hours   =tok.nextToken(delim);
+		minutes =tok.nextToken(delim);
+		this.minutes = Integer.parseInt(minutes);
+		this.hours = Integer.parseInt(hours);
 	}
 	
 	public long getMinutes() {
 		return minutes;
 	}
 	
-	public void setMinutes(long minutes) {
-		this.minutes = minutes;
-	}
-	
 	public long getHours() {
 		return hours;
-	}
-	
-	public void setHours(long hours) {
-		this.hours = hours;
 	}
 }

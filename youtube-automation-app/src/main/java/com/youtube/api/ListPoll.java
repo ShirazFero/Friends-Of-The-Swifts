@@ -32,13 +32,12 @@ public class ListPoll extends Thread {
 	{
 	   try {
 		   	while(Constants.pollingState && Constants.pollingCount < Constants.MaxPolls) {
-			   
 			    String[] args = {"all",Constants.MaxPollRsults,null};
-			    Constants.PolledBroadcasts = YouTubeAPI.listBroadcasts(args);
+			    Constants.PolledBroadcasts = YouTubeAPI.getInstance().listBroadcasts(args);
 			    synchronized (Constants.PollLock) {
 					Constants.PollLock.notifyAll();
 			    }
-			    Constants.pollingCount++;
+			    ++Constants.pollingCount;
 			    Thread.sleep(Constants.POLL_SLEEP_MILISEC);
    			}
 		   	

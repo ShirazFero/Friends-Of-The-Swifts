@@ -24,8 +24,9 @@ public class Constants {
 	public static String AddingStream;					
 	public static final int MAX_LIVEBROADCASTS = 6;
 	public static final int POLL_SLEEP_MILISEC = 10000;
+	public static final long MAX_REQUEST_RESULTS = 20;
+	
 	//user details
-	public static String UserEmail = "";
 	public static String Username = "";
 	public static String Description = "Please enter description";
 	
@@ -41,9 +42,7 @@ public class Constants {
 	public static String Privacy = "public";
 	public static String NumberOfResulsts = "15";
 	public static boolean AddDateTime = true;
-	public static boolean SendEmail = true;
 	public static boolean saveState= true;
-	public static String myBytes="";
 
 	//Url's
 	public static final String StudioUrl = "https://studio.youtube.com/channel/UCY9ywM1mQtQ8mTtbnhh-P2w/videos/live";
@@ -54,12 +53,10 @@ public class Constants {
 	public static final String AppUserPath = System.getProperty("user.home")+"\\Documents\\AppUsers.json";
 	public static final String InfoPath = System.getProperty("user.home")+"\\Documents\\info.json";
 	public static final String LogPath = System.getProperty("user.home")+"\\Documents\\applog_"+LocalDate.now()+".txt";
-	public static final String tmpPath = "src\\main\\resources\\tmp.json";
-	public static final  String appEmail ="yaba.app@gmail.com";
 	
 	//Global pointers
 	public static Object[] ErrorArgs; 						    //error arguments pointer
-	public static ArrayList<String> SavedUsers; 						    //user list pointer
+	public static ArrayList<String> SavedUsers; 				//user list pointer
 	public static SecretKey SecretKey ;					        //secret key pointer
 	public static ArrayList<String> badResults;				    //bad response results pointer
 	public static String NextPageToken = null; 				    //next page token
@@ -71,12 +68,9 @@ public class Constants {
 	
 	//thread locks
 	public static Object timeredRunnerLock = new Object();
-	public static Object PollLock = new Object();			//poll lock
+	public static Object PollLock = new Object();				//poll lock
 	public static Object PollStartLock = new Object();			//poll start lock
 	
-	//patterns
-	public static final  String PasswordPattern = "(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}";
-	public static final  String EmailPattern = "^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$";
 }
  
 

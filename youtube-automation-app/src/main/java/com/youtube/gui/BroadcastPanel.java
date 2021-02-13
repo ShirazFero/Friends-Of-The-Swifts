@@ -14,6 +14,7 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 import com.google.api.services.youtube.model.LiveBroadcast;
+import com.youtube.controller.BroadcastTableModel;
 import com.youtube.utils.Constants;
 
 import javax.swing.JComboBox;
@@ -44,10 +45,11 @@ public class BroadcastPanel extends JPanel implements ActionListener  {
 	private JButton btnNextPage;
 	
 	private JComboBox<?> comboBox1;
+	
 	private JLabel lblSelectType;
 	
-	public BroadcastPanel(){
-		setBackground(SystemColor.textHighlightText);
+	private void initBroadcastTbl()
+	{
 		btm = new BroadcastTableModel();
 		broadcastTbl = new JTable(btm);
 		int widths[]= {50,100,100,200};
@@ -56,13 +58,18 @@ public class BroadcastPanel extends JPanel implements ActionListener  {
 		broadcastTbl.setFillsViewportHeight(true);
 		broadcastTbl.setEditingColumn(0);
 		broadcastTbl.setFont(new Font("Tahoma", Font.PLAIN, 15));
-		setLayout(null);
+	}
+	
+	
+	private void initScrollPane()
+	{
 		scrollPane = new JScrollPane(broadcastTbl);
 		scrollPane.setBounds(10, 55,382,263);
 		add(scrollPane);
-		
-		selected="all";
-		
+	}
+	
+	private void initFilterComboBox()
+	{
 		String[] filter = {"all","active","completed","upcoming"};
 		JComboBox<?> comboBox = new JComboBox<Object>(filter);
 		comboBox.setBounds(302, 19, 90, 25);
@@ -75,7 +82,10 @@ public class BroadcastPanel extends JPanel implements ActionListener  {
 			}
 		} );
 		add(comboBox);
-		
+	}
+	
+	private void initResultNumComboBox()
+	{
 		String[] numberOfResulsts = {"15","10","20","30","40","50"};
 		comboBox1 = new JComboBox<Object>(numberOfResulsts);
 		comboBox1.setBounds(183, 329, 45, 23);
@@ -86,30 +96,61 @@ public class BroadcastPanel extends JPanel implements ActionListener  {
 			}
 		} );
 		add(comboBox1);
-		
+	}
+	
+	private void initUpdateDescriptionBtn()
+	{
 		JButton btnSelect = new JButton("Update Description");
 		btnSelect.setToolTipText("Select the Broadcasts to update their description");
 		btnSelect.addActionListener(this);
 		btnSelect.setBounds(10, 19, 152, 25);
 		add(btnSelect);
-
+	}
+	
+	private void initNextPageBtn()
+	{
 		btnNextPage = new JButton("Next Page");
 		btnNextPage.setBounds(285, 329, 107, 23);
 		btnNextPage.setEnabled(false);
 		btnNextPage.setVisible(false);
 		btnNextPage.addActionListener(this);
 		add(btnNextPage);
-		
+	}
+	
+	private void initPrevPageBtn()
+	{
 		btnPreviousPage = new JButton("Previous Page");
 		btnPreviousPage.setBounds(10, 329, 133, 23);
 		btnPreviousPage.setEnabled(false);
 		btnPreviousPage.setVisible(false);
 		btnPreviousPage.addActionListener(this);
 		add(btnPreviousPage);
-		
+	}
+	
+	private void initSelectTypeLbl()
+	{
 		lblSelectType = new JLabel("Broadcast Status:");
 		lblSelectType.setBounds(194, 21, 107, 20);
 		add(lblSelectType);
+	}
+	
+	public BroadcastPanel(){
+		setBackground(SystemColor.textHighlightText);
+		
+		setLayout(null);
+		
+		initBroadcastTbl();
+		initScrollPane();
+		
+		selected = "all";
+		
+		initFilterComboBox();
+		initResultNumComboBox();
+		
+		initUpdateDescriptionBtn();
+		initNextPageBtn();
+		initPrevPageBtn();
+		initSelectTypeLbl();
 	}
 	
 	/**

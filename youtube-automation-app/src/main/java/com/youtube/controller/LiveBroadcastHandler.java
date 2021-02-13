@@ -41,13 +41,10 @@ public class LiveBroadcastHandler {
 	
 	private TimerRunner timerRunner;						//holds current timer runner
 	
-	private static LiveBroadcastHandler instance;
+	private LiveStreamsHandler m_streamHandler;
 	
-	public static LiveBroadcastHandler getInstance() {
-		if(instance == null) {
-			instance = new LiveBroadcastHandler();
-		}
-		return instance;
+	public LiveBroadcastHandler(LiveStreamsHandler streamHandler) {
+		m_streamHandler = streamHandler;
 	}
 	
 	public List<LiveBroadcast> getBroadcasts(){
@@ -72,7 +69,7 @@ public class LiveBroadcastHandler {
 	public boolean refreshBroadcasts(String[] args) throws SecurityException, IOException  {
 		if(broadcasts!=null)
 			broadcasts.clear();
-		broadcasts = YouTubeAPI.listBroadcasts(args);
+		broadcasts = YouTubeAPI.getInstance().listBroadcasts(args);
 		if(broadcasts == null) {
 			return false;
 		}
@@ -109,8 +106,7 @@ public class LiveBroadcastHandler {
 		Constants.badResults =  new ArrayList<String>();
 		
 		m_currentlyLive =  new ArrayList<String>();
-		LiveStreamsHandler streamsHandler =  LiveStreamsHandler.getInstance();
-		String[] checkedStreams = streamsHandler.getCheckedStreams();
+		String[] checkedStreams = m_streamHandler.getCheckedStreams();
 		
 		//init flag array to mark starting progress of broadcast
 		m_percetageCounter = new AtomicInteger(checkedStreams.length * 2);
@@ -126,8 +122,7 @@ public class LiveBroadcastHandler {
 						System.out.println("satrting loading task frame");
 					}
 					new ProgressFrame().loadTask(m_percetageCounter);
-				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-						| InvalidAlgorithmParameterException | IOException | ParseException e) {
+				} catch (IOException e) {
 					e.printStackTrace();
 					ErrorHandler.HandleLoadError(e.toString());
 				}
@@ -139,7 +134,7 @@ public class LiveBroadcastHandler {
 		for(String streamId : checkedStreams) {
 				System.out.println("inside for :starting " + streamId);
 				String[] args = new String[2];			// args[0] = title , args[1] = end time
-				args[0]= streamsHandler.getStreamTitleFromId(streamId);		//set stream title arg
+				args[0]= m_streamHandler.getStreamTitleFromId(streamId);		//set stream title arg
 				if(Constants.IntervalBroadcast) {		//calculate interval end time and set it as args 
 					LocalDateTime finTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(calcStopTime().getTime())
 							, ZoneId.systemDefault());
@@ -224,7 +219,7 @@ public class LiveBroadcastHandler {
 	 * @throws InvalidKeyException 
 	 * @throws InvalidAlgorithmParameterException 
 	 */
-	public void cancelTimerRunner() throws InterruptedException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, IOException, InvalidAlgorithmParameterException {
+	public void cancelTimerRunner() throws InterruptedException, IOException {
 		timerRunner.stopIntervalBroadcast();
 	}
 	
@@ -255,8 +250,7 @@ public class LiveBroadcastHandler {
 			public void run() {
 				try {
 					new ProgressFrame().updateTask();
-				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-						| InvalidAlgorithmParameterException | IOException | ParseException e) {
+				}  catch (IOException e) {
 					e.printStackTrace();
 					ErrorHandler.HandleLoadError(e.toString());
 				}
@@ -271,8 +265,7 @@ public class LiveBroadcastHandler {
 			public void run() {
 				try {
 					new ProgressFrame().completeTask(m_percetageCounter);
-				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-						| InvalidAlgorithmParameterException | IOException | ParseException e) {
+				} catch (IOException e) {
 					e.printStackTrace();
 					ErrorHandler.HandleLoadError(e.toString());
 				}

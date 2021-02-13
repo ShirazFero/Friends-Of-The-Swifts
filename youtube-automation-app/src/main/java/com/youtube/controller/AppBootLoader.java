@@ -4,10 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -32,15 +29,18 @@ public class AppBootLoader {
 	public void InitData() 
 	{
 		try {
-			if(firstBoot()) {
+			if(!FileExists(Constants.InfoPath)) {
 				initBootData();
-				initUsersFile();
 			}
 			else {
 				loadBootData();
+			}
+			if(!FileExists(Constants.AppUserPath)) {
+				initUsersFile();
+			}
+			else {
 				loadFromUsersFile();
 			}
-			initModuleProperties();
 		} catch (NoSuchAlgorithmException | SecurityException | IOException | ParseException | InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException e) {
 			e.printStackTrace();
 			ErrorHandler.HandleLoadError(e.toString());
@@ -62,17 +62,11 @@ public class AppBootLoader {
 		return false;
 	}
 
-	public boolean isValidUser(String username, String password) throws FileNotFoundException, IOException, ParseException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException 
+	public boolean userExists(String username) throws FileNotFoundException, IOException, ParseException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException 
 	{
-		if(Files.exists(Paths.get(Constants.AppUserPath))) {     	
-			JSONArray userArray =  getUsers();
-			for(int i=0 ; i < userArray.size() ; ++i)  {
-				JSONObject	user = (JSONObject) ((JSONObject) userArray.get(i)).get("User");
-				String userInList = (String) user.get("username");
-				String decryptedPassword = (String) user.get("password"); 
-				if(username.equals(userInList) && (password.equals(decryptedPassword))) {
-					Constants.UserEmail = (String) user.get("email");
-					Constants.Username = username;
+		if(Constants.SavedUsers != null) {
+			for(String user : Constants.SavedUsers)  {
+				if(username.equals(user)) {
 					return true;
 				}
 			}
@@ -81,9 +75,9 @@ public class AppBootLoader {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public void registerUser(String username, String password, String email) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException
+	public void addUserToFile(String username)  throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, IOException, ParseException
 	{
-		JSONObject newUser = createUserDetailsObject(username, password, email);
+		JSONObject newUser = createUserDetailsObject(username);
 		JSONArray userArray = getUsers();
 		userArray.add(newUser);
 		Constants.SavedUsers.add(username);
@@ -105,23 +99,18 @@ public class AppBootLoader {
 	}
 	
 	@SuppressWarnings("unchecked")
-	private JSONObject createUserDetailsObject(String username, String password, String email) 
+	private JSONObject createUserDetailsObject(String username) 
 	{
 		JSONObject newUser = new JSONObject();
 		JSONObject userDetailsObject = new JSONObject();
 		userDetailsObject.put("username",username);
-		userDetailsObject.put("password",password);
-		userDetailsObject.put("email",email);
-		userDetailsObject.put("rememberpass","false");
 		newUser.put("User",userDetailsObject);
 		return newUser;
 	}
 
-	private boolean firstBoot() {
-		final Path path = Paths.get(System.getProperty("user.home")+"\\Documents\\info.json");
-		return !Files.exists(path);
-	}	
-	
+	private boolean FileExists(String fileName) {
+		return Files.exists(Paths.get(fileName));
+	}
 	
 	@SuppressWarnings("unchecked")
 	private void initUsersFile() throws SecurityException, IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException 
@@ -171,19 +160,10 @@ public class AppBootLoader {
 		}
 	}
 	
-	private void initModuleProperties() throws IOException, ParseException {
-		JSONParser parser = new JSONParser();
-		Reader reader = new InputStreamReader(Controller.class.getResourceAsStream("/tmp.json"));
-		JSONObject jsonObject = (JSONObject) parser.parse(reader);
-		jsonObject = (JSONObject) jsonObject.get("installed");
-		Constants.myBytes = (String) jsonObject.get("client_id");
-		Constants.myBytes = (String) Constants.myBytes.subSequence(0, 12);
-	}
-	
 	private void loadBootData() throws FileNotFoundException, IOException, ParseException {
 		JSONParser parser = new JSONParser();
 		JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(Constants.InfoPath));
-		if(jsonObject!=null) {
+		if(jsonObject != null) {
 			String key =(String)jsonObject.get("info");
 			// decode the base64 encoded string
 			byte[] decodedKey = null;
