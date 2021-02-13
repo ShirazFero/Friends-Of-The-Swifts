@@ -111,7 +111,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.youtube.gui.App</mainClass>
+                            <mainClass>com.youtube.controller.AppMain</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

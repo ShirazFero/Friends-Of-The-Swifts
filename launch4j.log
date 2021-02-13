@@ -1,0 +1,15 @@
+
+
+Version:	3.12
+CmdLine:	C:\Users\Jos pc\Desktop\friends-of-the-swifts\YABA2.exe --l4j-debug
+WOW64:		yes
+Create mutex:	YABA_app
+Working dir:	C:\Users\Jos pc\Desktop\friends-of-the-swifts\.
+Java min ver:	1.008.000
+Java max ver:	
+Bundled JRE:	C:\Program Files\Java\jre1.8.0_281
+Check launcher:	C:\Program Files\Java\jre1.8.0_281\bin\javaw.exe (OK)
+Launcher:	C:\Program Files\Java\jre1.8.0_281\bin\javaw.exe
+Launcher args:	-jar "C:\Users\Jos pc\Desktop\friends-of-the-swifts\YABA2.exe"
+Args length:	62/32768 chars
+Exit code:	0
