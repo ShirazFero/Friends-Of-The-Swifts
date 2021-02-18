@@ -18,6 +18,8 @@ package com.youtube.api;
 */
 
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,6 +29,8 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.CdnSettings;
+import com.google.api.services.youtube.model.Channel;
+import com.google.api.services.youtube.model.ChannelListResponse;
 import com.google.api.services.youtube.model.LiveBroadcast;
 import com.google.api.services.youtube.model.LiveBroadcastListResponse;
 import com.google.api.services.youtube.model.LiveBroadcastSnippet;
@@ -77,6 +81,7 @@ public class YouTubeAPI {
 		    // This object is used to make YouTube Data API requests.
 		    youtubeService = new YouTube.Builder(Auth.HTTP_TRANSPORT, Auth.JSON_FACTORY, credential)
 		            .setApplicationName("YABA").build();
+		    setChannelUrls();
 		    
 		} catch (GoogleJsonResponseException e) {
 		    Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage(),e.getDetails().getErrors()};
@@ -469,5 +474,26 @@ public class YouTubeAPI {
 		 }
 		 return null;
 	}
+	
+	private void setChannelId() throws GeneralSecurityException, IOException, GoogleJsonResponseException
+	{
+         // Define and execute the API request
+         YouTube.Channels.List request = youtubeService.channels().list("id");
+         request.setMine(true);
+         ChannelListResponse response = request.execute();
+         List<Channel> items  = response.getItems();
+         Iterator<Channel> it = items.iterator();
+         Constants.CHANNEL_ID = it.next().getId();
+	}
+	
+	private void setChannelUrls() throws GoogleJsonResponseException, GeneralSecurityException, IOException {
+		setChannelId();
+		Constants.StudioUrl = "https://studio.youtube.com/channel/" + Constants.CHANNEL_ID + "/videos/live";
+		Constants.LiveStreamUrl = "https://studio.youtube.com/channel/"+ Constants.CHANNEL_ID +"/livestreaming/manage";
+	}
+	
+//	public static final String StudioUrl = "https://studio.youtube.com";
+//	public static final String LiveStreamUrl = "https://studio.youtube.com/channel/"+ CHANNEL_ID +"/livestreaming/manage";
+	
 	
 }

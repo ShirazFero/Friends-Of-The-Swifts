@@ -45,8 +45,9 @@ public class Constants {
 	public static boolean saveState= true;
 
 	//Url's
-	public static final String StudioUrl = "https://studio.youtube.com/channel/UCY9ywM1mQtQ8mTtbnhh-P2w/videos/live";
-	public static final String LiveStreamUrl = "https://studio.youtube.com/channel/UCY9ywM1mQtQ8mTtbnhh-P2w/livestreaming/manage";
+	public static String CHANNEL_ID = null;
+	public static String StudioUrl = null;
+	public static String LiveStreamUrl = null;
 	
 	//paths
 	public static final String UserDataPath = System.getProperty("user.home")+"\\Documents\\saved_status_";

@@ -352,7 +352,7 @@ public class MainFrame extends JFrame {
 							
 						case "Exit": handleExit(); break;
 					}
-				} catch (URISyntaxException | IOException | ParseException | InterruptedException e1) {
+				} catch (URISyntaxException | IOException | ParseException | InterruptedException | SecurityException e1) {
 					e1.printStackTrace();
 				}
 			}
