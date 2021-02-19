@@ -18,14 +18,10 @@ public class ErrorHandler {
 			String message ="ERROR code: " + args[0] + ", ERROR message : "+ args[1];
 					
 			JOptionPane.showMessageDialog(null,message,"API REQUEST ERROR",JOptionPane.ERROR_MESSAGE);
-			if(Constants.DEBUG) {
-				System.out.println(message);
-			}
+			Constants.DebugPrint(message);
 			
 			FileLogger.getInstance().Info(message);
-			if(Constants.DEBUG) {
-				System.out.println(message);
-			}
+			Constants.DebugPrint(message);
 		} catch (SecurityException | IOException e) {
 			e.printStackTrace();
 		}
@@ -38,9 +34,7 @@ public class ErrorHandler {
 			String message = titles 
 				+"\r\n Please check https://developers.google.com/youtube/v3/live/docs/errors";
 			JOptionPane.showMessageDialog(null,message,"API REQUEST ERROR",JOptionPane.ERROR_MESSAGE);
-			if(Constants.DEBUG) {
-				System.out.println(message);
-			}
+			Constants.DebugPrint(message);
 			FileLogger.getInstance().Info(message);
 		} catch (SecurityException | IOException e) {
 			e.printStackTrace();
@@ -53,9 +47,7 @@ public class ErrorHandler {
 			String message ="Unknown error: " + error;
 					
 			JOptionPane.showMessageDialog(null,message,"UNKNOWN ERROR",JOptionPane.ERROR_MESSAGE);
-			if(Constants.DEBUG) {
-				System.out.println(message);
-			}
+			Constants.DebugPrint(message);
 			FileLogger.getInstance().Info(message);
 		} catch (SecurityException | IOException e) {
 			e.printStackTrace();
@@ -68,9 +60,7 @@ public class ErrorHandler {
 			String message ="Unknown error: " + error;
 					
 			JOptionPane.showMessageDialog(null,message,"APP LOADING ERROR",JOptionPane.ERROR_MESSAGE);
-			if(Constants.DEBUG) {
-				System.out.println(message);
-			}
+			Constants.DebugPrint(message);
 			FileLogger.getInstance().Info(message);
 		} catch (SecurityException | IOException e) {
 			e.printStackTrace();
@@ -83,9 +73,7 @@ public class ErrorHandler {
 			String message ="Unknown error: " + error;
 					
 			JOptionPane.showMessageDialog(null,message,"APP LOADING ERROR",JOptionPane.ERROR_MESSAGE);
-			if(Constants.DEBUG) {
-				System.out.println(message);
-			}
+			Constants.DebugPrint(message);
 			FileLogger.getInstance().Info(message);
 		} catch (SecurityException | IOException e) {
 			e.printStackTrace();

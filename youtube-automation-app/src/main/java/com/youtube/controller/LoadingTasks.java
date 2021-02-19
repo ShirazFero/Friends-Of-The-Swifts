@@ -26,9 +26,7 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 			handleBadResults();
 			notifyTimerRunner();
 			updateIntervalPanelText();
-			if(Constants.DEBUG) {
-				System.out.println("done loading tasks");
-			}
+			Constants.DebugPrint("done loading tasks");
 			updateBroadcastPanel();
 			
 		} catch (IOException e) {

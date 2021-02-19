@@ -3,7 +3,7 @@ package com.youtube.api;
 import java.io.IOException;
 import com.youtube.utils.Constants;
 
-public class ListPoll extends Thread {
+public class ApiPoller extends Thread {
 	
 	public void run() {
 		try {
@@ -17,15 +17,11 @@ public class ListPoll extends Thread {
 	private void waitUntilPollStart() throws InterruptedException
 	{
 		synchronized (Constants.PollStartLock) {
-			if(Constants.DEBUG) {
-				System.out.println("List poll waits");
-			}
+			Constants.DebugPrint("List poll waits");
 			Constants.pollingCount = 0;
 			Constants.PollStartLock.wait();
 		} 
-		if(Constants.DEBUG) {
-			System.out.println("List poll continues");
-		}
+		Constants.DebugPrint("List poll continues");
 	}
 
 	private void pollApiWhileTransitioning() 

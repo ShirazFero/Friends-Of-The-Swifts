@@ -39,10 +39,8 @@ public class UserDataHandler {
 			saveUserSettings(obj);
 			FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json");
 			file.write(obj.toJSONString());
-			if(Constants.DEBUG) {
-				System.out.println("Successfully Saved User data to File...");
-				System.out.println("\nJSON Object: " + obj);
-			}
+			Constants.DebugPrint("Successfully Saved User data to File...");
+			Constants.DebugPrint("\nJSON Object: " + obj);
 			file.close();
 		} catch ( IOException  e1) {
 			e1.printStackTrace();
@@ -118,9 +116,7 @@ public class UserDataHandler {
 	@SuppressWarnings("unchecked")
 	private void CloseRegularBroadcast(JSONObject userState) throws IOException 
 	{
-		if(Constants.DEBUG) {
-			System.out.println("closing regular broadcast");
-		}
+		Constants.DebugPrint("closing regular broadcast");
 		userState.put("Broadcast State", "Regular");
 		JSONArray checkedStreamList = getCheckedStreamList();
 		userState.put("Stream List", checkedStreamList);
@@ -131,9 +127,7 @@ public class UserDataHandler {
 	@SuppressWarnings("unchecked")
 	private void CloseIntervalBroadcast(JSONObject userState) throws IOException 
 	{
-		if(Constants.DEBUG) {
-			System.out.println("closing inteval broadcast");
-		}
+		Constants.DebugPrint("closing inteval broadcast");
 		userState.put("Broadcast State", "Interval");
 		userState.put("Stop Time", Interval.getInstance().getCorrentInterval().toString());
 		userState.put("Start Time", IntervalPanel.getInstance().getLblstime().getText());
@@ -206,9 +200,7 @@ public class UserDataHandler {
 	@SuppressWarnings("unchecked")
 	private void createNewUserSettingsJson() 
 	{
-		if(Constants.DEBUG) {
-			System.out.println("creating new user data file");
-		}
+		Constants.DebugPrint("creating new user data file");
 		JSONObject obj = new JSONObject();
 		JSONObject UserSettings = new JSONObject();
 		saveUserSettings(UserSettings);
@@ -216,10 +208,8 @@ public class UserDataHandler {
     	
     	try (FileWriter file = new FileWriter(Constants.UserDataPath + Constants.Username + ".json")) {
     			file.write(obj.toJSONString());
-    			if(Constants.DEBUG) {
-	    			System.out.println("Successfully Saved JSON Object to File...");
-	    			System.out.println("\nJSON Object: " + obj);
-    			}
+				Constants.DebugPrint("Successfully Saved JSON Object to File...");
+				Constants.DebugPrint("\nJSON Object: " + obj);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 			ErrorHandler.HandleLoadError(e1.toString());
@@ -270,23 +260,19 @@ public class UserDataHandler {
         SimpleDateFormat dateformat = new SimpleDateFormat("E MMM dd HH:mm:ss z yyyy");
         String stp = (String) jsonObject.get("Stop Time");
 		Date stoptime =  dateformat.parse(stp);
-		if(Constants.DEBUG) {
-			System.out.println("stoptime on load: "+ stoptime.toString());
-		}
+		Constants.DebugPrint("stoptime on load: "+ stoptime.toString());
 		return stoptime;
 	}
 	
 	private void completeBroadcasts(ArrayList<String> livebroadcasts) throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, FileNotFoundException, InvalidAlgorithmParameterException, InterruptedException, IOException 
 	{
-		if(Constants.DEBUG) {
-			System.out.println("intervals has ended");
-		}
+		Constants.DebugPrint("intervals has ended");
 		String message= "Iterval time ended ,Current LiveBroadcast will be Completed";
 		String title= "Stopping Broadcast";
 		JOptionPane.showMessageDialog(null, message, title, JOptionPane.CANCEL_OPTION);
 		
 		if(!livebroadcasts.isEmpty()) {
-			System.out.println("stopping old broadcasts");
+			Constants.DebugPrint("stopping old broadcasts");
 			Controller.getInstance().getBroadcastsHandler().stopBroadcasts(livebroadcasts);
 		}
 	}
@@ -297,9 +283,8 @@ public class UserDataHandler {
 	    IntervalPanel intervalPanel = IntervalPanel.getInstance();
         intervalPanel.getLblNotSet().setText(interval.getHours() +
 				 " Hours and " + interval.getMinutes() +" minutes");
-        if(Constants.DEBUG) {
-        	System.out.println("setting interval panel");
-        }
+    	
+        Constants.DebugPrint("setting interval panel");
     	IntervalPanel.getInstance().updateIntervalPanel((String) jsonObject.get("Start Time"),stoptime.toString());
 		intervalPanel.getFtime().setVisible(true);						
     	intervalPanel.getLblstime().setVisible(true);

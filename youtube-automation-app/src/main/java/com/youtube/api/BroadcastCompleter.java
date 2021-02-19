@@ -25,23 +25,21 @@ import com.youtube.utils.Constants;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.swing.JOptionPane;
-
 
 /**
  * Use the YouTube Live Streaming API to retrieve a live broadcast
  * and complete the broadcast. Use OAuth 2.0 to authorize the API requests.
  * Thread safe implementation
- * @param args[0] = broadcast Id to be completed
+ * @param m_id = broadcast Id to be completed
  * @author Evgeny Geyfman
  */
-public class CompleteBroadcast extends Thread {
+public class BroadcastCompleter extends Thread {
 	
-	private String[] args;
+	private String m_id;
 	private AtomicInteger m_doneFlag;
 	
-	public  CompleteBroadcast(String[] args,AtomicInteger doneFlag) {
-		this.args = args;
+	public  BroadcastCompleter(String Id,AtomicInteger doneFlag) {
+		this.m_id = Id;
 		m_doneFlag = doneFlag;
 	}
 
@@ -53,16 +51,16 @@ public class CompleteBroadcast extends Thread {
         try {
         	Object lock = new Object();
         	YouTubeAPI youtubeApi = YouTubeAPI.getInstance();
-            LiveBroadcast returnedBroadcast = youtubeApi.getBroadcastFromPolledList(args[0]);
+            LiveBroadcast returnedBroadcast = youtubeApi.getBroadcastFromPolledList(m_id);
             
             if(returnedBroadcast==null) {
-            	System.out.println("no broadcast with this title was found");
+            	Constants.DebugPrint("no broadcast with this title was found");
             	return;
             }
             
             //Check broadcast is live
             if(!returnedBroadcast.getStatus().getLifeCycleStatus().equals("live")) {
-            	System.out.println("broadcast is not live");
+        	    Constants.DebugPrint("broadcast is not live");
             	return;
             }
            
@@ -73,60 +71,43 @@ public class CompleteBroadcast extends Thread {
             	returnedBroadcast = requestTransition.execute();
             }
             Thread.sleep(1000);
-            returnedBroadcast = youtubeApi.getBroadcastFromPolledList(args[0]);
+            returnedBroadcast = youtubeApi.getBroadcastFromPolledList(m_id);
             System.out.println(returnedBroadcast.getStatus().getLifeCycleStatus() + "title "+returnedBroadcast.getId()
-            		 + "ID: " + args[0]);
+            		 + "ID: " + m_id);
             synchronized (Constants.PollStartLock) {
 				Constants.PollStartLock.notifyAll();	//start polling the api 
            } //poll while test starting
              
              while(returnedBroadcast.getStatus().getLifeCycleStatus().equals("live")) {
 	        	 synchronized (Constants.PollLock) {
-					System.out.println("Thread "+Thread.currentThread().getId()+" waits");
+	        		 Constants.DebugPrint("Thread "+Thread.currentThread().getId()+" waits");
 					Constants.PollLock.wait();		//wait for status update
         	 	}
-         	   System.out.println("Thread "+Thread.currentThread().getId()+ " continues" );
+        	   Constants.DebugPrint("Thread "+Thread.currentThread().getId()+ " continues" );
  	    	   LiveBroadcast tempBroadcast = youtubeApi.getBroadcastFromPolledList(returnedBroadcast.getId());
  	    	   if(tempBroadcast!=null)
  	    		   returnedBroadcast = tempBroadcast;
-          	   System.out.println("polling live");
+ 	    	   Constants.DebugPrint("polling live");
           	   if(Constants.pollingCount==10) {	// if more then 100 seconds passed and Broadcast wasn't transitioned to live
-	     			reportError();
-	     			return;
+          		   throw new IOException ("100 secs passed no response on completion");
       	 		}
              }
-             
              
              synchronized (lock) {
             	 m_doneFlag.decrementAndGet();
  			}
-             System.out.println("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
+             Constants.DebugPrint("We are "+returnedBroadcast.getStatus().getLifeCycleStatus());
             
         } catch (GoogleJsonResponseException e) {
-            System.err.println("GoogleJsonResponseException code: " + e.getDetails().getCode() + " : "
-                    + e.getDetails().getMessage());
-            e.printStackTrace();
-            reportError();
+        	String errormsg = "Error code: " + e.getDetails().getCode()+", " + e.getDetails().getMessage();
+        	ErrorHandler.HandleApiError(m_id + ": "+ errormsg);
         } catch (IOException e) {
-            System.err.println("IOException: " + e.getMessage());
-            e.printStackTrace();
-            reportError();
+            ErrorHandler.HandleApiError(m_id + ": "+ e.getMessage());
         } catch (Throwable t) {
-            System.err.println("Throwable: " + t.getMessage());
-            t.printStackTrace();
-            reportError();
+            ErrorHandler.HandleApiError(m_id + ": "+ t.getMessage());
         }
     
     } 
     
-	/**
-	 * this method prompts to the GUI about an error occurrence
-	 */
-	private  void reportError() {
-		JOptionPane.showMessageDialog(null,
-	            "Problem completing broadcast " + args[0] +
-                ", please check manually at https://www.youtube.com/my_live_events",
-	            "Server request problem",
-	            JOptionPane.ERROR_MESSAGE);
-	}
+	
 }

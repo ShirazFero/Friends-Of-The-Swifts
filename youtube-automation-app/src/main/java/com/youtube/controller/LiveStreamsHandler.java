@@ -47,9 +47,7 @@ public class LiveStreamsHandler {
 	{
 		Constants.AddingStream = JOptionPane.showInputDialog("please enter stream name");
 		if(Constants.AddingStream == null) {
-			if(Constants.DEBUG) {
-				System.out.println("requset cancelled");
-			}
+			Constants.DebugPrint("requset cancelled");
 			return ;
 		}
 		try {

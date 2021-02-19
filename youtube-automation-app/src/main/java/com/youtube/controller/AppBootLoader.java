@@ -151,9 +151,7 @@ public class AppBootLoader {
 		obj.put("info", encodedKey);
 		try (FileWriter file = new FileWriter(Constants.InfoPath)) {
 			file.write(obj.toJSONString());
-			if(Constants.DEBUG) {
-				System.out.println("Successfully created first user list JSON Object File...");
-			}
+			Constants.DebugPrint("Successfully created first user list JSON Object File...");
 		} catch (IOException e) {
 			e.printStackTrace();
 			ErrorHandler.HandleLoadError(e.toString());

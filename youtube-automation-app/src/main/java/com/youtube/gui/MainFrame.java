@@ -193,9 +193,7 @@ public class MainFrame extends JFrame {
 		streamPanel.setBtnListener(new ButtonListener() {		//set button listener for stream panel
 			public void ButtonPressed(String name) {
 				try{
-					if(Constants.DEBUG) {
-						System.out.println("main frame Stream Panel: " +name);
-					}
+					Constants.DebugPrint("main frame Stream Panel: " +name);
 					switch(name){
 						case "Refresh": handleRefreshPressed(); break;
 						
@@ -256,9 +254,7 @@ public class MainFrame extends JFrame {
 		boradcastPanel.setBtnlistener(new ButtonListener() {	//set button listener for broadcast panel
 			public void ButtonPressed(String btnName) {
 				try {
-					if(Constants.DEBUG) {
-						System.out.println("main frame Broadcast Panel: " +btnName);
-					}
+					Constants.DebugPrint("main frame Broadcast Panel: " + btnName );
 					switch(btnName) {
 						case "Filter": handleFilterPressed();	break;
 						
@@ -326,9 +322,7 @@ public class MainFrame extends JFrame {
 		btnPnl.setBtnListener(new ButtonListener() {	//set button listener for button panel
 			public void ButtonPressed(String name){
 				try {
-					if(Constants.DEBUG) {
-						System.out.println("main frame Button Panel: " +name);
-					}
+					Constants.DebugPrint("main frame Button Panel: " +name);
 					switch(name) {
 						case "<html>Set<br>Interval</html>": 
 							  handleSetIntervalPresssed(); 
@@ -419,9 +413,7 @@ public class MainFrame extends JFrame {
 		inputForm.setBtnListener(new ButtonListener() {			//set button listener for input form
 			public void ButtonPressed(String btnName) {
 				try {
-					if(Constants.DEBUG) {
-						System.out.println("input form frame: " +btnName);
-					}
+					Constants.DebugPrint("input form frame: " +btnName);
 					switch(btnName) {
 						case "Set": handleSetPressed(); break;
 							
@@ -599,9 +591,7 @@ public class MainFrame extends JFrame {
 		desFrame.setBtnListener(new ButtonListener() {
 			@Override
 			public void ButtonPressed(String btnName) {
-				if(Constants.DEBUG) {
-					System.out.println("des  frame : " +btnName);
-				}
+				Constants.DebugPrint("des  frame : " + btnName);
 				switch(btnName) {
 				case "OK": 
 					desFrame.setVisible(false);
@@ -619,9 +609,7 @@ public class MainFrame extends JFrame {
 		userSetPanel.setBtnListener(new ButtonListener() {
 			@Override
 			public void ButtonPressed(String btnName) {
-				if(Constants.DEBUG) {
-					System.out.println("user Settings frame : " +btnName);
-				}
+				Constants.DebugPrint("user Settings frame : " +btnName);
 				switch(btnName) {
 					case "OK": userSetPanel.setVisible(false); break;
 						
@@ -646,16 +634,11 @@ public class MainFrame extends JFrame {
 		Controller.getInstance().getUserDataHandler().loadUserSettings();
 		if(Constants.saveState) {
 			if(Controller.getInstance().getUserDataHandler().loadUserState()) {
-				if(Constants.DEBUG) {
-					System.out.println("loaded user state");
-				}
+				Constants.DebugPrint("loaded user state");
 				refreshGuiPanels(btnPnl);
 			}
-			
 		}
-		else if(Constants.DEBUG){
-			System.out.println("user state load not enabled");
-		}
+		Constants.DebugPrint("user state load not enabled");
 	}
 		
 }

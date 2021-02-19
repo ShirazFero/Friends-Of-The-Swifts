@@ -62,9 +62,7 @@ public class TimerRunner {
 	public void cancelTimer() {
 		timer.cancel();	
 		timer.purge();
-		if(Constants.DEBUG) {
-			System.out.println("Timer cancelled and purged");
-		}
+		Constants.DebugPrint("Timer cancelled and purged");
 	}
 
 	/**
@@ -87,31 +85,26 @@ public class TimerRunner {
 			@Override
 			public void run() {
 				try {
-					if(Constants.DEBUG) {
-						System.out.println("---------------------------------------");
-						System.out.println("running handling itervals" + Thread.currentThread().getId());
-					}
+					Constants.DebugPrint("---------------------------------------");
+					Constants.DebugPrint("running handling itervals" + Thread.currentThread().getId());
 					
 					LiveBroadcastHandler broadcastHandler = Controller.getInstance().getBroadcastsHandler();					
 					
 					//get all current broadcast ID to be completed
 					ArrayList<String> broadcastsToComplete = new ArrayList<String>(broadcastHandler.getCurrentlyLive()); 
-					if(Constants.DEBUG) {
-						System.out.println("----------------starting new live broadcasts ------------------");
-						System.out.println("ids to stop:"+ broadcastsToComplete);
-					}
+					
+					Constants.DebugPrint("----------------starting new live broadcasts ------------------");
+					Constants.DebugPrint("ids to stop:"+ broadcastsToComplete);
+					
 					broadcastHandler.startBroadcast();
 					
 					synchronized (Constants.timeredRunnerLock) {
-						if(Constants.DEBUG) {
-							System.out.println("-------------Timer waits new broadcasts to start-----------");
-						}
+						Constants.DebugPrint("-------------Timer waits new broadcasts to start-----------");
 						Constants.timeredRunnerLock.wait();		//wait until all new broadcasts go live
 						
 					}
-					if(Constants.DEBUG) {
-						System.out.println("---------------Timer continues---------------");
-					}
+					Constants.DebugPrint("---------------Timer continues---------------");
+					
 					broadcastHandler.stopBroadcasts(broadcastsToComplete);   
 					Date newStartTime = stopTime;						
 					stopTime = broadcastHandler.calcStopTime(); 				

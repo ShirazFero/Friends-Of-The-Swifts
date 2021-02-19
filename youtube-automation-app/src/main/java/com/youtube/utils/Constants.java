@@ -9,7 +9,6 @@ import com.google.api.services.youtube.model.LiveBroadcast;
 import com.google.api.services.youtube.model.LiveStream;
 
 public class Constants {
-	
 	//flags
 	public static final boolean DEBUG = true;
 	public static final int MaxPolls = 10;
@@ -66,11 +65,18 @@ public class Constants {
 	public static List<LiveBroadcast> PolledBroadcasts;			//broadcasts pointer 
 	public static ArrayList<LiveStream> StreamToRemove;		    //Streams pointer 
 	
-	
 	//thread locks
 	public static Object timeredRunnerLock = new Object();
 	public static Object PollLock = new Object();				//poll lock
 	public static Object PollStartLock = new Object();			//poll start lock
+	
+	public static void DebugPrint(String msg)
+	{
+		if(Constants.DEBUG) {
+  	    	System.out.println(msg);
+  	    }
+	}
+	
 	
 }
  

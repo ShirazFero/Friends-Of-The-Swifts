@@ -36,7 +36,7 @@ import org.json.simple.parser.ParseException;
  *
  * @author Evgeny Geyfman
  */
-public class GoLive extends Thread {
+public class BroadcastStarter extends Thread {
 
 	private boolean halfWayflag ;
 	
@@ -46,7 +46,7 @@ public class GoLive extends Thread {
 	
 	private AtomicInteger m_doneFlag;
 	
-	public GoLive(String[] args,  ArrayList<String> currLive, AtomicInteger doneFlag) {
+	public BroadcastStarter(String[] args,  ArrayList<String> currLive, AtomicInteger doneFlag) {
 		this.args = args;
 		this.halfWayflag = false;
 		m_currentlyLive = currLive;
@@ -70,11 +70,11 @@ public class GoLive extends Thread {
     	    
     	    notifyPollStart(); 
     	    
-    	    debugPrint(response);
+    	    Constants.DebugPrint(args[0]+ " is "+ response.getStatus().getLifeCycleStatus());
     	    
     	    response = waitWhileModeTransitions(response,"testing");
     	    
-    	    debugPrint(response);
+    	    Constants.DebugPrint(args[0]+ " is "+ response.getStatus().getLifeCycleStatus());
 	       
     	    markHalfWay();
     	    
@@ -82,32 +82,19 @@ public class GoLive extends Thread {
     	    
     	    response = waitWhileModeTransitions(response,"live");
 	        
-    	    debugPrint(response);
+    	    Constants.DebugPrint(args[0]+ " is "+ response.getStatus().getLifeCycleStatus());
 	       
     	    markFinished(response.getId());
 	       
 		} catch (GoogleJsonResponseException  e) {
 	    	String errormsg = "Error code: " + e.getDetails().getCode()+", " + e.getDetails().getMessage();
-	    	 if(Constants.DEBUG) {
-	    		 System.out.println(errormsg);
-	    		 e.printStackTrace();
-	    	 }
+    		 e.printStackTrace();
 			reportError(errormsg);
 	    } catch (SecurityException | IOException | InterruptedException | ParseException e) {
 	    	String errormsg = "Error: " + e.getMessage();
-		   	if(Constants.DEBUG) {
-		   		System.out.println(errormsg);
-		   		e.printStackTrace();
-		   	}
+	   		e.printStackTrace();
 	        reportError(errormsg);
 	    } 
-	}
-	
-	private void debugPrint(LiveBroadcast response)
-	{
-		if(Constants.DEBUG) {
-  	    	System.out.println(args[0]+ " is "+ response.getStatus().getLifeCycleStatus());
-  	    }
 	}
 	
 	private synchronized LiveBroadcast requestTransitionToMode(LiveBroadcast returnedBroadcast, String mode) throws IOException
@@ -167,9 +154,7 @@ public class GoLive extends Thread {
 	private LiveBroadcast initLiveBroadcast(String  description) throws IOException, ParseException 
 	{
 	      String title = setTitle();// set title for the broadcast.
-	      if(Constants.DEBUG) {
-	    	  System.out.println("You chose " + title + " for broadcast title.");
-	      }
+    	  Constants.DebugPrint("You chose " + title + " for broadcast title.");
 	      // Create a snippet with the title and scheduled start and end
 	      // times for the broadcast.
 	      LiveBroadcastSnippet broadcastSnippet = setBroadcastSnippet(title, description);
@@ -253,23 +238,17 @@ public class GoLive extends Thread {
 		YouTubeAPI youtubeApi = YouTubeAPI.getInstance();
 		while(!returnedBroadcast.getStatus().getLifeCycleStatus().equals(mode)) {
 			synchronized (Constants.PollLock) {
-	 		   	if(Constants.DEBUG) {
-	 		   		System.out.println("Thread "+Thread.currentThread().getId()+" waits");
-	 		   	}
+	 		   	Constants.DebugPrint("Thread "+Thread.currentThread().getId()+" waits");
 				Constants.PollLock.wait();		//wait for status update
 	 	   	}
-			if(Constants.DEBUG) {
-				System.out.println("Thread "+Thread.currentThread().getId()+ " continues" );
-	 	   	}
+			Constants.DebugPrint("Thread "+Thread.currentThread().getId()+ " continues" );
 	      
 			LiveBroadcast tempBroadcast = youtubeApi.getBroadcastFromPolledList(returnedBroadcast.getId());
 			if(tempBroadcast != null) {
 				returnedBroadcast = tempBroadcast;
 			}
 			
-			if(Constants.DEBUG) {
-				System.out.println("polling " + mode + "Staring " + args[0]);
-			}
+			Constants.DebugPrint("polling " + mode + "Staring " + args[0]);
 		   
 			if(Constants.pollingCount == Constants.MaxPolls) {	// if more then 90 seconds passed and Broadcast wasn't transitioned to Testing
 	       			throw new IOException ("100 secs passed no response on " + mode + " staring ");
@@ -285,9 +264,6 @@ public class GoLive extends Thread {
 	 */
 	private synchronized void reportError(String error) 
     {
-		if(Constants.DEBUG) {
-    		System.out.println(error);
-    	}
 		m_doneFlag.decrementAndGet();
 		if(!halfWayflag) {
 			m_doneFlag.decrementAndGet();

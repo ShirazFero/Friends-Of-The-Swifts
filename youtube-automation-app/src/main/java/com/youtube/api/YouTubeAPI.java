@@ -179,9 +179,8 @@ public class YouTubeAPI {
 		
 	        // Prompt the user to enter a title for the video stream.
 		    String title = (chosenTitle == null || chosenTitle.isEmpty()) ?  "New Stream" : chosenTitle ;
-		    if(Constants.DEBUG) {
-		    	System.out.println("You chose " + title + " for stream title.");
-		    }
+	    	
+		    Constants.DebugPrint("You chose " + title + " for stream title.");
 		
 		    LiveStreamSnippet streamSnippet = initLiveStreamSnippet(title,null);
 		    CdnSettings cdnSettings = initCdnSettings();
@@ -219,27 +218,19 @@ public class YouTubeAPI {
 		    	return false;
 		    }
 		    
-		    if(Constants.DEBUG) {
-		    	System.out.println("You chose to delete " + title + " for stream title.");
-		    }
+		    Constants.DebugPrint("You chose to delete " + title + " for stream title.");
 		    
 		    LiveStream stream = getStreamByName(title);
 		    if(stream == null) {
-		    	if(Constants.DEBUG) {
-				    	System.out.println("no such stream exists: " + title);
-			    }
+	    		Constants.DebugPrint("no such stream exists: " + title);
 		    	return false;
 		    }
-		    if(Constants.DEBUG) {
-		    	System.out.println("deleted stream id: " + stream.getId());
-		    }
+	    	Constants.DebugPrint("deleted stream id: " + stream.getId());
 		    // Construct and execute the API request to insert the stream.
 		    YouTube.LiveStreams.Delete liveStreamDelete =
 		    		youtubeService.liveStreams().delete(stream.getId());
 		    liveStreamDelete.execute();
-		    if(Constants.DEBUG) {
-		    	System.out.println(title +" was deleted");
-		    }
+	    	Constants.DebugPrint(title +" was deleted");
 		    return true;
 		        
 		} catch (GoogleJsonResponseException e) {
@@ -389,9 +380,7 @@ public class YouTubeAPI {
 	            returnedList = returnedListResponse.getItems();								//Receive	next page
 	            fullreturnList.addAll(returnedList);	
 	            //add to return list
-	            if(Constants.DEBUG) {
-	            	System.out.println(returnedListResponse.getPageInfo());
-			    }
+            	Constants.DebugPrint(returnedListResponse.getPageInfo().toPrettyString());
 	        }
 	        else {
 	        	nextPageflag = false;
