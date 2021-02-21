@@ -36,10 +36,11 @@ public class LiveStreamsHandler {
 
 	public boolean refreshStreams() throws SecurityException, IOException  
 	{
-		if(streams != null) {
+		List<LiveStream> updatedList =  YouTubeAPI.getInstance().requestStreamList();
+		if(updatedList != null) {
 			streams.clear();
+			streams = updatedList;
 		}
-		streams = YouTubeAPI.getInstance().listStreams(null);
 		return streams != null ? true : false;
 	}
 	
@@ -54,7 +55,7 @@ public class LiveStreamsHandler {
 			new ProgressFrame().StreamTask();
 		} catch (IOException e) {
 			e.printStackTrace();
-			ErrorHandler.HandleApiError(e.toString());
+			ErrorHandler.HandleError("API",e.getMessage());
 		}
 		
 	}
@@ -69,7 +70,7 @@ public class LiveStreamsHandler {
 			new ProgressFrame().StreamTask();
 		} catch (IOException e) {
 			e.printStackTrace();
-			ErrorHandler.HandleApiError(e.toString());
+			ErrorHandler.HandleError("API",e.getMessage());
 		}
 	}
 	

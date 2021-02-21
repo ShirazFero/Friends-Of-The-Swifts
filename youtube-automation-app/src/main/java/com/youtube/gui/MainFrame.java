@@ -425,7 +425,7 @@ public class MainFrame extends JFrame {
 					}
 				} catch (IOException e1) {
 					e1.printStackTrace();
-					ErrorHandler.HandleUnknownError(e1.toString());
+					ErrorHandler.HandleError("Unknown", e1.toString());
 				}
 			}
 			

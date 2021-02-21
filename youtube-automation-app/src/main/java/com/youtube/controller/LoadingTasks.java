@@ -30,8 +30,7 @@ public class LoadingTasks extends SwingWorker<Void, Void>  {
 			updateBroadcastPanel();
 			
 		} catch (IOException e) {
-			e.printStackTrace();
-			ErrorHandler.HandleLoadError(e.toString());
+			ErrorHandler.HandleError("API", e.toString());
 		}
 	}
 	

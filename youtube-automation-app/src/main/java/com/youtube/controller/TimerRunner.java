@@ -112,9 +112,8 @@ public class TimerRunner {
 					IntervalPanel.getInstance().updateIntervalPanel(newStartTime.toString(),stopTime.toString());
 					rescheduleTimer();									
 					
-				}catch (InterruptedException | IOException e1) {
-					e1.printStackTrace();
-					ErrorHandler.HandleLoadError(e1.toString());
+				} catch (InterruptedException | IOException e1) {
+					ErrorHandler.HandleError("API", e1.toString());
 				}
 			}
 		};

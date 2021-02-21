@@ -12,7 +12,7 @@ import com.youtube.utils.Constants;
  */
 public class ErrorHandler {
 
-	public static void HandleError(Object[] args) 
+	public static synchronized void HandleError(Object[] args) 
 	{
 		try {
 			String message ="ERROR code: " + args[0] + ", ERROR message : "+ args[1];
@@ -27,7 +27,7 @@ public class ErrorHandler {
 		}
 	}
 	
-	public static void HandleMultipleError(String titles) 
+	public static synchronized void HandleMultipleError(String titles) 
 	{
 		try {
 		
@@ -40,37 +40,11 @@ public class ErrorHandler {
 			e.printStackTrace();
 		}
 	}
-	
-	public static void HandleUnknownError(String  error) 
+	 
+	public static synchronized void HandleError(String kind ,String  msg) 
 	{
 		try {
-			String message ="Unknown error: " + error;
-					
-			JOptionPane.showMessageDialog(null,message,"UNKNOWN ERROR",JOptionPane.ERROR_MESSAGE);
-			Constants.DebugPrint(message);
-			FileLogger.getInstance().Info(message);
-		} catch (SecurityException | IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public static void HandleLoadError(String  error) 
-	{
-		try {
-			String message ="Unknown error: " + error;
-					
-			JOptionPane.showMessageDialog(null,message,"APP LOADING ERROR",JOptionPane.ERROR_MESSAGE);
-			Constants.DebugPrint(message);
-			FileLogger.getInstance().Info(message);
-		} catch (SecurityException | IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public static void HandleApiError(String  error) 
-	{
-		try {
-			String message ="Unknown error: " + error;
+			String message = kind + " error: " + msg;
 					
 			JOptionPane.showMessageDialog(null,message,"APP LOADING ERROR",JOptionPane.ERROR_MESSAGE);
 			Constants.DebugPrint(message);

@@ -9,36 +9,30 @@ public class ApiPoller extends Thread {
 		try {
 			waitUntilPollStart();
 		    pollApiWhileTransitioning();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		} catch (InterruptedException | IOException e) {
+			ErrorHandler.HandleError("API",e.getMessage());
 		}
 	}
 
 	private void waitUntilPollStart() throws InterruptedException
 	{
 		synchronized (Constants.PollStartLock) {
-			Constants.DebugPrint("List poll waits");
+			Constants.DebugPrint("ApiPoller waits before start");
 			Constants.pollingCount = 0;
 			Constants.PollStartLock.wait();
 		} 
-		Constants.DebugPrint("List poll continues");
+		Constants.DebugPrint("ApiPoller starts polling");
 	}
 
-	private void pollApiWhileTransitioning() 
-	{
-	   try {
-		   	while(Constants.pollingState && Constants.pollingCount < Constants.MaxPolls) {
-			    String[] args = {"all",Constants.MaxPollRsults,null};
-			    Constants.PolledBroadcasts = YouTubeAPI.getInstance().listBroadcasts(args);
-			    synchronized (Constants.PollLock) {
-					Constants.PollLock.notifyAll();
-			    }
-			    ++Constants.pollingCount;
-			    Thread.sleep(Constants.POLL_SLEEP_MILISEC);
-   			}
-		   	
-	   	} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
+	private void pollApiWhileTransitioning() throws IOException, InterruptedException {
+	   	while(Constants.pollingState && Constants.pollingCount < Constants.MaxPolls) {
+		    String[] args = {"all",Constants.MaxPollRsults,null};
+		    Constants.PolledBroadcasts = YouTubeAPI.getInstance().requestBroadcastList(args);
+		    synchronized (Constants.PollLock) {
+				Constants.PollLock.notifyAll();
+		    }
+		    ++Constants.pollingCount;
+		    Thread.sleep(Constants.POLL_SLEEP_MILISEC);
 		}
    }
 }

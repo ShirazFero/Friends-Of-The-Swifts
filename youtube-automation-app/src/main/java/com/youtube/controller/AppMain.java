@@ -25,8 +25,7 @@ public class AppMain
 					new UserLoginFrame(loader);
 				} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
 						| InvalidAlgorithmParameterException | IOException | ParseException e) {
-					e.printStackTrace();
-					ErrorHandler.HandleLoadError(e.toString());
+					ErrorHandler.HandleError("Boot", e.toString());
 				}
 			}
 		});

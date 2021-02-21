@@ -269,7 +269,7 @@ public class BroadcastStarter extends Thread {
 			m_doneFlag.decrementAndGet();
 		}
     	Constants.badResults.add(args[0] + ": "+ error);
-    	ErrorHandler.HandleApiError(args[0] + ": "+ error);
+    	ErrorHandler.HandleError("API", args[0] + ": "+ error);
     }	
 	
 }

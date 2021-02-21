@@ -53,7 +53,7 @@ public class LiveBroadcastHandler {
 	public boolean refreshBroadcasts(String[] args) throws SecurityException, IOException  {
 		if(broadcasts!=null)
 			broadcasts.clear();
-		broadcasts = YouTubeAPI.getInstance().listBroadcasts(args);
+		broadcasts = YouTubeAPI.getInstance().requestBroadcastList(args);
 		if(broadcasts == null) {
 			return false;
 		}
@@ -174,7 +174,7 @@ public class LiveBroadcastHandler {
 					new ProgressFrame().updateTask();
 				}  catch (IOException e) {
 					e.printStackTrace();
-					ErrorHandler.HandleLoadError(e.toString());
+					ErrorHandler.HandleError("Boot",  e.toString());
 				}
 			}
 		});
@@ -218,7 +218,7 @@ public class LiveBroadcastHandler {
 					new ProgressFrame().loadTask(m_percetageCounter);
 				} catch (IOException e) {
 					e.printStackTrace();
-					ErrorHandler.HandleLoadError(e.toString());
+					ErrorHandler.HandleError("Boot",  e.toString());
 				}
 			}
 		});
@@ -263,7 +263,7 @@ public class LiveBroadcastHandler {
 					new ProgressFrame().completeTask(m_percetageCounter);
 				} catch (IOException e) {
 					e.printStackTrace();
-					ErrorHandler.HandleLoadError(e.toString());
+					ErrorHandler.HandleError("Boot",  e.toString());
 				}
 			}
 		});

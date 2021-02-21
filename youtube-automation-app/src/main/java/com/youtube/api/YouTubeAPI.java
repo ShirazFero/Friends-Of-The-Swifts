@@ -87,9 +87,9 @@ public class YouTubeAPI {
 		    Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage(),e.getDetails().getErrors()};
 		    ErrorHandler.HandleError(errorArgs);
 		} catch (IOException e) {
-		    ErrorHandler.HandleUnknownError(e.getMessage());
+			ErrorHandler.HandleError("API", e.getMessage());
 		} catch (Throwable t) {
-		    ErrorHandler.HandleUnknownError(t.getMessage());
+			ErrorHandler.HandleError("API", t.getMessage());
 	    }
 	}
 	
@@ -104,38 +104,21 @@ public class YouTubeAPI {
 	* @throws SecurityException 
 	* @throws ParseException 
     */
-	public  List<LiveBroadcast> listBroadcasts(String[] args) throws SecurityException, IOException  
+	public  List<LiveBroadcast> requestBroadcastList(String[] args) throws SecurityException, IOException  
 	{
 	    try {
 	        // Create a request to list broadcasts.
-		    YouTube.LiveBroadcasts.List liveBroadcastRequest =
-		    		youtubeService.liveBroadcasts().list("id,snippet,status");
-		   
-		    if(args.length != 3) {
-		    	throw  new IOException("Bad arguments number on requset");
-		    }
-		    	
-		    // Indicate that the API response should not filter broadcasts
-		    // based on their type or status.
-	    	liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus(args[0]);
-		    liveBroadcastRequest.setMaxResults((long) Long.parseLong(args[1])); //show up to 50 broadcasts
-		    //set next/prev page token if exists
-		    if(args[2] != null) {
-		    	liveBroadcastRequest.setPageToken(args[2]);
-		    }
+		    YouTube.LiveBroadcasts.List liveBroadcastRequest = initRequest(args);
 		    // Execute the API request and return the list of broadcasts.
 		    LiveBroadcastListResponse returnedListResponse = liveBroadcastRequest.execute();
-		    Constants.NextPageToken = returnedListResponse.getNextPageToken();
-		    Constants.PrevPageToken = returnedListResponse.getPrevPageToken();
+		    updatePageTokens(returnedListResponse);
 		    return returnedListResponse.getItems();
 	   
 	    } catch (GoogleJsonResponseException e) {
 		    Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage(),e.getDetails().getErrors()};
 		    ErrorHandler.HandleError(errorArgs);
-		} catch (IOException e) {
-		    ErrorHandler.HandleUnknownError(e.getMessage());
 		} catch (Throwable t) {
-		    ErrorHandler.HandleUnknownError(t.getMessage());
+			ErrorHandler.HandleError("API", t.getMessage());
 	    }
 		return null;
 	}
@@ -146,7 +129,7 @@ public class YouTubeAPI {
 	 * @throws SecurityException 
 	 * @throws ParseException 
 	 */
-	public  List<LiveStream> listStreams(String[] args) throws SecurityException, IOException  
+	public  List<LiveStream> requestStreamList() throws SecurityException, IOException  
 	{
 	    try{
 	    	// Create a request to list liveStream resources.
@@ -161,9 +144,9 @@ public class YouTubeAPI {
 		    Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage(),e.getDetails().getErrors()};
 		    ErrorHandler.HandleError(errorArgs);
 		} catch (IOException e) {
-		    ErrorHandler.HandleUnknownError(e.getMessage());
+			ErrorHandler.HandleError("API", e.getMessage());
 		} catch (Throwable t) {
-		    ErrorHandler.HandleUnknownError(t.getMessage());
+			ErrorHandler.HandleError("API", t.getMessage());
 	    }
 		return null;
 	}
@@ -195,14 +178,12 @@ public class YouTubeAPI {
 	    } catch (GoogleJsonResponseException e) {
 		    Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage(),e.getDetails().getErrors()};
 		    ErrorHandler.HandleError(errorArgs);
-		    return false;
 		} catch (IOException e) {
-		    ErrorHandler.HandleUnknownError(e.getMessage());
-		    return false;
+			ErrorHandler.HandleError("API", e.getMessage());
 		} catch (Throwable t) {
-		    ErrorHandler.HandleUnknownError(t.getMessage());
-		    return false;
+			ErrorHandler.HandleError("API", t.getMessage());
 	    }
+	    return false;
 	}
 	
 	/**
@@ -238,10 +219,10 @@ public class YouTubeAPI {
 		    ErrorHandler.HandleError(errorArgs);
 		    return false;
 		} catch (IOException e) {
-		    ErrorHandler.HandleUnknownError(e.getMessage());
+		    ErrorHandler.HandleError("API",  e.getMessage());
 		    return false;
 		} catch (Throwable t) {
-		    ErrorHandler.HandleUnknownError(t.getMessage());
+		    ErrorHandler.HandleError("API",  t.getMessage());
 		    return false;
 	    }
 	}
@@ -271,14 +252,12 @@ public class YouTubeAPI {
 		} catch (GoogleJsonResponseException e) {
 		    Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage(),e.getDetails().getErrors()};
 		    ErrorHandler.HandleError(errorArgs);
-		    return false;
 		} catch (IOException e) {
-		    ErrorHandler.HandleUnknownError(e.getMessage());
-		    return false;
+		    ErrorHandler.HandleError("API",  e.getMessage());
 		} catch (Throwable t) {
-		    ErrorHandler.HandleUnknownError(t.getMessage());
-		    return false;
+		    ErrorHandler.HandleError("API",  t.getMessage());
 	    }
+		return false;
 	}
 	
 	/**
@@ -289,15 +268,13 @@ public class YouTubeAPI {
 	 */
 	public  LiveStream getStreamByName(String name) throws IOException, ParseException 
 	{
-    	LiveStream foundstream = null;			//initite pointer to the stream
-    	List<LiveStream> returnedList = listStreams(null); //get stream list
+    	List<LiveStream> returnedList = requestStreamList(); //get stream list
         for (LiveStream stream : returnedList) {
-        	//System.out.println(stream.getSnippet().getTitle());
         	if(stream.getSnippet().getTitle().equals(name)) {
-        		foundstream = stream;
+        		return stream;
         	}
         }
-    	return foundstream;
+    	throw new IOException("stream not found");
 	}
 	
 	/**
@@ -326,14 +303,12 @@ public class YouTubeAPI {
 		} catch (GoogleJsonResponseException e) {
 		    Object errorArgs[] = {e.getDetails().getCode(),e.getDetails().getMessage(),e.getDetails().getErrors()};
 		    ErrorHandler.HandleError(errorArgs);
-		    return false;
 		} catch (IOException e) {
-		    ErrorHandler.HandleUnknownError(e.getMessage());
-		    return false;
+		    ErrorHandler.HandleError("API",  e.getMessage());
 		} catch (Throwable t) {
-		    ErrorHandler.HandleUnknownError(t.getMessage());
-		    return false;
+		    ErrorHandler.HandleError("API",  t.getMessage());
 	    }   
+		return false;
 	}
 	
  	/**
@@ -362,29 +337,50 @@ public class YouTubeAPI {
 		    	return broadcast;
 		    }
  		}
- 		return null;
+ 		throw new IOException("Broadcast not found");
  	}
 	
+ 	
+	private void updatePageTokens(LiveBroadcastListResponse listResponse) {
+		Constants.NextPageToken = listResponse.getNextPageToken();
+	    Constants.PrevPageToken = listResponse.getPrevPageToken();
+	}
+	
+	private  YouTube.LiveBroadcasts.List initRequest(String[] args) throws IOException
+	{
+		YouTube.LiveBroadcasts.List liveBroadcastRequest =
+	    		youtubeService.liveBroadcasts().list("id,snippet,status");
+	   
+	    if(args.length != 3) {
+	    	throw  new IOException("Bad arguments number on requset");
+	    }
+	    	
+	    // Indicate that the API response should not filter broadcasts
+	    // based on their type or status.
+    	liveBroadcastRequest.setBroadcastType("all").setBroadcastStatus(args[0]);
+	    liveBroadcastRequest.setMaxResults((long) Long.parseLong(args[1])); //show up to 50 broadcasts
+	    //set next/prev page token if exists
+	    if(args[2] != null) {
+	    	liveBroadcastRequest.setPageToken(args[2]);
+	    }
+	    // Execute the API request and return the list of broadcasts
+	    return liveBroadcastRequest;
+	}
+ 	
 	private  List<LiveStream> getAllStreams(YouTube.LiveStreams.List livestreamRequest) throws IOException
 	{
 		// Execute the API request and return the list of streams.
 		LiveStreamListResponse returnedListResponse = livestreamRequest.execute();
 	    List<LiveStream> returnedList = returnedListResponse.getItems();
 	    List<LiveStream> fullreturnList = new LinkedList<LiveStream>(returnedList);
-	    boolean nextPageflag = true;	//flag that checks if there's more pages
-	    while(nextPageflag) {
-	        //check if there are more pages of streams
-	        if(returnedListResponse.getNextPageToken() != null) {
-	        	livestreamRequest.setPageToken(returnedListResponse.getNextPageToken());	//set next page token
-	            returnedListResponse = livestreamRequest.execute();							//Request next page	
-	            returnedList = returnedListResponse.getItems();								//Receive	next page
-	            fullreturnList.addAll(returnedList);	
-	            //add to return list
-            	Constants.DebugPrint(returnedListResponse.getPageInfo().toPrettyString());
-	        }
-	        else {
-	        	nextPageflag = false;
-	        }
+	    String nextPageToken  = returnedListResponse.getNextPageToken();
+	    while(nextPageToken != null) {
+        	livestreamRequest.setPageToken(nextPageToken);	//set next page token
+            returnedListResponse = livestreamRequest.execute();							//Request next page	
+            returnedList = returnedListResponse.getItems();								//Receive	next page
+            fullreturnList.addAll(returnedList);	
+            nextPageToken  = returnedListResponse.getNextPageToken();
+        	Constants.DebugPrint(returnedListResponse.getPageInfo().toPrettyString());
 	    }
 	    return fullreturnList;	//return full list
 	}
@@ -403,9 +399,8 @@ public class YouTubeAPI {
 	private CdnSettings initCdnSettings()
 	{
 		// Define the content distribution network settings for the
-	    // video stream. The settings specify the stream's format and
-	    // ingestion type. See:
-	    // https://developers.google.com/youtube/v3/live/docs/liveStreams#cdn
+	    // video stream. The settings specify the stream's format, ingestion type, Resolution, Frame rate .
+	    // See: https://developers.google.com/youtube/v3/live/docs/liveStreams#cdn
 	    CdnSettings cdnSettings = new CdnSettings();
 	    cdnSettings.setFormat(Constants.Format);
 	    cdnSettings.setIngestionType(Constants.IngestionType);
@@ -480,9 +475,5 @@ public class YouTubeAPI {
 		Constants.StudioUrl = "https://studio.youtube.com/channel/" + Constants.CHANNEL_ID + "/videos/live";
 		Constants.LiveStreamUrl = "https://studio.youtube.com/channel/"+ Constants.CHANNEL_ID +"/livestreaming/manage";
 	}
-	
-//	public static final String StudioUrl = "https://studio.youtube.com";
-//	public static final String LiveStreamUrl = "https://studio.youtube.com/channel/"+ CHANNEL_ID +"/livestreaming/manage";
-	
 	
 }

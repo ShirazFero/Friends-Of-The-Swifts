@@ -100,11 +100,11 @@ public class BroadcastCompleter extends Thread {
             
         } catch (GoogleJsonResponseException e) {
         	String errormsg = "Error code: " + e.getDetails().getCode()+", " + e.getDetails().getMessage();
-        	ErrorHandler.HandleApiError(m_id + ": "+ errormsg);
+        	ErrorHandler.HandleError("API", m_id + ": "+ errormsg);
         } catch (IOException e) {
-            ErrorHandler.HandleApiError(m_id + ": "+ e.getMessage());
+        	ErrorHandler.HandleError("API", m_id + ": "+ e.getMessage());
         } catch (Throwable t) {
-            ErrorHandler.HandleApiError(m_id + ": "+ t.getMessage());
+        	ErrorHandler.HandleError("API", m_id + ": "+ t.getMessage());
         }
     
     } 

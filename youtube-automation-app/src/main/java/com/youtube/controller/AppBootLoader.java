@@ -43,7 +43,7 @@ public class AppBootLoader {
 			}
 		} catch (NoSuchAlgorithmException | SecurityException | IOException | ParseException | InvalidKeyException | NoSuchPaddingException | InvalidAlgorithmParameterException e) {
 			e.printStackTrace();
-			ErrorHandler.HandleLoadError(e.toString());
+			ErrorHandler.HandleError("Boot", e.toString());
 		}
 	}
 
@@ -123,7 +123,7 @@ public class AppBootLoader {
 			System.out.println("Successfully created first user list JSON Object File...");
 		} catch (IOException e1) {
 			e1.printStackTrace();
-			ErrorHandler.HandleLoadError(e1.toString());
+			ErrorHandler.HandleError("Boot", e1.toString());
 		}
 		fileEncrypt(obj.toString());
 	}
@@ -154,7 +154,7 @@ public class AppBootLoader {
 			Constants.DebugPrint("Successfully created first user list JSON Object File...");
 		} catch (IOException e) {
 			e.printStackTrace();
-			ErrorHandler.HandleLoadError(e.toString());
+			ErrorHandler.HandleError("Boot", e.toString());
 		}
 	}
 	

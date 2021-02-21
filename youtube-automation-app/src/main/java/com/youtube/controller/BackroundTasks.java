@@ -27,21 +27,21 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 			setProgress(progress+=33);
 			if(!controller.getStreamHandler().refreshStreams()) {			//get initial streams
 				String failmsg = "failed fetching streams on boot load";
-				ErrorHandler.HandleLoadError(failmsg);
+				ErrorHandler.HandleError("Boot",  failmsg);
 				System.exit(1);
 			}
 			setProgress(progress+=33);
 			String[] args = {"active",Constants.NumberOfResulsts,null};
 			if(!controller.getBroadcastsHandler().refreshBroadcasts(args)){	//get initial broadcasts
 				String failmsg = "failed fetching broadcasts on boot load";
-				ErrorHandler.HandleLoadError(failmsg);
+				ErrorHandler.HandleError("Boot",  failmsg);
 				System.exit(1);
 			}
 			setProgress(progress+=34);
 			return null;
 		}catch(IOException e ) {
 			e.printStackTrace();
-			ErrorHandler.HandleLoadError(e.toString());
+			ErrorHandler.HandleError("Boot",  e.toString());
 			System.exit(1);
 		}
 		return null;
@@ -57,7 +57,7 @@ public class BackroundTasks extends SwingWorker<Void, Void> {
 						new MainFrame();
 				} catch (IOException | ParseException | InvalidKeyException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException e) {
 					e.printStackTrace();
-					ErrorHandler.HandleLoadError(e.toString());
+					ErrorHandler.HandleError("Boot",  e.toString());
 				}
 			}
 		});

@@ -56,7 +56,7 @@ public class UserLoginFrame extends JFrame implements ActionListener {
 			
 		} catch (IOException e) {
 			e.printStackTrace();
-			ErrorHandler.HandleLoadError(e.toString());
+			ErrorHandler.HandleError("Unknown", e.toString());
 		}
 	}
 	
@@ -150,7 +150,7 @@ public class UserLoginFrame extends JFrame implements ActionListener {
 					new ProgressFrame().getUserDataFromServer();
 				} catch (IOException e) {
 					e.printStackTrace();
-					ErrorHandler.HandleLoadError(e.toString());
+					ErrorHandler.HandleError("Unknown", e.toString());
 				}
 		}});
 		dispose();

@@ -43,8 +43,7 @@ public class UserDataHandler {
 			Constants.DebugPrint("\nJSON Object: " + obj);
 			file.close();
 		} catch ( IOException  e1) {
-			e1.printStackTrace();
-			ErrorHandler.HandleLoadError(e1.toString());
+			ErrorHandler.HandleError("Save User Data", e1.toString());
 		}
 	}
 	
@@ -86,10 +85,9 @@ public class UserDataHandler {
 	        return true;
         
 	    } catch (Exception e ) {
-	        e.printStackTrace();
-	        ErrorHandler.HandleLoadError(e.toString());
+	        ErrorHandler.HandleError("Load User State", e.toString());
+	        return false;		
 	    }
-		return false;		
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -193,7 +191,7 @@ public class UserDataHandler {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            ErrorHandler.HandleLoadError(e.toString());
+            ErrorHandler.HandleError("Load User Data", e.toString());
         }
 	}
 	
@@ -212,7 +210,7 @@ public class UserDataHandler {
 				Constants.DebugPrint("\nJSON Object: " + obj);
 		} catch (IOException e1) {
 			e1.printStackTrace();
-			ErrorHandler.HandleLoadError(e1.toString());
+			ErrorHandler.HandleError("New User Data", e1.toString());
 		}
 	}
 	
